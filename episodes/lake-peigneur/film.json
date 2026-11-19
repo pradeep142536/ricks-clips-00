@@ -1,0 +1,2003 @@
+{
+ "title": "The Day A 14-Inch Drill Swallowed An Entire Lake (Lake Peigneur 1980)",
+ "fps": 30,
+ "size": [
+  1080,
+  1920
+ ],
+ "words": "voice/words.json",
+ "camera_idea": {
+  "name": "The Unstoppable Vortex",
+  "why": "From a peaceful sunny shallow lake, the camera dives into the cavernous crystal salt mine, witnesses the puncture, rushes upward with the escaping miners, sweeps around the giant quarter-mile whirlpool, reveals the physics in a 3D cutaway, and loops back to the tiny drill bit on the deep sapphire lake.",
+  "signature": "The sudden vertical plunge: from the drilling platform into the spinning funnel of the vortex, followed by the geyser eruption that loops back to Frame 0."
+ },
+ "cast": {
+  "foreman": {
+   "puppet": "cast:construction",
+   "height": 1.76,
+   "heads_tall": 2.7
+  },
+  "miner": {
+   "puppet": "cast:prospector",
+   "height": 1.7,
+   "heads_tall": 2.85
+  },
+  "surveyor": {
+   "puppet": "cast:construction",
+   "height": 1.68,
+   "heads_tall": 2.8
+  }
+ },
+ "places": {
+  "lake_surface": {
+   "set": "lake_surface",
+   "light": "morning",
+   "backdrop": 7.0
+  },
+  "salt_cavern": {
+   "set": "salt_cavern",
+   "light": "interior",
+   "backdrop": 6.0
+  },
+  "vortex": {
+   "set": "vortex",
+   "light": "overcast",
+   "backdrop": 8.0
+  },
+  "diagram": {
+   "set": "diagram",
+   "light": "night",
+   "backdrop": 5.0
+  },
+  "waterfall": {
+   "set": "waterfall",
+   "light": "day",
+   "backdrop": 7.0
+  }
+ },
+ "props": {
+  "derrick": {
+   "pos": [
+    0,
+    4.0,
+    0
+   ],
+   "kind": "derrick"
+  },
+  "drill": {
+   "pos": [
+    0,
+    3.5,
+    0.8
+   ],
+   "kind": "drill"
+  },
+  "ore_cart": {
+   "pos": [
+    -2.0,
+    3.5,
+    0
+   ],
+   "kind": "ore_cart"
+  },
+  "barge": {
+   "pos": [
+    1.5,
+    5.0,
+    0
+   ],
+   "kind": "barge"
+  },
+  "measuring_stick": {
+   "pos": [
+    -1.0,
+    2.5,
+    0
+   ],
+   "kind": "measuring_stick"
+  }
+ },
+ "takes": [
+  {
+   "id": "t1",
+   "place": "lake_surface",
+   "stations": [
+    {
+     "at": 0,
+     "pos": [
+      -1.2,
+      -6.5,
+      1.8
+     ],
+     "aim": [
+      -1.2,
+      2.2,
+      1.2
+     ],
+     "lens": 26,
+     "subject": "surveyor",
+     "framing": "W",
+     "shows": [
+      "derrick"
+     ],
+     "hold": 0.0
+    },
+    {
+     "at": [
+      "hole",
+      1
+     ],
+     "lead": 6,
+     "pos": [
+      -0.5,
+      -3.2,
+      1.5
+     ],
+     "aim": [
+      0.0,
+      3.8,
+      1.2
+     ],
+     "lens": 26,
+     "subject": "surveyor",
+     "framing": "W",
+     "word": "hole",
+     "travel": 1.1,
+     "hold": 0.5,
+     "creep": 0.0008,
+     "drift": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    }
+   ]
+  },
+  {
+   "id": "t2",
+   "place": "lake_surface",
+   "stations": [
+    {
+     "at": 94,
+     "pos": [
+      2.2,
+      -3.8,
+      2.6
+     ],
+     "aim": [
+      0.0,
+      3.8,
+      -0.4
+     ],
+     "lens": 28,
+     "framing": "O",
+     "shows": [
+      "drill"
+     ],
+     "hold": 0.0
+    },
+    {
+     "at": [
+      "water",
+      1
+     ],
+     "lead": 6,
+     "pos": [
+      0.8,
+      -1.8,
+      1.5
+     ],
+     "aim": [
+      0.0,
+      3.8,
+      -0.7
+     ],
+     "lens": 28,
+     "framing": "O",
+     "shows": [
+      "drill"
+     ],
+     "word": "water",
+     "travel": 0.7,
+     "hold": 0.5
+    }
+   ]
+  },
+  {
+   "id": "t3",
+   "place": "diagram",
+   "stations": [
+    {
+     "at": 165,
+     "pos": [
+      0.0,
+      -5.5,
+      4.6
+     ],
+     "aim": [
+      0.0,
+      4.0,
+      3.6
+     ],
+     "lens": 28,
+     "framing": "P",
+     "shows": [
+      "diagram"
+     ],
+     "hold": 0.0
+    },
+    {
+     "at": [
+      "below",
+      1
+     ],
+     "lead": 6,
+     "pos": [
+      0.0,
+      -5.0,
+      -0.6
+     ],
+     "aim": [
+      0.0,
+      4.0,
+      -0.9
+     ],
+     "lens": 28,
+     "framing": "P",
+     "shows": [
+      "diagram"
+     ],
+     "word": "below",
+     "travel": 1.8,
+     "hold": 0.5,
+     "creep": 0.0008,
+     "drift": [
+      0.0,
+      0.0,
+      0.0
+     ]
+    }
+   ]
+  },
+  {
+   "id": "t4",
+   "place": "salt_cavern",
+   "stations": [
+    {
+     "at": 250,
+     "pos": [
+      -4.5,
+      -6.5,
+      2.6
+     ],
+     "aim": [
+      0.5,
+      1.8,
+      1.6
+     ],
+     "lens": 26,
+     "framing": "W",
+     "shows": [
+      "salt_cavern"
+     ],
+     "hold": 0.0
+    },
+    {
+     "at": [
+      "miners",
+      1
+     ],
+     "lead": 6,
+     "pos": [
+      -1.8,
+      -3.4,
+      1.2
+     ],
+     "aim": [
+      0.0,
+      1.8,
+      1.1
+     ],
+     "lens": 26,
+     "subject": "miner",
+     "framing": "W",
+     "word": "miners",
+     "travel": 1.2,
+     "hold": 0.5
+    }
+   ]
+  },
+  {
+   "id": "t5",
+   "place": "salt_cavern",
+   "stations": [
+    {
+     "at": 352,
+     "pos": [
+      3.0,
+      -2.4,
+      0.75
+     ],
+     "aim": [
+      3.0,
+      0.0,
+      1.05
+     ],
+     "lens": 24,
+     "subject": "miner",
+     "framing": "W",
+     "shows": [
+      "drill"
+     ],
+     "hold": 0.5
+    },
+    {
+     "at": [
+      "drill",
+      1
+     ],
+     "lead": 5,
+     "pos": [
+      -1.0,
+      -2.4,
+      0.75
+     ],
+     "aim": [
+      -1.0,
+      0.0,
+      1.05
+     ],
+     "lens": 24,
+     "framing": "O",
+     "shows": [
+      "drill"
+     ],
+     "word": "drill",
+     "travel": 1.2,
+     "hold": 0.5
+    },
+    {
+     "at": [
+      "shrugged",
+      1
+     ],
+     "lead": 5,
+     "pos": [
+      2.5,
+      -2.4,
+      0.75
+     ],
+     "aim": [
+      2.5,
+      0.0,
+      1.05
+     ],
+     "lens": 24,
+     "subject": "miner",
+     "framing": "M",
+     "word": "shrugged",
+     "travel": 1.2,
+     "hold": 0.5
+    },
+    {
+     "at": [
+      "dissolved",
+      1
+     ],
+     "lead": 5,
+     "pos": [
+      -2.2,
+      -2.4,
+      0.75
+     ],
+     "aim": [
+      -2.2,
+      0.0,
+      1.05
+     ],
+     "lens": 24,
+     "subject": "foreman",
+     "framing": "W",
+     "word": "dissolved",
+     "travel": 1.2,
+     "hold": 0.5
+    }
+   ]
+  },
+  {
+   "id": "t6",
+   "place": "lake_surface",
+   "stations": [
+    {
+     "at": [
+      "derrick",
+      1
+     ],
+     "lead": 5,
+     "pos": [
+      3.2,
+      -2.5,
+      0.75
+     ],
+     "aim": [
+      3.2,
+      0.0,
+      1.05
+     ],
+     "lens": 24,
+     "subject": "foreman",
+     "framing": "W",
+     "shows": [
+      "derrick"
+     ],
+     "word": "derrick",
+     "travel": 0.9,
+     "hold": 0.5
+    },
+    {
+     "at": [
+      "elevator",
+      1
+     ],
+     "lead": 5,
+     "pos": [
+      -3.2,
+      -2.5,
+      0.75
+     ],
+     "aim": [
+      -3.2,
+      0.0,
+      1.05
+     ],
+     "lens": 24,
+     "subject": "miner",
+     "framing": "W",
+     "word": "elevator",
+     "travel": 0.75,
+     "hold": 0.5
+    },
+    {
+     "at": [
+      "surface",
+      2
+     ],
+     "lead": 5,
+     "pos": [
+      1.5,
+      -2.5,
+      0.75
+     ],
+     "aim": [
+      1.5,
+      0.0,
+      1.05
+     ],
+     "lens": 24,
+     "subject": "miner",
+     "framing": "W",
+     "word": "surface",
+     "travel": 0.7,
+     "hold": 0.5
+    }
+   ]
+  },
+  {
+   "id": "t7",
+   "place": "vortex",
+   "stations": [
+    {
+     "at": [
+      "vortex",
+      1
+     ],
+     "lead": 5,
+     "pos": [
+      -3.0,
+      -2.5,
+      0.75
+     ],
+     "aim": [
+      -3.0,
+      0.0,
+      1.05
+     ],
+     "lens": 24,
+     "subject": "foreman",
+     "framing": "W",
+     "shows": [
+      "vortex"
+     ],
+     "word": "vortex",
+     "travel": 1.0,
+     "hold": 0.5
+    },
+    {
+     "at": [
+      "barges",
+      1
+     ],
+     "lead": 5,
+     "pos": [
+      3.0,
+      -2.5,
+      0.75
+     ],
+     "aim": [
+      3.0,
+      0.0,
+      1.05
+     ],
+     "lens": 24,
+     "subject": "foreman",
+     "framing": "W",
+     "shows": [
+      "barge"
+     ],
+     "word": "barges",
+     "travel": 1.0,
+     "hold": 0.5
+    },
+    {
+     "at": [
+      "greenhouses",
+      1
+     ],
+     "lead": 5,
+     "pos": [
+      -2.5,
+      -2.5,
+      0.75
+     ],
+     "aim": [
+      -2.5,
+      0.0,
+      1.05
+     ],
+     "lens": 24,
+     "subject": "foreman",
+     "framing": "W",
+     "shows": [
+      "vortex"
+     ],
+     "word": "greenhouses",
+     "travel": 1.0,
+     "hold": 0.5
+    }
+   ]
+  },
+  {
+   "id": "t8",
+   "place": "diagram",
+   "stations": [
+    {
+     "at": [
+      "rock",
+      1
+     ],
+     "lead": 5,
+     "pos": [
+      0.0,
+      -2.8,
+      0.75
+     ],
+     "aim": [
+      0.0,
+      0.0,
+      1.05
+     ],
+     "lens": 24,
+     "framing": "P",
+     "shows": [
+      "diagram"
+     ],
+     "word": "rock",
+     "travel": 1.0,
+     "hold": 0.5
+    },
+    {
+     "at": [
+      "canyon",
+      1
+     ],
+     "lead": 5,
+     "pos": [
+      0.0,
+      -1.8,
+      0.95
+     ],
+     "aim": [
+      0.0,
+      0.0,
+      1.05
+     ],
+     "lens": 24,
+     "subject": "foreman",
+     "framing": "W",
+     "shows": [
+      "diagram"
+     ],
+     "word": "canyon",
+     "travel": 1.8,
+     "hold": 0.5
+    }
+   ]
+  },
+  {
+   "id": "t9",
+   "place": "waterfall",
+   "stations": [
+    {
+     "at": [
+      "reversed",
+      1
+     ],
+     "lead": 5,
+     "pos": [
+      -3.0,
+      -2.5,
+      0.75
+     ],
+     "aim": [
+      -3.0,
+      0.0,
+      1.05
+     ],
+     "lens": 24,
+     "subject": "surveyor",
+     "framing": "W",
+     "word": "reversed",
+     "travel": 0.8,
+     "hold": 0.5
+    },
+    {
+     "at": [
+      "waterfall",
+      1
+     ],
+     "lead": 5,
+     "pos": [
+      3.0,
+      -2.5,
+      0.75
+     ],
+     "aim": [
+      3.0,
+      0.0,
+      1.05
+     ],
+     "lens": 24,
+     "subject": "surveyor",
+     "framing": "W",
+     "shows": [
+      "waterfall"
+     ],
+     "word": "waterfall",
+     "travel": 0.85,
+     "hold": 0.5
+    },
+    {
+     "at": [
+      "geysers",
+      1
+     ],
+     "lead": 5,
+     "pos": [
+      -1.0,
+      -2.5,
+      0.75
+     ],
+     "aim": [
+      -1.0,
+      0.0,
+      1.05
+     ],
+     "lens": 24,
+     "subject": "surveyor",
+     "framing": "W",
+     "shows": [
+      "waterfall"
+     ],
+     "word": "geysers",
+     "travel": 0.7,
+     "hold": 0.5
+    }
+   ]
+  },
+  {
+   "id": "t10",
+   "place": "lake_surface",
+   "stations": [
+    {
+     "at": [
+      "ducks",
+      1
+     ],
+     "lead": 5,
+     "pos": [
+      3.0,
+      -2.5,
+      0.75
+     ],
+     "aim": [
+      3.0,
+      0.0,
+      1.05
+     ],
+     "lens": 24,
+     "subject": "foreman",
+     "framing": "W",
+     "shows": [
+      "barge"
+     ],
+     "word": "ducks",
+     "travel": 0.85,
+     "hold": 0.5
+    },
+    {
+     "at": [
+      "disaster",
+      1
+     ],
+     "lead": 5,
+     "pos": [
+      -2.0,
+      -2.5,
+      0.75
+     ],
+     "aim": [
+      -2.0,
+      0.0,
+      1.05
+     ],
+     "lens": 24,
+     "subject": "miner",
+     "framing": "W",
+     "word": "disaster",
+     "travel": 0.85,
+     "hold": 0.5
+    },
+    {
+     "at": [
+      "deep",
+      2
+     ],
+     "lead": 5,
+     "pos": [
+      3.5,
+      -2.5,
+      0.75
+     ],
+     "aim": [
+      0.0,
+      0.0,
+      1.05
+     ],
+     "lens": 24,
+     "framing": "O",
+     "shows": [
+      "barge"
+     ],
+     "word": "deep",
+     "travel": 1.0,
+     "hold": 0.5
+    }
+   ]
+  }
+ ],
+ "kicks": [
+  {
+   "at": [
+    "hole",
+    1,
+    3
+   ],
+   "amp": 1.2
+  },
+  {
+   "at": [
+    "drill",
+    1,
+    3
+   ],
+   "amp": 1.5
+  },
+  {
+   "at": [
+    "derrick",
+    1,
+    3
+   ],
+   "amp": 1.8
+  },
+  {
+   "at": [
+    "elevator",
+    1,
+    3
+   ],
+   "amp": 1.4
+  },
+  {
+   "at": [
+    "barges",
+    1,
+    3
+   ],
+   "amp": 1.5
+  },
+  {
+   "at": [
+    "waterfall",
+    1,
+    3
+   ],
+   "amp": 1.6
+  },
+  {
+   "at": [
+    "geysers",
+    1,
+    3
+   ],
+   "amp": 1.8
+  },
+  {
+   "at": [
+    "ducks",
+    1,
+    3
+   ],
+   "amp": 1.5
+  }
+ ],
+ "acts": [
+  {
+   "who": "surveyor",
+   "at": 0,
+   "pos": [
+    -1.2,
+    2.2,
+    0.63
+   ],
+   "view": "front",
+   "dir": 1,
+   "pose": "stand",
+   "face": "k:smirk",
+   "visible": true
+  },
+  {
+   "who": "surveyor",
+   "at": 25,
+   "pos": [
+    -1.2,
+    2.2,
+    0.63
+   ],
+   "view": "front",
+   "dir": 1,
+   "pose": "point_out",
+   "face": "k:smirk"
+  },
+  {
+   "who": "surveyor",
+   "at": 50,
+   "pos": [
+    -1.2,
+    2.2,
+    0.63
+   ],
+   "view": "front",
+   "dir": 1,
+   "pose": "cool",
+   "face": "smug"
+  },
+  {
+   "who": "surveyor",
+   "at": 75,
+   "pos": [
+    -1.2,
+    2.2,
+    0.63
+   ],
+   "view": "front",
+   "dir": 1,
+   "pose": "stand",
+   "face": "cool"
+  },
+  {
+   "who": "surveyor",
+   "at": 100,
+   "pos": [
+    -1.2,
+    2.2,
+    0.63
+   ],
+   "view": "front",
+   "dir": 1,
+   "pose": "cool",
+   "face": "surprised"
+  },
+  {
+   "who": "surveyor",
+   "at": 130,
+   "pos": [
+    -1.2,
+    2.2,
+    0.63
+   ],
+   "view": "front",
+   "dir": 1,
+   "pose": "point_out",
+   "face": "troll"
+  },
+  {
+   "who": "surveyor",
+   "at": 165,
+   "pos": [
+    -1.2,
+    2.2,
+    0.63
+   ],
+   "visible": false
+  },
+  {
+   "who": "miner",
+   "at": 0,
+   "pos": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "visible": false
+  },
+  {
+   "who": "foreman",
+   "at": 0,
+   "pos": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "visible": false
+  },
+  {
+   "who": "miner",
+   "at": 250,
+   "pos": [
+    0.0,
+    1.8,
+    0.0
+   ],
+   "view": "3/4",
+   "dir": 1,
+   "pose": "kneel_work",
+   "face": "k:smirk",
+   "visible": true
+  },
+  {
+   "who": "miner",
+   "at": 275,
+   "pos": [
+    0.0,
+    1.8,
+    0.0
+   ],
+   "view": "3/4",
+   "dir": 1,
+   "pose": "kneel_work",
+   "face": "cool"
+  },
+  {
+   "who": "miner",
+   "at": 300,
+   "pos": [
+    0.0,
+    1.8,
+    0.0
+   ],
+   "view": "front",
+   "dir": 1,
+   "pose": "cool",
+   "face": "surprised"
+  },
+  {
+   "who": "miner",
+   "at": 320,
+   "pos": [
+    0.0,
+    1.8,
+    0.0
+   ],
+   "view": "front",
+   "dir": 1,
+   "pose": "point_up",
+   "face": "surprised"
+  },
+  {
+   "who": "miner",
+   "at": 340,
+   "pos": [
+    0.0,
+    1.8,
+    0.0
+   ],
+   "view": "front",
+   "dir": 1,
+   "pose": "flinch",
+   "face": "surprised"
+  },
+  {
+   "who": "miner",
+   "at": 352,
+   "pos": [
+    3.0,
+    0.0,
+    0.0
+   ],
+   "view": "front",
+   "dir": 1,
+   "pose": "stand",
+   "face": "derp",
+   "visible": true
+  },
+  {
+   "who": "miner",
+   "at": 420,
+   "pos": [
+    3.0,
+    0.0,
+    0.0
+   ],
+   "view": "front",
+   "dir": 1,
+   "pose": "cool",
+   "face": "surprised"
+  },
+  {
+   "who": "miner",
+   "at": 480,
+   "pos": [
+    3.0,
+    0.0,
+    0.0
+   ],
+   "view": "front",
+   "dir": 1,
+   "pose": "point_out",
+   "face": "derp"
+  },
+  {
+   "who": "miner",
+   "at": 550,
+   "pos": [
+    3.0,
+    0.0,
+    0.0
+   ],
+   "view": "front",
+   "dir": 1,
+   "pose": "stand",
+   "face": "cool"
+  },
+  {
+   "who": "miner",
+   "at": 620,
+   "pos": [
+    -2.5,
+    0.0,
+    0.0
+   ],
+   "view": "front",
+   "dir": 1,
+   "pose": "shrug",
+   "face": "derp"
+  },
+  {
+   "who": "miner",
+   "at": 690,
+   "pos": [
+    -2.5,
+    0.0,
+    0.0
+   ],
+   "view": "front",
+   "dir": 1,
+   "pose": "cool",
+   "face": "surprised"
+  },
+  {
+   "who": "foreman",
+   "at": 750,
+   "pos": [
+    3.0,
+    0.0,
+    0.0
+   ],
+   "view": "front",
+   "dir": 1,
+   "pose": "flinch",
+   "face": "surprised",
+   "visible": true
+  },
+  {
+   "who": "foreman",
+   "at": 800,
+   "pos": [
+    3.0,
+    0.0,
+    0.0
+   ],
+   "view": "front",
+   "dir": 1,
+   "pose": "point_out",
+   "face": "rage"
+  },
+  {
+   "who": "foreman",
+   "at": 850,
+   "pos": [
+    -2.2,
+    0.0,
+    0.0
+   ],
+   "view": "front",
+   "dir": 1,
+   "pose": "cool",
+   "face": "rage"
+  },
+  {
+   "who": "foreman",
+   "at": 900,
+   "pos": [
+    -2.2,
+    0.0,
+    0.0
+   ],
+   "view": "front",
+   "dir": 1,
+   "pose": "flinch",
+   "face": "surprised"
+  },
+  {
+   "who": "foreman",
+   "at": 952,
+   "pos": [
+    3.2,
+    0.0,
+    0.0
+   ],
+   "view": "front",
+   "dir": 1,
+   "pose": "flinch",
+   "face": "surprised",
+   "visible": true
+  },
+  {
+   "who": "foreman",
+   "at": 1020,
+   "pos": [
+    3.2,
+    0.0,
+    0.0
+   ],
+   "view": "front",
+   "dir": 1,
+   "pose": "cool",
+   "face": "rage"
+  },
+  {
+   "who": "miner",
+   "at": 1113,
+   "pos": [
+    -3.2,
+    0.0,
+    0.0
+   ],
+   "view": "front",
+   "dir": 1,
+   "pose": "cool",
+   "face": "surprised",
+   "visible": true
+  },
+  {
+   "who": "miner",
+   "at": 1180,
+   "pos": [
+    -3.2,
+    0.0,
+    0.0
+   ],
+   "view": "front",
+   "dir": 1,
+   "pose": "flinch",
+   "face": "surprised"
+  },
+  {
+   "who": "miner",
+   "at": 1251,
+   "pos": [
+    1.5,
+    0.0,
+    0.0
+   ],
+   "view": "front",
+   "dir": 1,
+   "pose": "cheer",
+   "face": "proud",
+   "visible": true
+  },
+  {
+   "who": "miner",
+   "at": 1300,
+   "pos": [
+    1.5,
+    0.0,
+    0.0
+   ],
+   "view": "front",
+   "dir": 1,
+   "pose": "cool",
+   "face": "smug"
+  },
+  {
+   "who": "foreman",
+   "at": 1340,
+   "pos": [
+    -3.0,
+    0.0,
+    0.0
+   ],
+   "view": "front",
+   "dir": 1,
+   "pose": "flinch",
+   "face": "surprised",
+   "visible": true
+  },
+  {
+   "who": "foreman",
+   "at": 1390,
+   "pos": [
+    -3.0,
+    0.0,
+    0.0
+   ],
+   "view": "front",
+   "dir": 1,
+   "pose": "cool",
+   "face": "surprised"
+  },
+  {
+   "who": "foreman",
+   "at": 1447,
+   "pos": [
+    3.0,
+    0.0,
+    0.0
+   ],
+   "view": "front",
+   "dir": 1,
+   "pose": "cool",
+   "face": "surprised"
+  },
+  {
+   "who": "foreman",
+   "at": 1500,
+   "pos": [
+    3.0,
+    0.0,
+    0.0
+   ],
+   "view": "front",
+   "dir": 1,
+   "pose": "flinch",
+   "face": "surprised"
+  },
+  {
+   "who": "foreman",
+   "at": 1556,
+   "pos": [
+    -2.5,
+    0.0,
+    0.0
+   ],
+   "view": "front",
+   "dir": 1,
+   "pose": "shrug",
+   "face": "derp"
+  },
+  {
+   "who": "foreman",
+   "at": 1610,
+   "pos": [
+    -2.5,
+    0.0,
+    0.0
+   ],
+   "view": "front",
+   "dir": 1,
+   "pose": "cool",
+   "face": "surprised"
+  },
+  {
+   "who": "foreman",
+   "at": 1676,
+   "pos": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "view": "front",
+   "dir": 1,
+   "pose": "point_out",
+   "face": "k:smirk",
+   "visible": true
+  },
+  {
+   "who": "foreman",
+   "at": 1740,
+   "pos": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "view": "front",
+   "dir": 1,
+   "pose": "cool",
+   "face": "proud"
+  },
+  {
+   "who": "foreman",
+   "at": 1820,
+   "pos": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "visible": false
+  },
+  {
+   "who": "surveyor",
+   "at": 1820,
+   "pos": [
+    -3.0,
+    0.0,
+    0.0
+   ],
+   "view": "front",
+   "dir": 1,
+   "pose": "cool",
+   "face": "surprised",
+   "visible": true
+  },
+  {
+   "who": "surveyor",
+   "at": 1880,
+   "pos": [
+    -3.0,
+    0.0,
+    0.0
+   ],
+   "view": "front",
+   "dir": 1,
+   "pose": "flinch",
+   "face": "surprised"
+  },
+  {
+   "who": "surveyor",
+   "at": 1938,
+   "pos": [
+    3.0,
+    0.0,
+    0.0
+   ],
+   "view": "front",
+   "dir": 1,
+   "pose": "flinch",
+   "face": "surprised"
+  },
+  {
+   "who": "surveyor",
+   "at": 2010,
+   "pos": [
+    3.0,
+    0.0,
+    0.0
+   ],
+   "view": "front",
+   "dir": 1,
+   "pose": "cool",
+   "face": "surprised"
+  },
+  {
+   "who": "surveyor",
+   "at": 2087,
+   "pos": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "view": "front",
+   "dir": 1,
+   "pose": "cool",
+   "face": "derp"
+  },
+  {
+   "who": "surveyor",
+   "at": 2130,
+   "pos": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "view": "front",
+   "dir": 1,
+   "pose": "stand",
+   "face": "cool"
+  },
+  {
+   "who": "surveyor",
+   "at": 2165,
+   "pos": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "visible": false
+  },
+  {
+   "who": "foreman",
+   "at": 2165,
+   "pos": [
+    3.0,
+    0.0,
+    0.0
+   ],
+   "view": "front",
+   "dir": 1,
+   "pose": "cheer",
+   "face": "proud",
+   "visible": true
+  },
+  {
+   "who": "foreman",
+   "at": 2230,
+   "pos": [
+    3.0,
+    0.0,
+    0.0
+   ],
+   "view": "front",
+   "dir": 1,
+   "pose": "cool",
+   "face": "smug"
+  },
+  {
+   "who": "foreman",
+   "at": 2312,
+   "pos": [
+    3.0,
+    0.0,
+    0.0
+   ],
+   "visible": false
+  },
+  {
+   "who": "miner",
+   "at": 2312,
+   "pos": [
+    -2.0,
+    0.0,
+    0.0
+   ],
+   "view": "front",
+   "dir": 1,
+   "pose": "cool",
+   "face": "smug",
+   "visible": true
+  },
+  {
+   "who": "miner",
+   "at": 2370,
+   "pos": [
+    -2.0,
+    0.0,
+    0.0
+   ],
+   "view": "front",
+   "dir": 1,
+   "pose": "cheer",
+   "face": "proud"
+  },
+  {
+   "who": "miner",
+   "at": 2437,
+   "pos": [
+    -2.0,
+    0.0,
+    0.0
+   ],
+   "visible": false
+  },
+  {
+   "who": "surveyor",
+   "at": 2437,
+   "pos": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "view": "front",
+   "dir": 1,
+   "pose": "cool",
+   "face": "troll",
+   "visible": true
+  },
+  {
+   "who": "surveyor",
+   "at": 2480,
+   "pos": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "view": "front",
+   "dir": 1,
+   "pose": "point_out",
+   "face": "troll"
+  }
+ ],
+ "sentences": [
+  {
+   "text": "In 1980, an oil rig punched a tiny hole into a shallow lake, and accidentally drank the entire body of water.",
+   "words": [
+    0,
+    20
+   ],
+   "subject": "surveyor"
+  },
+  {
+   "text": "Lake Peigneur was only ten feet deep. But nobody checked what was underneath.",
+   "words": [
+    21,
+    33
+   ],
+   "subject": "surveyor"
+  },
+  {
+   "text": "Thirteen hundred feet below lay a giant salt mine with fifty-five miners and fifty-foot ceilings.",
+   "words": [
+    34,
+    48
+   ],
+   "subject": "miner"
+  },
+  {
+   "text": "Up on the surface, the drillers misread their map coordinates by just a few degrees.",
+   "words": [
+    49,
+    62
+   ],
+   "subject": "surveyor"
+  },
+  {
+   "text": "Their fourteen-inch diamond drill punched straight through the mine ceiling like a pushpin.",
+   "words": [
+    63,
+    75
+   ],
+   "subject": "miner",
+   "nouns": [
+    {
+     "word": "drill",
+     "n": 1,
+     "show": "drill"
+    }
+   ]
+  },
+  {
+   "text": "At first, it was just a tiny trickle of muddy water dripping onto a miner's hard hat.",
+   "words": [
+    76,
+    92
+   ],
+   "subject": "miner"
+  },
+  {
+   "text": "The foreman prodded the wet roof, shrugged, and shouted: \"Hey boys, the ceiling is leaking!\"",
+   "words": [
+    93,
+    106
+   ],
+   "subject": "foreman"
+  },
+  {
+   "text": "Then, the freshwater dissolved the salt walls, widening the hole by twenty feet every minute.",
+   "words": [
+    107,
+    121
+   ],
+   "subject": "foreman"
+  },
+  {
+   "text": "Above, the giant five-million-dollar oil derrick groaned, tilted sideways, and sank straight into the lake bed.",
+   "words": [
+    122,
+    137
+   ],
+   "subject": "foreman",
+   "nouns": [
+    {
+     "word": "derrick",
+     "n": 1,
+     "show": "derrick"
+    }
+   ]
+  },
+  {
+   "text": "Underground, fifty-five miners scrambled onto the elevator as a roaring flood of mud chased them up the shaft.",
+   "words": [
+    138,
+    155
+   ],
+   "subject": "miner"
+  },
+  {
+   "text": "Miraculously, every single miner made it to the surface before the mine drowned completely.",
+   "words": [
+    156,
+    169
+   ],
+   "subject": "miner"
+  },
+  {
+   "text": "Now, the lake became a spinning vortex, creating a massive quarter-mile whirlpool.",
+   "words": [
+    170,
+    181
+   ],
+   "subject": "foreman"
+  },
+  {
+   "text": "It sucked down eleven steel barges, a tugboat, and sixty-five acres of land.",
+   "words": [
+    182,
+    194
+   ],
+   "subject": "foreman",
+   "nouns": [
+    {
+     "word": "barges",
+     "n": 1,
+     "show": "barge"
+    }
+   ]
+  },
+  {
+   "text": "Ancient pecan trees, greenhouses, and docks simply slid into the churning abyss.",
+   "words": [
+    195,
+    206
+   ],
+   "subject": "foreman"
+  },
+  {
+   "text": "You see, freshwater dissolves rock salt instantly, turning a tiny hole into a roaring underground canyon.",
+   "words": [
+    207,
+    222
+   ],
+   "subject": "foreman"
+  },
+  {
+   "text": "The suction was so violent, it actually reversed the flow of the Delcambre Canal from the Gulf of Mexico.",
+   "words": [
+    223,
+    241
+   ],
+   "subject": "surveyor"
+  },
+  {
+   "text": "Creating a one-hundred-and-fifty-foot waterfall\u2014the largest waterfall in Louisiana history.",
+   "words": [
+    242,
+    250
+   ],
+   "subject": "surveyor"
+  },
+  {
+   "text": "Two days later, trapped air in the mine blew massive geysers four hundred feet into the air.",
+   "words": [
+    251,
+    267
+   ],
+   "subject": "surveyor"
+  },
+  {
+   "text": "Then, like rubber ducks in a bathtub, nine of the sunken barges popped right back to the surface.",
+   "words": [
+    268,
+    285
+   ],
+   "subject": "foreman",
+   "nouns": [
+    {
+     "word": "ducks",
+     "n": 1,
+     "show": "barge"
+    }
+   ]
+  },
+  {
+   "text": "Incredibly, throughout the entire bizarre disaster, not a single life was lost.",
+   "words": [
+    286,
+    296
+   ],
+   "subject": "foreman"
+  },
+  {
+   "text": "And today, Lake Peigneur is thirteen hundred feet deep\u2014all from one fourteen-inch drill bit.",
+   "words": [
+    297,
+    310
+   ],
+   "subject": "surveyor"
+  }
+ ],
+ "fx": [
+  {
+   "at": [
+    "hole",
+    1
+   ],
+   "kind": "liquid_splash",
+   "on": "lake_surface"
+  },
+  {
+   "at": [
+    "drill",
+    1
+   ],
+   "kind": "spark_flash",
+   "on": "salt_cavern"
+  },
+  {
+   "at": [
+    "trickle",
+    1
+   ],
+   "kind": "dust_hit",
+   "on": "salt_cavern"
+  },
+  {
+   "at": [
+    "dissolved",
+    1
+   ],
+   "kind": "smoke_puff",
+   "on": "salt_cavern"
+  },
+  {
+   "at": [
+    "derrick",
+    1
+   ],
+   "kind": "dust_hit",
+   "on": "lake_surface"
+  },
+  {
+   "at": [
+    "vortex",
+    1
+   ],
+   "kind": "liquid_splash",
+   "on": "vortex"
+  },
+  {
+   "at": [
+    "barges",
+    1
+   ],
+   "kind": "liquid_splash",
+   "on": "vortex"
+  },
+  {
+   "at": [
+    "rock",
+    1
+   ],
+   "kind": "glow_red",
+   "on": "diagram"
+  },
+  {
+   "at": [
+    "waterfall",
+    1
+   ],
+   "kind": "liquid_splash",
+   "on": "waterfall"
+  },
+  {
+   "at": [
+    "geysers",
+    1
+   ],
+   "kind": "smoke_puff",
+   "on": "waterfall"
+  },
+  {
+   "at": [
+    "ducks",
+    1
+   ],
+   "kind": "liquid_splash",
+   "on": "lake_surface"
+  }
+ ],
+ "moods": [
+  {
+   "at": [
+    "hole",
+    1
+   ],
+   "look": "flash_cool"
+  },
+  {
+   "at": [
+    "below",
+    1
+   ],
+   "look": "spot_hero"
+  },
+  {
+   "at": [
+    "drill",
+    1
+   ],
+   "look": "flash_warn"
+  },
+  {
+   "at": [
+    "dissolved",
+    1
+   ],
+   "look": "flash_red"
+  },
+  {
+   "at": [
+    "derrick",
+    1
+   ],
+   "look": "flash_red"
+  },
+  {
+   "at": [
+    "vortex",
+    1
+   ],
+   "look": "cool_haze"
+  },
+  {
+   "at": [
+    "rock",
+    1
+   ],
+   "look": "spot_hero"
+  },
+  {
+   "at": [
+    "waterfall",
+    1
+   ],
+   "look": "cool_haze"
+  },
+  {
+   "at": [
+    "geysers",
+    1
+   ],
+   "look": "golden_shaft"
+  },
+  {
+   "at": [
+    "ducks",
+    1
+   ],
+   "look": "warm_up"
+  },
+  {
+   "at": [
+    "deep",
+    2
+   ],
+   "look": "golden_shaft"
+  }
+ ],
+ "sound": [
+  {
+   "at": [
+    "hole",
+    1
+   ],
+   "name": "water_splash"
+  },
+  {
+   "at": [
+    "drill",
+    1
+   ],
+   "name": "drill_metal"
+  },
+  {
+   "at": [
+    "trickle",
+    1
+   ],
+   "name": "water_drip"
+  },
+  {
+   "at": [
+    "leaking",
+    1
+   ],
+   "name": "water_gush"
+  },
+  {
+   "at": [
+    "dissolved",
+    1
+   ],
+   "name": "cavern_rumble"
+  },
+  {
+   "at": [
+    "derrick",
+    1
+   ],
+   "name": "derrick_crash"
+  },
+  {
+   "at": [
+    "elevator",
+    1
+   ],
+   "name": "elevator_chain"
+  },
+  {
+   "at": [
+    "vortex",
+    1
+   ],
+   "name": "whirlpool_roar"
+  },
+  {
+   "at": [
+    "barges",
+    1
+   ],
+   "name": "barge_snap"
+  },
+  {
+   "at": [
+    "waterfall",
+    1
+   ],
+   "name": "waterfall_roar"
+  },
+  {
+   "at": [
+    "geysers",
+    1
+   ],
+   "name": "geyser_blast"
+  },
+  {
+   "at": [
+    "ducks",
+    1
+   ],
+   "name": "barge_pop"
+  }
+ ]
+}
