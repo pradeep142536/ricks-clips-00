@@ -969,8 +969,8 @@
       ],
       "view": "front",
       "dir": 1,
-      "face": "k:serious",
-      "pose": "m:stand",
+      "face": "bruh",
+      "pose": "stand",
       "visible": true
     },
     {
@@ -979,8 +979,8 @@
         "destroyed",
         1
       ],
-      "face": "k:skeptical",
-      "pose": "m:shrug",
+      "face": "sus",
+      "pose": "shrug",
       "dir": 1
     },
     {
@@ -989,8 +989,8 @@
         "earthquake",
         1
       ],
-      "face": "k:serious",
-      "pose": "m:look_left",
+      "face": "bruh",
+      "pose": "tiltL",
       "dir": 1
     },
     {
@@ -999,8 +999,8 @@
         "tsunami",
         1
       ],
-      "face": "k:grimace",
-      "pose": "m:point",
+      "face": "jawdrop",
+      "pose": "point_out",
       "dir": 1
     },
     {
@@ -1009,8 +1009,8 @@
         "boiling",
         1
       ],
-      "face": "k:grimace",
-      "pose": "m:gesture_wide",
+      "face": "strain",
+      "pose": "hold_out",
       "dir": 1
     },
     {
@@ -1019,8 +1019,8 @@
         "hour",
         1
       ],
-      "face": "k:serious",
-      "pose": "m:hands_hips",
+      "face": "k:smirk",
+      "pose": "hands_hips",
       "dir": 1
     },
     {
@@ -1031,8 +1031,8 @@
       ],
       "view": "34",
       "dir": 1,
-      "face": "k:serious",
-      "pose": "m:look_up"
+      "face": "k:open",
+      "pose": "point_up"
     },
     {
       "who": "anthony",
@@ -1040,8 +1040,8 @@
         "fermenting",
         1
       ],
-      "face": "k:suspicious",
-      "pose": "m:sniff_air",
+      "face": "disgust",
+      "pose": "hand_mouth",
       "dir": 1
     },
     {
@@ -1051,7 +1051,7 @@
         1
       ],
       "face": "k:smirk",
-      "pose": "m:point_low",
+      "pose": "point_out",
       "dir": 1
     },
     {
@@ -1060,8 +1060,8 @@
         "buckets",
         1
       ],
-      "face": "k:smirk",
-      "pose": "m:laugh_low",
+      "face": "troll",
+      "pose": "hands_hips",
       "dir": 1
     },
     {
@@ -1070,8 +1070,8 @@
         "solution",
         1
       ],
-      "face": "k:skeptical",
-      "pose": "m:arms_crossed",
+      "face": "confused",
+      "pose": "shrug",
       "dir": 1
     },
     {
@@ -1080,8 +1080,8 @@
         "painted",
         1
       ],
-      "face": "k:disbelief",
-      "pose": "m:facepalm",
+      "face": "deadInside",
+      "pose": "hand_mouth",
       "dir": 1
     },
     {
@@ -1090,8 +1090,8 @@
         "brown",
         1
       ],
-      "face": "k:facepalm",
-      "pose": "m:shrug",
+      "face": "bruh",
+      "pose": "shrug",
       "dir": 1
     },
     {
@@ -1100,8 +1100,8 @@
         "leaks",
         1
       ],
-      "face": "k:disbelief",
-      "pose": "m:head_shake",
+      "face": "sus",
+      "pose": "hands_hips",
       "dir": 1
     },
     {
@@ -1114,8 +1114,8 @@
       ],
       "view": "front",
       "dir": 1,
-      "face": "k:serious",
-      "pose": "m:stand",
+      "face": "bruh",
+      "pose": "stand",
       "visible": true
     },
     {
@@ -1124,8 +1124,8 @@
         "January",
         1
       ],
-      "face": "k:worry",
-      "pose": "m:look_up",
+      "face": "k:worried",
+      "pose": "tiltR",
       "dir": 1
     },
     {
@@ -1134,8 +1134,8 @@
         "afternoon",
         1
       ],
-      "face": "k:suspicious",
-      "pose": "m:step_back",
+      "face": "sus",
+      "pose": "crouch",
       "dir": 1
     },
     {
@@ -1144,8 +1144,8 @@
         "rivets",
         1
       ],
-      "face": "k:shocked",
-      "pose": "m:flinch",
+      "face": "jawdrop",
+      "pose": "flinch",
       "dir": 1
     },
     {
@@ -1154,8 +1154,8 @@
         "popped",
         1
       ],
-      "face": "terrified",
-      "pose": "m:shield_face",
+      "face": "scream",
+      "pose": "flinch",
       "dir": 1
     },
     {
@@ -1165,7 +1165,7 @@
         1
       ],
       "face": "terrified",
-      "pose": "m:cower",
+      "pose": "crouch_low",
       "dir": 1
     },
     {
@@ -1175,7 +1175,7 @@
         1
       ],
       "face": "terrified",
-      "pose": "m:dive_escape",
+      "pose": "reach_up",
       "dir": -1
     },
     {
@@ -1185,7 +1185,7 @@
         1
       ],
       "face": "terrified",
-      "pose": "m:dive_escape",
+      "pose": "flinch",
       "dir": -1
     },
     {
@@ -1195,7 +1195,7 @@
         1
       ],
       "face": "terrified",
-      "pose": "m:crouch_braced",
+      "pose": "crouch_low",
       "dir": -1
     },
     {
@@ -1209,7 +1209,7 @@
       "view": "front",
       "dir": 1,
       "face": "terrified",
-      "pose": "m:wade_struggle",
+      "pose": "crouch",
       "visible": true
     },
     {
@@ -1218,8 +1218,8 @@
         "wooden",
         1
       ],
-      "face": "k:shocked",
-      "pose": "m:look_around",
+      "face": "jawdrop",
+      "pose": "hold_out",
       "dir": 1
     },
     {
@@ -1228,8 +1228,8 @@
         "smashed",
         1
       ],
-      "face": "k:grimace",
-      "pose": "m:look_around",
+      "face": "hysterical",
+      "pose": "flinch",
       "dir": 1
     },
     {
@@ -1238,8 +1238,8 @@
         "horses",
         1
       ],
-      "face": "k:grimace",
-      "pose": "m:pull_leg",
+      "face": "strain",
+      "pose": "bend_down",
       "dir": 1
     },
     {
@@ -1248,8 +1248,8 @@
         "trapped",
         1
       ],
-      "face": "k:grimace",
-      "pose": "m:pull_leg",
+      "face": "strain",
+      "pose": "reach_up",
       "dir": 1
     },
     {
@@ -1258,8 +1258,8 @@
         "cooling",
         1
       ],
-      "face": "k:grimace",
-      "pose": "m:stuck_molasses",
+      "face": "disgust",
+      "pose": "crouch",
       "dir": 1
     },
     {
@@ -1269,7 +1269,7 @@
         1
       ],
       "face": "rage",
-      "pose": "m:struggle_free",
+      "pose": "push",
       "dir": 1
     },
     {
@@ -1282,8 +1282,8 @@
       ],
       "view": "front",
       "dir": 1,
-      "face": "k:exhausted",
-      "pose": "m:stand_weary",
+      "face": "tired",
+      "pose": "stand",
       "visible": true
     },
     {
@@ -1292,8 +1292,8 @@
         "weeks",
         1
       ],
-      "face": "k:exhausted",
-      "pose": "m:wipe_brow",
+      "face": "tired",
+      "pose": "hand_mouth",
       "dir": 1
     },
     {
@@ -1302,8 +1302,8 @@
         "millions",
         1
       ],
-      "face": "k:exhausted",
-      "pose": "m:stand_weary",
+      "face": "strain",
+      "pose": "hold_out",
       "dir": 1
     },
     {
@@ -1312,8 +1312,8 @@
         "clean",
         1
       ],
-      "face": "k:relief",
-      "pose": "m:sigh",
+      "face": "k:happy",
+      "pose": "hands_hips",
       "dir": 1
     },
     {
@@ -1323,7 +1323,7 @@
         2
       ],
       "face": "k:smirk",
-      "pose": "m:look_ocean",
+      "pose": "point_out",
       "dir": 1
     },
     {
@@ -1332,8 +1332,8 @@
         "decades",
         1
       ],
-      "face": "k:smirk",
-      "pose": "m:sniff_air",
+      "face": "troll",
+      "pose": "hands_hips",
       "dir": 1
     },
     {
@@ -1342,8 +1342,8 @@
         "summer",
         1
       ],
-      "face": "k:delight",
-      "pose": "m:sniff_air",
+      "face": "delight",
+      "pose": "reach_up",
       "dir": 1
     },
     {
@@ -1353,7 +1353,7 @@
         1
       ],
       "face": "delight",
-      "pose": "m:delight_pancake",
+      "pose": "cheer",
       "dir": 1
     },
     {
@@ -1375,8 +1375,8 @@
       ],
       "view": "front",
       "dir": -1,
-      "face": "k:smirk",
-      "pose": "m:proud"
+      "face": "proud",
+      "pose": "hands_hips"
     },
     {
       "who": "usaa_boss",
@@ -1384,8 +1384,8 @@
         "solution",
         1
       ],
-      "face": "proud",
-      "pose": "m:cigar_puff",
+      "face": "evil",
+      "pose": "finger_up",
       "dir": -1
     },
     {
@@ -1394,8 +1394,8 @@
         "painted",
         1
       ],
-      "face": "proud",
-      "pose": "m:gesture_wide",
+      "face": "troll",
+      "pose": "point_out",
       "dir": -1
     },
     {
@@ -1404,8 +1404,8 @@
         "brown",
         1
       ],
-      "face": "troll",
-      "pose": "m:paint_wall",
+      "face": "money",
+      "pose": "hold_out",
       "dir": -1
     },
     {
@@ -1414,8 +1414,8 @@
         "leaks",
         1
       ],
-      "face": "k:smirk",
-      "pose": "m:proud",
+      "face": "cool",
+      "pose": "hands_hips",
       "dir": -1
     },
     {
@@ -1428,8 +1428,8 @@
       ],
       "view": "front",
       "dir": -1,
-      "face": "k:smirk",
-      "pose": "m:proud",
+      "face": "proud",
+      "pose": "hands_hips",
       "visible": true
     },
     {
@@ -1438,8 +1438,8 @@
         "rivets",
         1
       ],
-      "face": "k:shocked",
-      "pose": "m:hands_up",
+      "face": "jawdrop",
+      "pose": "flinch",
       "dir": -1
     },
     {
@@ -1449,7 +1449,7 @@
         1
       ],
       "face": "terrified",
-      "pose": "m:run_scared",
+      "pose": "crouch_low",
       "dir": -1,
       "exit": true
     },
@@ -1472,8 +1472,8 @@
       ],
       "view": "side",
       "dir": -1,
-      "face": "k:delight",
-      "pose": "m:run_crouch"
+      "face": "delight",
+      "pose": "crouch"
     },
     {
       "who": "kid_sal",
@@ -1488,8 +1488,8 @@
       ],
       "view": "side",
       "dir": -1,
-      "face": "delight",
-      "pose": "m:crouch_gather"
+      "face": "heartEyes",
+      "pose": "reach_up"
     },
     {
       "who": "kid_sal",
@@ -1520,8 +1520,8 @@
       ],
       "view": "front",
       "dir": 1,
-      "face": "k:command",
-      "pose": "m:direct_hose"
+      "face": "k:angry",
+      "pose": "point_out"
     },
     {
       "who": "chief",
@@ -1529,8 +1529,8 @@
         "pumping",
         1
       ],
-      "face": "k:serious",
-      "pose": "m:point_ahead",
+      "face": "k:angry",
+      "pose": "hold_out",
       "dir": 1
     },
     {
@@ -1539,8 +1539,8 @@
         "clean",
         1
       ],
-      "face": "k:determined",
-      "pose": "m:arms_crossed",
+      "face": "k:happy",
+      "pose": "hands_hips",
       "dir": 1
     },
     {
@@ -1549,8 +1549,8 @@
         "brown",
         2
       ],
-      "face": "k:smirk",
-      "pose": "m:hands_hips",
+      "face": "proud",
+      "pose": "point_out",
       "dir": 1
     }
   ]
