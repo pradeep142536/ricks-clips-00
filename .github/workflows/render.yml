@@ -60,7 +60,7 @@ jobs:
 
       - name: Render Full Video (1080x1920)
         run: |
-          xvfb-run -s "-screen 0 1080x1920x24" node templates/threejs_film/render.mjs episodes/$EPISODE/film.json --animatic --out ${EPISODE}_full_episode_1080p.mp4
+          xvfb-run -s "-screen 0 1080x1920x24" node templates/threejs_film/render.mjs episodes/$EPISODE/film.json --animatic --scale 1.0 --out ${EPISODE}_full_episode_1080p.mp4
 
       - name: Upload Video Artifact
         uses: actions/upload-artifact@v4

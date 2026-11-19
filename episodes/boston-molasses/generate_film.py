@@ -1,0 +1,527 @@
+import json
+import os
+import sys
+
+ep_dir = r"c:\Users\PC\Downloads\ricks clips\episodes\boston-molasses"
+film_path = os.path.join(ep_dir, "film.json")
+
+# Load words
+words_path = os.path.join(ep_dir, "voice", "words.json")
+words = json.load(open(words_path, "r", encoding="utf-8"))
+print(f"Loaded {len(words)} words. Duration: {words[-1]['e']:.2f}s")
+
+# Helper to find word index
+def find_w(target, occ=1):
+    count = 0
+    clean = target.lower().strip(".,?!\"'")
+    for i, w in enumerate(words):
+        cw = w['w'].lower().strip(".,?!\"'")
+        if cw == clean:
+            count += 1
+            if count == occ:
+                return i, w
+    raise ValueError(f"Word '{target}' occ {occ} not found")
+
+sentence_bounds = [
+    (0, find_w("earthquake")[0]),                  # S1
+    (find_w("It", 1)[0], find_w("hour")[0]),       # S2
+    (find_w("Down")[0], find_w("syrup", 1)[0]),    # S3
+    (find_w("It", 2)[0], find_w("buckets")[0]),    # S4
+    (find_w("The", 1)[0], find_w("solution")[0]),  # S5
+    (find_w("They")[0], find_w("leaks")[0]),       # S6
+    (find_w("Then")[0], find_w("fire", 1)[0]),     # S7
+    (find_w("2")[0], find_w("wave", 1)[0]),        # S8
+    (find_w("The", 2)[0], find_w("concrete")[0]),  # S9
+    (find_w("Firefighters")[0], find_w("brown", 2)[0]), # S10
+    (find_w("And")[0], find_w("pancakes")[0])      # S11
+]
+
+sentences = [
+    {
+        "text": "In 1919, Boston wasn't destroyed by fire or an earthquake.",
+        "words": [sentence_bounds[0][0], sentence_bounds[0][1]],
+        "subject": "anthony",
+        "nouns": [{"word": "Boston", "show": "anthony"}]
+    },
+    {
+        "text": "It was swallowed by a 2 million gallon tsunami of boiling molasses moving at 35 miles per hour.",
+        "words": [sentence_bounds[1][0], sentence_bounds[1][1]],
+        "subject": "anthony",
+        "nouns": [{"word": "tsunami", "show": "tsunami"}]
+    },
+    {
+        "text": "Down on Commercial Street stood a giant 50 -foot steel tank filled with fermenting syrup.",
+        "words": [sentence_bounds[2][0], sentence_bounds[2][1]],
+        "subject": "anthony",
+        "show": ["molasses_tank"],
+        "nouns": [{"word": "tank", "show": "molasses_tank"}]
+    },
+    {
+        "text": "It leaked so badly that neighborhood kids collected free syrup in buckets.",
+        "words": [sentence_bounds[3][0], sentence_bounds[3][1]],
+        "subject": "kid_sal",
+        "nouns": [{"word": "buckets", "show": "kid_sal"}]
+    },
+    {
+        "text": "The company's brilliant solution?",
+        "words": [sentence_bounds[4][0], sentence_bounds[4][1]],
+        "subject": "usaa_boss",
+        "nouns": [{"word": "solution", "show": "usaa_boss"}]
+    },
+    {
+        "text": "They just painted the tank brown so nobody could see the leaks.",
+        "words": [sentence_bounds[5][0], sentence_bounds[5][1]],
+        "subject": "usaa_boss",
+        "show": ["molasses_tank"],
+        "nouns": [{"word": "brown", "show": "usaa_boss"}]
+    },
+    {
+        "text": "Then, on an unseasonably warm January afternoon, the rivets popped, like machine gun fire.",
+        "words": [sentence_bounds[6][0], sentence_bounds[6][1]],
+        "subject": "anthony",
+        "nouns": [{"word": "rivets", "show": "anthony"}]
+    },
+    {
+        "text": "2 .3 million gallons of dark, heavy syrup exploded outward in a towering 25 -foot tidal wave.",
+        "words": [sentence_bounds[7][0], sentence_bounds[7][1]],
+        "subject": "anthony",
+        "show": ["molasses_tidal_wave"],
+        "nouns": [{"word": "wave", "show": "molasses_tidal_wave"}]
+    },
+    {
+        "text": "The wave ripped an elevated train track right off its steel girders, smashed entire wooden houses into kindling, and trapped people and horses in waist -deep cooling syrup that hardened like concrete.",
+        "words": [sentence_bounds[8][0], sentence_bounds[8][1]],
+        "subject": "anthony",
+        "nouns": [{"word": "track", "show": "track"}, {"word": "concrete", "show": "anthony"}]
+    },
+    {
+        "text": "Firefighters spent weeks pumping millions of gallons of seawater to scrub the city clean, turning Boston Harbor completely brown.",
+        "words": [sentence_bounds[9][0], sentence_bounds[9][1]],
+        "subject": "chief",
+        "show": ["fireboat_hull"],
+        "nouns": [{"word": "Firefighters", "show": "chief"}, {"word": "Harbor", "show": "chief"}]
+    },
+    {
+        "text": "And for decades after, locals swear on hot summer days, Boston still smelled like pancakes.",
+        "words": [sentence_bounds[10][0], sentence_bounds[10][1]],
+        "subject": "anthony",
+        "nouns": [{"word": "pancakes", "show": "anthony"}]
+    }
+]
+
+film = {
+    "title": "The 1919 Boston Great Molasses Flood",
+    "fps": 30,
+    "size": [1080, 1920],
+    "kit3d": True,
+    "words": "voice/words.json",
+    "puppet_pkg": [
+        "cast",
+        "../../RicksClips_Skill_V1.1/templates/vector2d_characters/code"
+    ],
+    "camera_idea": {
+        "name": "Industrial Catastrophe Flow",
+        "why": "Dynamic cinematic push-ins on the leaking 50-foot riveted tank, ground-level immersion into the 25-foot molasses tidal wave and collapsing el-train, visceral struggle in waist-deep cooling syrup, and sweeping harbor pier cleanup."
+    },
+    "cast": {
+        "anthony": {
+            "puppet": "cast:molasses/anthony",
+            "height": 1.74,
+            "heads_tall": 2.85
+        },
+        "usaa_boss": {
+            "puppet": "cast:molasses/usaa_boss",
+            "height": 1.78,
+            "heads_tall": 2.65
+        },
+        "chief": {
+            "puppet": "cast:molasses/chief",
+            "height": 1.75,
+            "heads_tall": 2.8
+        },
+        "kid_sal": {
+            "puppet": "cast:molasses/kid_sal",
+            "height": 1.25,
+            "heads_tall": 3.4
+        }
+    },
+    "places": {
+        "tank_yard": {
+            "set": "tank_yard",
+            "light": "day",
+            "backdrop": 7.0,
+            "ground": [0.0, 0.0, 0.0]
+        },
+        "molasses_wave": {
+            "set": "molasses_wave",
+            "light": "storm",
+            "backdrop": 7.0,
+            "ground": [0.0, 0.0, 0.0]
+        },
+        "flooded_street": {
+            "set": "flooded_street",
+            "light": "dusk",
+            "backdrop": 7.0,
+            "ground": [0.0, 0.0, 0.0]
+        },
+        "harbor_clean": {
+            "set": "harbor_clean",
+            "light": "morning",
+            "backdrop": 7.0,
+            "ground": [0.0, 0.0, 0.0]
+        }
+    },
+    "fx": [
+        {"at": ["tsunami", 1], "type": "glint", "pos": [-0.8, 1.2, 1.2]},
+        {"at": ["50", 1], "type": "glow", "pos": [2.0, 4.0, 6.0]},
+        {"at": ["buckets", 1], "type": "dust", "pos": [0.5, 0.5, 0.2]},
+        {"at": ["brown", 1], "type": "stamp", "pos": [1.5, 2.0, 1.2]},
+        {"at": ["popped", 1], "type": "bolt", "pos": [0.0, 1.0, 3.5]},
+        {"at": ["wave", 1], "type": "splash", "pos": [-1.0, 0.0, 4.0]},
+        {"at": ["ripped", 1], "type": "dust", "pos": [-2.8, 0.0, 5.0]},
+        {"at": ["concrete", 1], "type": "stamp", "pos": [0.0, 0.0, 0.6]},
+        {"at": ["seawater", 1], "type": "splash", "pos": [0.5, 1.5, 1.8]},
+        {"at": ["pancakes", 1], "type": "glow", "pos": [-1.2, 0.0, 1.4]}
+    ],
+    "moods": [
+        {"at": 0, "light": "day", "color": [1.0, 0.98, 0.95]},
+        {"at": ["tsunami", 1], "light": "golden", "color": [1.05, 0.92, 0.82]},
+        {"at": ["warm", 1], "light": "day", "color": [1.08, 0.95, 0.88]},
+        {"at": ["exploded", 1], "light": "storm", "color": [0.85, 0.82, 0.90]},
+        {"at": ["hardened", 1], "light": "dusk", "color": [0.92, 0.82, 0.85]},
+        {"at": ["Firefighters", 1], "light": "morning", "color": [0.90, 0.96, 1.05]},
+        {"at": ["pancakes", 1], "light": "golden", "color": [1.08, 0.96, 0.85]}
+    ],
+    "sound": [
+        {"at": ["tsunami", 1], "name": "whoosh", "gain": 0.8},
+        {"at": ["popped", 1], "name": "impact", "gain": 1.0},
+        {"at": ["exploded", 1], "name": "boom", "gain": 1.2},
+        {"at": ["ripped", 1], "name": "metal_creak", "gain": 0.9},
+        {"at": ["pumping", 1], "name": "water_splash", "gain": 0.85}
+    ],
+    "sentences": sentences,
+    "takes": [
+        # Take 1: Commercial Street & USAA Tank (0.0s to 23.5s, f 0 - 705)
+        {
+            "id": "t1",
+            "place": "tank_yard",
+            "stations": [
+                {
+                    "at": 0,
+                    "pos": [-0.6, -3.2, 1.45],
+                    "aim": [-0.6, 0.0, 1.25],
+                    "lens": 26,
+                    "subject": "anthony",
+                    "framing": "W",
+                    "shows": ["anthony"],
+                    "hold": 0.5
+                },
+                {
+                    "at": ["tsunami", 1],
+                    "lead": 6,
+                    "pos": [-0.6, -1.8, 1.45],
+                    "aim": [-0.6, 0.0, 1.25],
+                    "lens": 35,
+                    "subject": "anthony",
+                    "framing": "M",
+                    "shows": ["anthony", "tsunami"],
+                    "word": "tsunami",
+                    "travel": 1.2,
+                    "hold": 1.2
+                },
+                {
+                    "at": ["50", 1],
+                    "lead": 6,
+                    "pos": [0.5, -4.8, 2.8],
+                    "aim": [3.5, 3.5, 4.5],
+                    "lens": 24,
+                    "subject": "molasses_tank",
+                    "framing": "W",
+                    "creep": 0.0008,
+                    "shows": ["molasses_tank"],
+                    "word": "50",
+                    "travel": 3.2,
+                    "hold": 1.5
+                },
+                {
+                    "at": ["buckets", 1],
+                    "lead": 6,
+                    "pos": [-0.4, -1.8, 1.25],
+                    "aim": [-0.2, 0.5, 0.95],
+                    "lens": 30,
+                    "subject": "kid_sal",
+                    "framing": "M",
+                    "shows": ["kid_sal", "anthony"],
+                    "word": "buckets",
+                    "travel": 1.1,
+                    "hold": 0.7
+                },
+                {
+                    "at": ["solution", 1],
+                    "lead": 6,
+                    "pos": [0.6, -2.4, 1.5],
+                    "aim": [1.2, 1.2, 1.25],
+                    "lens": 35,
+                    "subject": "usaa_boss",
+                    "framing": "M",
+                    "shows": ["usaa_boss"],
+                    "word": "solution",
+                    "travel": 0.9,
+                    "hold": 0.7
+                },
+                {
+                    "at": ["brown", 1],
+                    "lead": 6,
+                    "pos": [-0.2, -3.2, 1.45],
+                    "aim": [0.8, 1.0, 1.25],
+                    "lens": 26,
+                    "subject": "usaa_boss",
+                    "framing": "W",
+                    "shows": ["usaa_boss", "anthony", "molasses_tank"],
+                    "word": "brown",
+                    "travel": 1.0,
+                    "hold": 0.9
+                }
+            ]
+        },
+
+        # Take 2: The Molasses Tidal Wave Explosion (23.5s to 35.8s, f 705 - 1074)
+        {
+            "id": "t2",
+            "place": "molasses_wave",
+            "stations": [
+                {
+                    "at": 705,
+                    "pos": [-1.0, -3.5, 1.45],
+                    "aim": [-1.0, 0.0, 1.25],
+                    "lens": 28,
+                    "subject": "anthony",
+                    "framing": "W",
+                    "shows": ["anthony"],
+                    "hold": 0.6
+                },
+                {
+                    "at": ["popped", 1],
+                    "lead": 6,
+                    "pos": [-1.0, -2.0, 1.55],
+                    "aim": [-0.8, 0.2, 1.3],
+                    "lens": 32,
+                    "subject": "anthony",
+                    "framing": "M",
+                    "shows": ["anthony"],
+                    "word": "popped",
+                    "travel": 1.2,
+                    "hold": 1.2
+                },
+                {
+                    "at": ["towering", 1],
+                    "lead": 6,
+                    "pos": [-2.2, -4.8, 2.2],
+                    "aim": [-0.5, 0.0, 4.2],
+                    "lens": 24,
+                    "subject": "molasses_tidal_wave",
+                    "framing": "W",
+                    "creep": 0.0008,
+                    "shows": ["molasses_tidal_wave", "anthony"],
+                    "word": "towering",
+                    "travel": 3.0,
+                    "hold": 1.5
+                }
+            ]
+        },
+
+        # Take 3: The North End Flooded Street & El-Train (35.8s to 46.8s, f 1074 - 1404)
+        {
+            "id": "t3",
+            "place": "flooded_street",
+            "stations": [
+                {
+                    "at": 1074,
+                    "pos": [-2.5, -4.5, 2.2],
+                    "aim": [-1.0, 0.0, 2.0],
+                    "lens": 24,
+                    "subject": "knocked_brick_wall",
+                    "framing": "W",
+                    "shows": ["knocked_brick_wall", "track"],
+                    "hold": 0.6
+                },
+                {
+                    "at": ["smashed", 1],
+                    "lead": 6,
+                    "pos": [-1.5, -3.6, 1.6],
+                    "aim": [0.2, 0.4, 1.1],
+                    "lens": 28,
+                    "subject": "overturned_wagon_body",
+                    "framing": "O",
+                    "shows": ["overturned_wagon_body", "track"],
+                    "word": "smashed",
+                    "travel": 1.2,
+                    "hold": 0.8
+                },
+                {
+                    "at": ["trapped", 1],
+                    "lead": 6,
+                    "pos": [-0.8, -2.0, 1.35],
+                    "aim": [-0.6, 0.0, 1.0],
+                    "lens": 35,
+                    "subject": "anthony",
+                    "framing": "M",
+                    "shows": ["anthony"],
+                    "word": "trapped",
+                    "travel": 1.0,
+                    "hold": 0.8
+                },
+                {
+                    "at": ["concrete", 1],
+                    "lead": 6,
+                    "pos": [-0.6, -1.5, 1.15],
+                    "aim": [-0.5, 0.0, 0.95],
+                    "lens": 42,
+                    "subject": "anthony",
+                    "framing": "C",
+                    "shows": ["anthony"],
+                    "word": "concrete",
+                    "travel": 1.0,
+                    "hold": 1.0
+                }
+            ]
+        },
+
+        # Take 4: Boston Harbor & Fireboat Cleanup (46.8s to 60.6s, f 1404 - 1818)
+        {
+            "id": "t4",
+            "place": "harbor_clean",
+            "stations": [
+                {
+                    "at": 1404,
+                    "pos": [-2.2, -4.5, 2.0],
+                    "aim": [-0.8, 0.0, 1.6],
+                    "lens": 26,
+                    "subject": "chief",
+                    "framing": "W",
+                    "shows": ["chief", "fireboat_hull"],
+                    "hold": 0.6
+                },
+                {
+                    "at": ["pumping", 1],
+                    "lead": 6,
+                    "pos": [-1.2, -3.0, 1.8],
+                    "aim": [0.6, 1.0, 2.0],
+                    "lens": 32,
+                    "subject": "fireboat_hull",
+                    "framing": "M",
+                    "shows": ["chief", "fireboat_hull"],
+                    "word": "pumping",
+                    "travel": 1.0,
+                    "hold": 0.8
+                },
+                {
+                    "at": ["brown", 2],
+                    "lead": 6,
+                    "pos": [-2.5, -4.2, 2.0],
+                    "aim": [-0.2, 0.0, 1.35],
+                    "lens": 24,
+                    "subject": "chief",
+                    "framing": "W",
+                    "shows": ["chief", "anthony"],
+                    "word": "brown",
+                    "travel": 1.3,
+                    "hold": 0.9
+                },
+                {
+                    "at": ["pancakes", 1],
+                    "lead": 6,
+                    "pos": [-1.2, -1.8, 1.55],
+                    "aim": [-1.0, 0.0, 1.3],
+                    "lens": 35,
+                    "subject": "anthony",
+                    "framing": "M",
+                    "shows": ["anthony"],
+                    "word": "pancakes",
+                    "travel": 1.1,
+                    "hold": 1.2
+                }
+            ]
+        }
+    ],
+
+    # Top-level ACTS
+    "acts": [
+        # --- ANTHONY (Hero) ---
+        {"who": "anthony", "at": 0, "pos": [-0.6, 0.0, 0.0], "view": "front", "dir": 1, "face": "k:serious", "pose": "m:stand", "visible": True},
+        {"who": "anthony", "at": ["destroyed", 1], "face": "k:skeptical", "pose": "m:shrug", "dir": 1},
+        {"who": "anthony", "at": ["earthquake", 1], "face": "k:serious", "pose": "m:look_left", "dir": 1},
+        {"who": "anthony", "at": ["tsunami", 1], "face": "k:grimace", "pose": "m:point", "dir": 1},
+        {"who": "anthony", "at": ["boiling", 1], "face": "k:grimace", "pose": "m:gesture_wide", "dir": 1},
+        {"who": "anthony", "at": ["hour", 1], "face": "k:serious", "pose": "m:hands_hips", "dir": 1},
+        {"who": "anthony", "at": ["Street", 1], "view": "34", "dir": 1, "face": "k:serious", "pose": "m:look_up"},
+        {"who": "anthony", "at": ["fermenting", 1], "face": "k:suspicious", "pose": "m:sniff_air", "dir": 1},
+        {"who": "anthony", "at": ["neighborhood", 1], "face": "k:smirk", "pose": "m:point_low", "dir": 1},
+        {"who": "anthony", "at": ["buckets", 1], "face": "k:smirk", "pose": "m:laugh_low", "dir": 1},
+        {"who": "anthony", "at": ["solution", 1], "face": "k:skeptical", "pose": "m:arms_crossed", "dir": 1},
+        {"who": "anthony", "at": ["painted", 1], "face": "k:disbelief", "pose": "m:facepalm", "dir": 1},
+        {"who": "anthony", "at": ["brown", 1], "face": "k:facepalm", "pose": "m:shrug", "dir": 1},
+        {"who": "anthony", "at": ["leaks", 1], "face": "k:disbelief", "pose": "m:head_shake", "dir": 1},
+
+        # Wave explosion (Take 2)
+        {"who": "anthony", "at": 705, "pos": [-1.0, 0.0, 0.0], "view": "front", "dir": 1, "face": "k:serious", "pose": "m:stand", "visible": True},
+        {"who": "anthony", "at": ["January", 1], "face": "k:worry", "pose": "m:look_up", "dir": 1},
+        {"who": "anthony", "at": ["afternoon", 1], "face": "k:suspicious", "pose": "m:step_back", "dir": 1},
+        {"who": "anthony", "at": ["rivets", 1], "face": "k:shocked", "pose": "m:flinch", "dir": 1},
+        {"who": "anthony", "at": ["popped", 1], "face": "terrified", "pose": "m:shield_face", "dir": 1},
+        {"who": "anthony", "at": ["machine", 1], "face": "terrified", "pose": "m:cower", "dir": 1},
+        {"who": "anthony", "at": ["heavy", 1], "face": "terrified", "pose": "m:dive_escape", "dir": -1},
+        {"who": "anthony", "at": ["exploded", 1], "face": "terrified", "pose": "m:dive_escape", "dir": -1},
+        {"who": "anthony", "at": ["towering", 1], "face": "terrified", "pose": "m:crouch_braced", "dir": -1},
+
+        # Flooded Street (Take 3)
+        {"who": "anthony", "at": 1074, "pos": [-0.6, 0.0, 0.65], "view": "front", "dir": 1, "face": "terrified", "pose": "m:wade_struggle", "visible": True},
+        {"who": "anthony", "at": ["wooden", 1], "face": "k:shocked", "pose": "m:look_around", "dir": 1},
+        {"who": "anthony", "at": ["smashed", 1], "face": "k:grimace", "pose": "m:look_around", "dir": 1},
+        {"who": "anthony", "at": ["horses", 1], "face": "k:grimace", "pose": "m:pull_leg", "dir": 1},
+        {"who": "anthony", "at": ["trapped", 1], "face": "k:grimace", "pose": "m:pull_leg", "dir": 1},
+        {"who": "anthony", "at": ["cooling", 1], "face": "k:grimace", "pose": "m:stuck_molasses", "dir": 1},
+        {"who": "anthony", "at": ["concrete", 1], "face": "rage", "pose": "m:struggle_free", "dir": 1},
+
+        # Harbor Cleanup (Take 4)
+        {"who": "anthony", "at": 1404, "pos": [-1.8, -0.6, 1.33], "view": "front", "dir": 1, "face": "k:exhausted", "pose": "m:stand_weary", "visible": True},
+        {"who": "anthony", "at": ["weeks", 1], "face": "k:exhausted", "pose": "m:wipe_brow", "dir": 1},
+        {"who": "anthony", "at": ["millions", 1], "face": "k:exhausted", "pose": "m:stand_weary", "dir": 1},
+        {"who": "anthony", "at": ["clean", 1], "face": "k:relief", "pose": "m:sigh", "dir": 1},
+        {"who": "anthony", "at": ["brown", 2], "face": "k:smirk", "pose": "m:look_ocean", "dir": 1},
+        {"who": "anthony", "at": ["decades", 1], "face": "k:smirk", "pose": "m:sniff_air", "dir": 1},
+        {"who": "anthony", "at": ["summer", 1], "face": "k:delight", "pose": "m:sniff_air", "dir": 1},
+        {"who": "anthony", "at": ["pancakes", 1], "face": "delight", "pose": "m:delight_pancake", "dir": 1},
+
+        # --- USAA BOSS (Antagonist) ---
+        {"who": "usaa_boss", "at": 0, "visible": False},
+        {"who": "usaa_boss", "at": ["company's", 1], "visible": True, "pos": [1.2, 1.2, 0.0], "view": "front", "dir": -1, "face": "k:smirk", "pose": "m:proud"},
+        {"who": "usaa_boss", "at": ["solution", 1], "face": "proud", "pose": "m:cigar_puff", "dir": -1},
+        {"who": "usaa_boss", "at": ["painted", 1], "face": "proud", "pose": "m:gesture_wide", "dir": -1},
+        {"who": "usaa_boss", "at": ["brown", 1], "face": "troll", "pose": "m:paint_wall", "dir": -1},
+        {"who": "usaa_boss", "at": ["leaks", 1], "face": "k:smirk", "pose": "m:proud", "dir": -1},
+
+        # USAA Boss in Wave Explosion
+        {"who": "usaa_boss", "at": 705, "pos": [0.8, 0.8, 0.0], "view": "front", "dir": -1, "face": "k:smirk", "pose": "m:proud", "visible": True},
+        {"who": "usaa_boss", "at": ["rivets", 1], "face": "k:shocked", "pose": "m:hands_up", "dir": -1},
+        {"who": "usaa_boss", "at": ["popped", 1], "face": "terrified", "pose": "m:run_scared", "dir": -1, "exit": True},
+
+        # --- KID SAL ---
+        {"who": "kid_sal", "at": 0, "visible": False},
+        {"who": "kid_sal", "at": ["leaked", 1], "visible": True, "pos": [0.5, 0.8, 0.0], "view": "side", "dir": -1, "face": "k:delight", "pose": "m:run_crouch"},
+        {"who": "kid_sal", "at": ["buckets", 1], "pos": [-0.2, 0.5, 0.0], "view": "side", "dir": -1, "face": "delight", "pose": "m:crouch_gather"},
+        {"who": "kid_sal", "at": ["company's", 1], "pos": [-1.8, 0.2, 0.0], "exit": True},
+
+        # --- CHIEF PETER WALSH ---
+        {"who": "chief", "at": 0, "visible": False},
+        {"who": "chief", "at": 1404, "visible": True, "pos": [-0.6, 0.4, 1.33], "view": "front", "dir": 1, "face": "k:command", "pose": "m:direct_hose"},
+        {"who": "chief", "at": ["pumping", 1], "face": "k:serious", "pose": "m:point_ahead", "dir": 1},
+        {"who": "chief", "at": ["clean", 1], "face": "k:determined", "pose": "m:arms_crossed", "dir": 1},
+        {"who": "chief", "at": ["brown", 2], "face": "k:smirk", "pose": "m:hands_hips", "dir": 1}
+    ]
+}
+
+with open(film_path, "w", encoding="utf-8") as f:
+    json.dump(film, f, indent=2)
+
+print("Saved camera-balanced film.json successfully!")

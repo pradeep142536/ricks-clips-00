@@ -1,77 +1,119 @@
-export function build(scene, THREE) {
+// SET S3: FLOODED NORTH END COMMERCIAL STREET (AFTERMATH)
+// Waist-deep hardening molasses lake, knocked-over wagons, tilted gas lamp, and splintered houses.
+
+export async function build(THREE, scene, film, ctx) {
+  const { B2T, toon } = ctx;
+  const V = (x, y, z) => B2T([x, y, z]);
   const root = new THREE.Group();
   root.name = 'flooded_street';
 
-  // Ground cobblestones
-  const groundGeo = new THREE.PlaneGeometry(30, 30);
-  const groundMat = new THREE.MeshStandardMaterial({ color: 0x1f1a17, roughness: 0.9 });
-  const ground = new THREE.Mesh(groundGeo, groundMat);
-  root.add(ground);
+  const add = (geo, mat, name, role, p, parent = root) => {
+    const m = new THREE.Mesh(geo, mat);
+    m.name = name;
+    m.userData.role = role;
+    if (p) m.position.copy(p);
+    m.castShadow = true;
+    m.receiveShadow = true;
+    parent.add(m);
+    return m;
+  };
 
-  // Waist-deep viscous molasses fluid layer
-  const fluidGeo = new THREE.PlaneGeometry(28, 28, 16, 16);
-  const fluidMat = new THREE.MeshStandardMaterial({ color: 0x140602, roughness: 0.12, metalness: 0.45 });
-  const fluid = new THREE.Mesh(fluidGeo, fluidMat);
-  fluid.position.set(0, 0, 0.45);
-  root.add(fluid);
+  const box = (w, d, h, x, y, z, mat, name, role = 'wood', yaw = 0, roll = 0, pitch = 0) => {
+    const m = add(new THREE.BoxGeometry(w, h, d), mat, name, role, V(x, y, z + h / 2));
+    m.rotation.y = yaw;
+    m.rotation.z = roll;
+    m.rotation.x = pitch;
+    return m;
+  };
 
-  // Overturned wooden delivery wagon half submerged
-  const wagon = new THREE.Group();
-  const bedGeo = new THREE.BoxGeometry(2.4, 1.3, 0.25);
-  const bedMat = new THREE.MeshStandardMaterial({ color: 0x5a3d28, roughness: 0.8 });
-  const bed = new THREE.Mesh(bedGeo, bedMat);
-  wagon.add(bed);
+  const RL = (kind, c, o = {}) => ctx.relief ? ctx.relief(kind, c, o) : toon(c);
+  const MT = (kind, o = {}) => ctx.pbr ? ctx.pbr.metal(kind, o) : toon(o.toon || o.color || '#3c4470');
 
-  const wheelGeo = new THREE.TorusGeometry(0.5, 0.06, 8, 16);
-  const wheelMat = new THREE.MeshStandardMaterial({ color: 0x221a14, roughness: 0.7 });
-  const w1 = new THREE.Mesh(wheelGeo, wheelMat);
-  w1.position.set(-1.0, 0.7, 0.3);
-  wagon.add(w1);
-  const w2 = new THREE.Mesh(wheelGeo, wheelMat);
-  w2.position.set(1.0, 0.7, 0.3);
-  wagon.add(w2);
+  const M = {
+    cobble: RL('stone', '#2c2724', { scale: 1.5 }),
+    brick: RL('stone', '#722e24', { scale: 1.2 }),
+    brickShattered: RL('stone', '#5c241c', { scale: 0.9 }),
+    woodPlank: RL('wood', '#6b4629', { scale: 1.0 }),
+    woodHardened: RL('wood', '#422816', { scale: 1.0 }),
+    ironLamp: MT('iron', { color: '#181a20', rough: 0.35, toon: '#16171d' }),
+    molassesDeep: new THREE.MeshStandardMaterial({ color: 0x120602, roughness: 0.05, metalness: 0.35 }),
+    molassesCrust: new THREE.MeshStandardMaterial({ color: 0x241107, roughness: 0.38, metalness: 0.15 }),
+    debrisSplinter: RL('wood', '#8a5c36', { scale: 0.8 }),
+    curbStone: RL('stone', '#4e4842', { scale: 0.8 })
+  };
 
-  wagon.rotation.z = 0.35;
-  wagon.rotation.x = -0.2;
-  wagon.position.set(2.2, 2.5, 0.4);
-  root.add(wagon);
+  // 1. Street Bed & Sidewalks
+  const streetGeo = new THREE.PlaneGeometry(36, 36);
+  const street = add(streetGeo, M.cobble, 'street_ground', 'ground', V(0, 0, 0));
+  street.rotation.x = -Math.PI / 2;
 
-  // Damaged lamppost leaning in the syrup
-  const lampGeo = new THREE.CylinderGeometry(0.05, 0.07, 3.0, 8);
-  const lampMat = new THREE.MeshStandardMaterial({ color: 0x222222, metalness: 0.8 });
-  const lamp = new THREE.Mesh(lampGeo, lampMat);
-  lamp.rotation.x = Math.PI / 2 + 0.25;
-  lamp.rotation.y = 0.15;
-  lamp.position.set(-2.8, 1.8, 1.4);
-  root.add(lamp);
+  // 2. THE VISCOUS MOLASSES FLOOD LAKE (0.65m deep across the whole street)
+  // Deep reflective molasses layer
+  const floodGeo = new THREE.PlaneGeometry(35.5, 35.5);
+  const flood = add(floodGeo, M.molassesDeep, 'molasses_flood_surface', 'liquid', V(0, 0, 0.65));
+  flood.rotation.x = -Math.PI / 2;
 
-  // Brick townhouses lining the street
-  const rowGeo = new THREE.BoxGeometry(6, 0.8, 8);
-  const rowMat = new THREE.MeshStandardMaterial({ color: 0x6e2c22, roughness: 0.9 });
-  const row = new THREE.Mesh(rowGeo, rowMat);
-  row.position.set(-5.5, 4.0, 4.0);
-  root.add(row);
+  // Thick cooling molasses crust patches along the curbs
+  for (let cy = -12.0; cy <= 12.0; cy += 4.5) {
+    const crustGeo = new THREE.CircleGeometry(1.8, 16);
+    const crustL = add(crustGeo, M.molassesCrust, `molasses_crust_l_${cy}`, 'liquid', V(-3.2, cy, 0.66));
+    crustL.rotation.x = -Math.PI / 2;
+    const crustR = add(crustGeo, M.molassesCrust, `molasses_crust_r_${cy}`, 'liquid', V(3.2, cy + 1.2, 0.66));
+    crustR.rotation.x = -Math.PI / 2;
+  }
 
-  // Ambient & directional lighting
-  const sun = new THREE.DirectionalLight(0xffddaa, 1.3);
-  sun.position.set(4, -6, 8);
-  root.add(sun);
-  const amb = new THREE.AmbientLight(0x706060, 0.7);
-  root.add(amb);
+  // 3. Knocked-over North End Wooden Buildings & Rowhouse
+  // Tilted brick house wall knocked off foundation (West side)
+  const knockedWall = box(0.8, 8.5, 7.5, -6.5, -1.0, 0.3, M.brick, 'knocked_brick_wall', 'brick', 0.08, -0.15);
+  // Splintered timber porch collapsed into the syrup
+  box(2.2, 4.0, 0.3, -4.6, -1.2, 0.55, M.woodPlank, 'collapsed_porch', 'wood', 0.12, 0.22);
+
+  // 4. OVERTURNED HORSE-DRAWN DELIVERY WAGON
+  // Wagon body tilted upside-down in the 2-ft molasses pool
+  const wagonBox = box(1.8, 3.2, 0.9, 0.8, 1.2, 0.45, M.woodHardened, 'overturned_wagon_body', 'wood', 0.35, 0.65, -0.2);
+  // Broken splintered wheels sticking up out of the syrup
+  const w1Geo = new THREE.TorusGeometry(0.65, 0.06, 8, 16);
+  const w1Mesh = add(w1Geo, M.woodPlank, 'stuck_wagon_wheel_1', 'wood', V(0.2, 2.5, 1.4));
+  w1Mesh.rotation.x = 0.5;
+  w1Mesh.rotation.y = 0.8;
+
+  const w2Geo = new THREE.TorusGeometry(0.65, 0.06, 8, 16);
+  const w2Mesh = add(w2Geo, M.woodPlank, 'stuck_wagon_wheel_2', 'wood', V(1.4, 0.0, 1.2));
+  w2Mesh.rotation.x = -0.4;
+  w2Mesh.rotation.z = 0.9;
+
+  // 5. TILTING BOSTON GAS STREET LAMP
+  // Tilted at a 28-degree angle by the flood surge
+  const lampPoleGeo = new THREE.CylinderGeometry(0.08, 0.12, 3.4, 10);
+  const lamp = add(lampPoleGeo, M.ironLamp, 'tilted_gas_lamp', 'metal', V(-2.4, -2.5, 1.4));
+  lamp.rotation.z = 0.45; // Lean into the street
+  lamp.rotation.y = 0.1;
+  const lampHeadGeo = new THREE.OctahedronGeometry(0.28, 0);
+  const lampHead = add(lampHeadGeo, M.ironLamp, 'tilted_lamp_head', 'metal', V(-1.7, -2.5, 2.8));
+  lampHead.rotation.z = 0.45;
+
+  // 6. Half-Submerged Barrels and Floating Urban Debris
+  const stuckBarrel = (x, y, roll = 0.4, pitch = 0.2) => {
+    const bGeo = new THREE.CylinderGeometry(0.42, 0.46, 1.0, 14);
+    const bMesh = add(bGeo, M.woodHardened, 'submerged_barrel', 'wood', V(x, y, 0.55));
+    bMesh.rotation.z = roll;
+    bMesh.rotation.x = pitch;
+  };
+  stuckBarrel(-1.2, -3.8, 0.5, 0.2);
+  stuckBarrel(2.2, 3.5, -0.6, 0.3);
+  stuckBarrel(-0.4, 4.2, 0.8, -0.2);
+
+  // Floating wooden planks and kindling debris
+  box(0.3, 2.2, 0.08, -1.8, 2.0, 0.67, M.debrisSplinter, 'floating_plank_1', 'wood', 0.4);
+  box(0.25, 1.8, 0.08, 1.2, -2.2, 0.68, M.debrisSplinter, 'floating_plank_2', 'wood', -0.5);
+  box(0.4, 1.4, 0.1, 0.0, -1.0, 0.69, M.debrisSplinter, 'floating_crate_lid', 'wood', 0.15);
 
   scene.add(root);
-
-  return { root, fluid, wagon };
-}
-
-export function update(f, t, R) {
-  if (!R) return;
-  // Slow viscous undulations across the cooling syrup lake
-  if (R.fluid) {
-    R.fluid.position.z = 0.45 + Math.sin(t * 1.8) * 0.02;
-  }
-  // Wagon gently bobbing in the thick syrup
-  if (R.wagon) {
-    R.wagon.rotation.z = 0.35 + Math.sin(t * 1.2) * 0.015;
-  }
+  return {
+    anchors: {
+      wagon_wreckage: V(0.8, 1.2, 0.65),
+      tilted_lamp: V(-2.4, -2.5, 0.65),
+      porch_shelter: V(-4.6, -1.2, 0.65)
+    }
+  };
 }
