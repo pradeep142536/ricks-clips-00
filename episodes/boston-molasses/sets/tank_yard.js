@@ -182,7 +182,10 @@ export async function build(THREE, scene, film, ctx) {
   add(lampPoleGeo, M.lampIron, 'gas_lamp_pole', 'metal', V(-2.6, 2.8, 1.7));
   const lampHeadGeo = new THREE.OctahedronGeometry(0.3, 0);
   add(lampHeadGeo, M.lampIron, 'gas_lamp_casing', 'metal', V(-2.6, 2.8, 3.4));
-  add(new THREE.PointLight(0xffe090, 1.8, 7.0), null, 'gas_lamp_light', 'light', V(-2.6, 2.8, 3.4));
+  const lampLight = new THREE.PointLight(0xffe090, 1.8, 7.0);
+  lampLight.name = 'gas_lamp_light';
+  lampLight.position.copy(V(-2.6, 2.8, 3.4));
+  root.add(lampLight);
   contact(-2.6, 2.8, 0.35, 0.35, 0.5);
 
   scene.add(root);
