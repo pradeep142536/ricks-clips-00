@@ -1,5 +1,5 @@
 {
-  "title": "The 1919 Boston Great Molasses Flood",
+  "title": "The Great Boston Molasses Flood of 1919",
   "fps": 30,
   "size": [
     1080,
@@ -13,7 +13,7 @@
   ],
   "camera_idea": {
     "name": "Industrial Catastrophe Flow",
-    "why": "Dynamic cinematic push-ins on the leaking 50-foot riveted tank, ground-level immersion into the 25-foot molasses tidal wave and collapsing el-train, visceral struggle in waist-deep cooling syrup, and sweeping harbor pier cleanup."
+    "why": "Clear unobstructed eye-level framing on the leaking 50-foot tank, the panic of the 25-foot tidal wave, visceral struggle in viscous cooling molasses, and fireboat harbor cleanup."
   },
   "cast": {
     "anthony": {
@@ -87,9 +87,9 @@
       ],
       "type": "glint",
       "pos": [
-        -0.8,
-        1.2,
-        1.2
+        -0.3,
+        0.0,
+        1.4
       ]
     },
     {
@@ -99,9 +99,9 @@
       ],
       "type": "glow",
       "pos": [
-        2.0,
-        4.0,
-        6.0
+        3.0,
+        3.0,
+        5.0
       ]
     },
     {
@@ -111,8 +111,8 @@
       ],
       "type": "dust",
       "pos": [
-        0.5,
-        0.5,
+        0.2,
+        0.2,
         0.2
       ]
     },
@@ -123,8 +123,8 @@
       ],
       "type": "stamp",
       "pos": [
-        1.5,
-        2.0,
+        0.7,
+        0.4,
         1.2
       ]
     },
@@ -135,8 +135,8 @@
       ],
       "type": "bolt",
       "pos": [
-        0.0,
-        1.0,
+        -0.2,
+        0.5,
         3.5
       ]
     },
@@ -147,8 +147,8 @@
       ],
       "type": "splash",
       "pos": [
-        -1.0,
-        0.0,
+        -0.2,
+        1.5,
         4.0
       ]
     },
@@ -159,9 +159,9 @@
       ],
       "type": "dust",
       "pos": [
-        -2.8,
+        -3.5,
         0.0,
-        5.0
+        4.0
       ]
     },
     {
@@ -183,9 +183,9 @@
       ],
       "type": "splash",
       "pos": [
-        0.5,
-        1.5,
-        1.8
+        0.0,
+        1.2,
+        0.4
       ]
     },
     {
@@ -195,7 +195,7 @@
       ],
       "type": "glow",
       "pos": [
-        -1.2,
+        0.3,
         0.0,
         1.4
       ]
@@ -510,12 +510,12 @@
         {
           "at": 0,
           "pos": [
-            -0.6,
-            -3.2,
-            1.45
+            -0.3,
+            -3.4,
+            1.4
           ],
           "aim": [
-            -0.6,
+            -0.3,
             0.0,
             1.25
           ],
@@ -534,16 +534,16 @@
           ],
           "lead": 6,
           "pos": [
-            -0.6,
-            -1.8,
-            1.45
+            -0.3,
+            -2.5,
+            1.42
           ],
           "aim": [
-            -0.6,
+            -0.3,
             0.0,
-            1.25
+            1.3
           ],
-          "lens": 35,
+          "lens": 32,
           "subject": "anthony",
           "framing": "M",
           "shows": [
@@ -561,14 +561,14 @@
           ],
           "lead": 6,
           "pos": [
-            0.5,
-            -4.8,
-            2.8
+            2.4,
+            -5.8,
+            3.2
           ],
           "aim": [
-            3.5,
-            3.5,
-            4.5
+            3.2,
+            3.2,
+            4.2
           ],
           "lens": 24,
           "subject": "molasses_tank",
@@ -578,7 +578,7 @@
             "molasses_tank"
           ],
           "word": "50",
-          "travel": 3.2,
+          "travel": 1.1,
           "hold": 1.5
         },
         {
@@ -588,14 +588,14 @@
           ],
           "lead": 6,
           "pos": [
-            -0.4,
-            -1.8,
-            1.25
+            0.0,
+            -2.8,
+            1.3
           ],
           "aim": [
-            -0.2,
-            0.5,
-            0.95
+            0.0,
+            0.2,
+            1.25
           ],
           "lens": 30,
           "subject": "kid_sal",
@@ -605,8 +605,8 @@
             "anthony"
           ],
           "word": "buckets",
-          "travel": 1.1,
-          "hold": 0.7
+          "travel": 1.2,
+          "hold": 0.8
         },
         {
           "at": [
@@ -616,23 +616,23 @@
           "lead": 6,
           "pos": [
             0.6,
-            -2.4,
-            1.5
+            -2.8,
+            1.45
           ],
           "aim": [
-            1.2,
-            1.2,
-            1.25
+            0.6,
+            0.5,
+            1.35
           ],
-          "lens": 35,
+          "lens": 32,
           "subject": "usaa_boss",
           "framing": "M",
           "shows": [
             "usaa_boss"
           ],
           "word": "solution",
-          "travel": 0.9,
-          "hold": 0.7
+          "travel": 1.0,
+          "hold": 0.8
         },
         {
           "at": [
@@ -641,13 +641,13 @@
           ],
           "lead": 6,
           "pos": [
-            -0.2,
-            -3.2,
+            0.1,
+            -3.6,
             1.45
           ],
           "aim": [
-            0.8,
-            1.0,
+            0.1,
+            0.2,
             1.25
           ],
           "lens": 26,
@@ -655,11 +655,10 @@
           "framing": "W",
           "shows": [
             "usaa_boss",
-            "anthony",
-            "molasses_tank"
+            "anthony"
           ],
           "word": "brown",
-          "travel": 1.0,
+          "travel": 1.1,
           "hold": 0.9
         }
       ]
@@ -671,13 +670,13 @@
         {
           "at": 705,
           "pos": [
-            -1.0,
-            -3.5,
-            1.45
+            -0.2,
+            -3.4,
+            1.4
           ],
           "aim": [
-            -1.0,
-            0.0,
+            -0.2,
+            -0.2,
             1.25
           ],
           "lens": 28,
@@ -695,13 +694,13 @@
           ],
           "lead": 6,
           "pos": [
-            -1.0,
-            -2.0,
-            1.55
+            -0.2,
+            -2.6,
+            1.45
           ],
           "aim": [
-            -0.8,
-            0.2,
+            -0.2,
+            -0.2,
             1.3
           ],
           "lens": 32,
@@ -721,14 +720,14 @@
           ],
           "lead": 6,
           "pos": [
-            -2.2,
-            -4.8,
-            2.2
+            -1.8,
+            -5.6,
+            2.5
           ],
           "aim": [
-            -0.5,
-            0.0,
-            4.2
+            -0.1,
+            1.2,
+            3.5
           ],
           "lens": 24,
           "subject": "molasses_tidal_wave",
@@ -739,7 +738,7 @@
             "anthony"
           ],
           "word": "towering",
-          "travel": 3.0,
+          "travel": 1.0,
           "hold": 1.5
         }
       ]
@@ -751,21 +750,21 @@
         {
           "at": 1074,
           "pos": [
-            -2.5,
-            -4.5,
-            2.2
+            -0.5,
+            -4.0,
+            1.8
           ],
           "aim": [
-            -1.0,
+            -0.2,
             0.0,
-            2.0
+            1.2
           ],
-          "lens": 24,
+          "lens": 26,
           "subject": "knocked_brick_wall",
           "framing": "W",
           "shows": [
-            "knocked_brick_wall",
-            "track"
+            "track",
+            "knocked_brick_wall"
           ],
           "hold": 0.6
         },
@@ -776,21 +775,22 @@
           ],
           "lead": 6,
           "pos": [
-            -1.5,
-            -3.6,
+            -0.4,
+            -3.2,
             1.6
           ],
           "aim": [
+            0.0,
             0.2,
-            0.4,
-            1.1
+            1.2
           ],
           "lens": 28,
           "subject": "overturned_wagon_body",
           "framing": "O",
           "shows": [
             "overturned_wagon_body",
-            "track"
+            "track",
+            "anthony"
           ],
           "word": "smashed",
           "travel": 1.2,
@@ -803,16 +803,16 @@
           ],
           "lead": 6,
           "pos": [
-            -0.8,
-            -2.0,
-            1.35
+            0.0,
+            -2.8,
+            1.45
           ],
           "aim": [
-            -0.6,
             0.0,
-            1.0
+            0.0,
+            1.25
           ],
-          "lens": 35,
+          "lens": 32,
           "subject": "anthony",
           "framing": "M",
           "shows": [
@@ -829,18 +829,18 @@
           ],
           "lead": 6,
           "pos": [
-            -0.6,
-            -1.5,
-            1.15
+            0.0,
+            -2.4,
+            1.4
           ],
           "aim": [
-            -0.5,
             0.0,
-            0.95
+            0.0,
+            1.25
           ],
-          "lens": 42,
+          "lens": 35,
           "subject": "anthony",
-          "framing": "C",
+          "framing": "M",
           "shows": [
             "anthony"
           ],
@@ -857,14 +857,14 @@
         {
           "at": 1404,
           "pos": [
-            -2.2,
-            -4.5,
-            2.0
+            -0.5,
+            -3.8,
+            1.8
           ],
           "aim": [
-            -0.8,
-            0.0,
-            1.6
+            -0.2,
+            0.1,
+            1.5
           ],
           "lens": 26,
           "subject": "chief",
@@ -882,21 +882,20 @@
           ],
           "lead": 6,
           "pos": [
-            -1.2,
-            -3.0,
-            1.8
+            -0.6,
+            -2.8,
+            1.7
           ],
           "aim": [
-            0.6,
-            1.0,
-            2.0
+            -0.3,
+            0.4,
+            1.55
           ],
-          "lens": 32,
+          "lens": 30,
           "subject": "fireboat_hull",
           "framing": "M",
           "shows": [
-            "chief",
-            "fireboat_hull"
+            "chief"
           ],
           "word": "pumping",
           "travel": 1.0,
@@ -909,16 +908,16 @@
           ],
           "lead": 6,
           "pos": [
-            -2.5,
-            -4.2,
-            2.0
+            -0.2,
+            -3.4,
+            1.65
           ],
           "aim": [
-            -0.2,
+            -0.1,
             0.0,
-            1.35
+            1.45
           ],
-          "lens": 24,
+          "lens": 28,
           "subject": "chief",
           "framing": "W",
           "shows": [
@@ -936,16 +935,16 @@
           ],
           "lead": 6,
           "pos": [
-            -1.2,
-            -1.8,
+            0.3,
+            -2.5,
             1.55
           ],
           "aim": [
-            -1.0,
+            0.3,
             0.0,
-            1.3
+            1.45
           ],
-          "lens": 35,
+          "lens": 32,
           "subject": "anthony",
           "framing": "M",
           "shows": [
@@ -963,7 +962,7 @@
       "who": "anthony",
       "at": 0,
       "pos": [
-        -0.6,
+        -0.3,
         0.0,
         0.0
       ],
@@ -1060,7 +1059,7 @@
         "buckets",
         1
       ],
-      "face": "troll",
+      "face": "sus",
       "pose": "hands_hips",
       "dir": 1
     },
@@ -1108,8 +1107,8 @@
       "who": "anthony",
       "at": 705,
       "pos": [
-        -1.0,
-        0.0,
+        -0.2,
+        -0.2,
         0.0
       ],
       "view": "front",
@@ -1202,9 +1201,9 @@
       "who": "anthony",
       "at": 1074,
       "pos": [
-        -0.6,
         0.0,
-        0.65
+        0.0,
+        0.55
       ],
       "view": "front",
       "dir": 1,
@@ -1228,7 +1227,7 @@
         "smashed",
         1
       ],
-      "face": "hysterical",
+      "face": "jawdrop",
       "pose": "flinch",
       "dir": 1
     },
@@ -1268,7 +1267,7 @@
         "concrete",
         1
       ],
-      "face": "rage",
+      "face": "deadInside",
       "pose": "push",
       "dir": 1
     },
@@ -1276,8 +1275,8 @@
       "who": "anthony",
       "at": 1404,
       "pos": [
-        -1.8,
-        -0.6,
+        0.3,
+        0.0,
         1.33
       ],
       "view": "front",
@@ -1332,8 +1331,8 @@
         "decades",
         1
       ],
-      "face": "troll",
-      "pose": "hands_hips",
+      "face": "bruh",
+      "pose": "tiltL",
       "dir": 1
     },
     {
@@ -1342,7 +1341,7 @@
         "summer",
         1
       ],
-      "face": "delight",
+      "face": "k:smirk",
       "pose": "reach_up",
       "dir": 1
     },
@@ -1352,8 +1351,8 @@
         "pancakes",
         1
       ],
-      "face": "delight",
-      "pose": "cheer",
+      "face": "k:smirk",
+      "pose": "shrug",
       "dir": 1
     },
     {
@@ -1369,8 +1368,8 @@
       ],
       "visible": true,
       "pos": [
-        1.2,
-        1.2,
+        0.7,
+        0.4,
         0.0
       ],
       "view": "front",
@@ -1422,8 +1421,8 @@
       "who": "usaa_boss",
       "at": 705,
       "pos": [
-        0.8,
-        0.8,
+        0.6,
+        0.2,
         0.0
       ],
       "view": "front",
@@ -1466,8 +1465,8 @@
       ],
       "visible": true,
       "pos": [
-        0.5,
-        0.8,
+        0.2,
+        0.3,
         0.0
       ],
       "view": "side",
@@ -1482,13 +1481,13 @@
         1
       ],
       "pos": [
-        -0.2,
-        0.5,
+        0.0,
+        0.2,
         0.0
       ],
       "view": "side",
       "dir": -1,
-      "face": "heartEyes",
+      "face": "delight",
       "pose": "reach_up"
     },
     {
@@ -1515,7 +1514,7 @@
       "visible": true,
       "pos": [
         -0.6,
-        0.4,
+        0.2,
         1.33
       ],
       "view": "front",
