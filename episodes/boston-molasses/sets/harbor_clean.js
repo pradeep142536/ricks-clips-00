@@ -58,12 +58,12 @@ export async function build(THREE, scene, film, ctx) {
     box(0.18, 2.9, 0.18, -0.6, py + 1.5, 0.4, M.pierTimber, `cross_brace_${py}`, 'wood', 0, 0.35);
   }
 
-  // Cast iron mooring bollards along pier edge
-  for (let by of [-8.0, -2.0, 4.0, 10.0]) {
+  // Cast iron mooring bollards along pier edge (clear of camera zone Y in [-3.5, 1.0])
+  for (let by of [-8.0, -5.0, 3.5, 9.0]) {
     const bollardGeo = new THREE.CylinderGeometry(0.18, 0.16, 0.7, 10);
-    add(bollardGeo, M.bollardIron, `bollard_${by}`, 'metal', V(-0.7, by, 1.65));
+    add(bollardGeo, M.bollardIron, `bollard_${by}`, 'metal', V(-0.7, by, 1.55));
     const bollardCapGeo = new THREE.SphereGeometry(0.22, 10, 8);
-    add(bollardCapGeo, M.bollardIron, `bollard_cap_${by}`, 'metal', V(-0.7, by, 2.0));
+    add(bollardCapGeo, M.bollardIron, `bollard_cap_${by}`, 'metal', V(-0.7, by, 1.9));
   }
 
   // 2. BROWN MOLASSES-STAINED BOSTON HARBOR WATER
