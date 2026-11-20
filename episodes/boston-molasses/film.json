@@ -41,6 +41,7 @@
     "tank_yard": {
       "set": "tank_yard",
       "light": "day",
+      "sky_kind": "clear-day",
       "backdrop": 7.0,
       "ground": [
         0.0,
@@ -51,6 +52,7 @@
     "molasses_wave": {
       "set": "molasses_wave",
       "light": "storm",
+      "sky_kind": "dusk-storm",
       "backdrop": 7.0,
       "ground": [
         0.0,
@@ -61,6 +63,7 @@
     "flooded_street": {
       "set": "flooded_street",
       "light": "dusk",
+      "sky_kind": "dusk-storm",
       "backdrop": 7.0,
       "ground": [
         0.0,
@@ -71,6 +74,7 @@
     "harbor_clean": {
       "set": "harbor_clean",
       "light": "morning",
+      "sky_kind": "clear-day",
       "backdrop": 7.0,
       "ground": [
         0.0,
@@ -523,7 +527,8 @@
           "subject": "anthony",
           "framing": "W",
           "shows": [
-            "anthony"
+            "anthony",
+            "molasses_tank"
           ],
           "hold": 0.5
         },
@@ -968,8 +973,8 @@
       ],
       "view": "front",
       "dir": 1,
-      "face": "bruh",
-      "pose": "stand",
+      "face": "k:worried",
+      "pose": "point_out",
       "visible": true
     },
     {

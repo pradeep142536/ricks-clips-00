@@ -6,6 +6,13 @@ export async function build(THREE, scene, film, ctx) {
   const V = (x, y, z) => B2T([x, y, z]);
   const root = new THREE.Group();
   root.name = 'molasses_wave';
+  if (ctx.sky?.clouds) ctx.sky.clouds({
+    kind: ctx.place?.sky_kind || 'dusk-storm',
+    seed: 1919,
+    coverage: 0.9,
+    scale: 1.2,
+    sunDir: [-0.45, 0.55, 0.2]
+  });
 
   const add = (geo, mat, name, role, p, parent = root) => {
     const m = new THREE.Mesh(geo, mat);

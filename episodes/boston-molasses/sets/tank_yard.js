@@ -6,6 +6,14 @@ export async function build(THREE, scene, film, ctx) {
   const V = (x, y, z) => B2T([x, y, z]);
   const root = new THREE.Group();
   root.name = 'tank_yard';
+  if (ctx.sky?.clouds) ctx.sky.clouds({
+    kind: ctx.place?.sky_kind || 'clear-day',
+    seed: 1919,
+    coverage: 0.72,
+    scale: 1.05,
+    cirrus: true,
+    sunDir: [0.35, 0.75, 0.25]
+  });
 
   const add = (geo, mat, name, role, p, parent = root) => {
     const m = new THREE.Mesh(geo, mat);
@@ -15,6 +23,12 @@ export async function build(THREE, scene, film, ctx) {
     m.castShadow = true;
     m.receiveShadow = true;
     parent.add(m);
+    return m;
+  };
+  const beamBetween = (a, b, radius, mat, name, role = 'metal') => {
+    const va = V(...a), vb = V(...b), delta = vb.clone().sub(va);
+    const m = add(new THREE.CylinderGeometry(radius, radius, delta.length(), 8), mat, name, role, va.clone().add(vb).multiplyScalar(0.5));
+    m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), delta.normalize());
     return m;
   };
 
@@ -108,6 +122,47 @@ export async function build(THREE, scene, film, ctx) {
       add(rivetGeo, M.rivet, `rivet_${tz}_${r}`, 'metal', V(rx, ry, tz));
     }
   }
+
+  // Distant 1919 North End roofline and industrial silhouettes.
+  const skyline = [
+    [-13.0, 20.0, 4.8, 5.5], [-8.0, 22.0, 3.8, 4.2], [-2.6, 23.0, 5.6, 6.4],
+    [3.8, 24.0, 4.5, 5.0], [15.0, 24.0, 6.2, 7.0]
+  ];
+  for (let i = 0; i < skyline.length; i++) {
+    const [sx, sy, sw, sh] = skyline[i];
+    box(sw, 2.2, sh, sx, sy, 0.0, i % 2 ? M.brickDark : M.brick, `distant_rowhouse_${i}`, 'brick');
+    for (let wx = -sw * 0.32; wx <= sw * 0.32; wx += 0.65) {
+      for (const wz of [1.25, 2.55, 3.85].filter(z => z < sh - 0.2)) {
+        box(0.22, 0.08, 0.34, sx + wx, sy - 1.16, wz, M.woodDark, `distant_window_${i}_${wx}_${wz}`, 'wood');
+      }
+    }
+    box(0.28, 0.35, 1.2, sx + sw * 0.23, sy + 0.25, sh, M.tankBand, `distant_chimney_${i}`, 'metal');
+  }
+  for (const [sx, sy, h] of [[-15.0, 25.0, 8.0], [7.0, 26.0, 10.0]]) {
+    add(new THREE.CylinderGeometry(0.32, 0.46, h, 12), M.brickDark, `industrial_stack_${sx}`, 'brick', V(sx, sy, h / 2));
+    add(new THREE.TorusGeometry(0.37, 0.045, 6, 12), M.tankBand, `stack_band_${sx}`, 'metal', V(sx, sy, h * 0.72));
+  }
+
+  // Foreground syrup collection handcart with barrels and hose.
+  const cartX = -3.0, cartY = 0.8;
+  box(2.8, 1.65, 0.28, cartX, cartY, 0.78, M.woodPlank, 'foreground_syrup_cart_bed', 'wood', -0.08);
+  box(2.9, 0.12, 0.65, cartX, cartY - 0.82, 0.72, M.woodDark, 'foreground_cart_front', 'wood', -0.08);
+  box(0.12, 2.0, 0.62, cartX - 1.34, cartY, 0.72, M.woodDark, 'foreground_cart_side_l', 'wood', -0.08);
+  box(0.12, 2.0, 0.62, cartX + 1.34, cartY, 0.72, M.woodDark, 'foreground_cart_side_r', 'wood', -0.08);
+  for (const wx of [cartX - 1.12, cartX + 1.12]) {
+    const wheel = add(new THREE.CylinderGeometry(0.56, 0.56, 0.16, 18), M.tankBand, `foreground_cart_wheel_${wx}`, 'metal', V(wx, cartY - 0.1, 0.56));
+    wheel.rotation.z = Math.PI / 2;
+    add(new THREE.TorusGeometry(0.42, 0.045, 6, 18), M.rivet, `foreground_cart_wheel_rim_${wx}`, 'metal', V(wx, cartY - 0.19, 0.56)).rotation.z = Math.PI / 2;
+  }
+  for (const [bx, by] of [[cartX - 0.62, cartY - 0.12], [cartX + 0.35, cartY - 0.08]]) {
+    const barrelMesh = add(new THREE.CylinderGeometry(0.43, 0.47, 0.92, 16), M.woodDark, `foreground_barrel_${bx}`, 'wood', V(bx, by, 1.32));
+    barrelMesh.rotation.y = 0.12;
+    add(new THREE.TorusGeometry(0.46, 0.035, 6, 16), M.tankBand, `foreground_barrel_hoop_${bx}`, 'metal', V(bx, by, 1.1));
+    add(new THREE.TorusGeometry(0.46, 0.035, 6, 16), M.tankBand, `foreground_barrel_hoop_top_${bx}`, 'metal', V(bx, by, 1.55));
+  }
+  beamBetween([-2.25, -3.25, 0.85], [-0.8, -5.0, 0.25], 0.09, M.woodPlank, 'foreground_cart_handle', 'wood');
+  beamBetween([-10.0, 8.0, 7.2], [12.0, 8.0, 6.0], 0.025, M.tankBand, 'background_telegraph_wire_a', 'metal');
+  beamBetween([-10.0, 8.0, 7.0], [12.0, 8.0, 5.8], 0.025, M.tankBand, 'background_telegraph_wire_b', 'metal');
 
   // Molasses Leak Streaks dripping down tank seam
   const leakPositions = [-0.8, -0.2, 0.5, 1.2, 2.0];
