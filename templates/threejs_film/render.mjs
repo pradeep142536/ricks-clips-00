@@ -18,7 +18,8 @@ if (!fs.existsSync(path.join(OUT, 'plan', 'camera_baked.json'))) { console.error
 // A source folder's sheets/ (cast sheets, each exports CAST) is copied too, so film.json can name any cast character: "puppet": "cast:<name>".
 const LOCAL = path.join(KIT, '..', 'vector2d_characters', 'code'), DEF = [fs.existsSync(path.join(LOCAL, 'char2d.mjs')) ? LOCAL : '/mnt/project-files/new-characters/vector2d/LOCKED_cast_v2_NEW_STYLE/code/'];
 const src = (val('--puppets') ? val('--puppets').split(',') : process.env.PUPPET_PKG ? process.env.PUPPET_PKG.split(',') : film.puppet_pkg ? [].concat(film.puppet_pkg) : DEF).map(p => path.resolve(EP, p));
-const CACHE = path.join(OUT, '.puppet_cache'); fs.rmSync(CACHE, { recursive: true, force: true }); fs.mkdirSync(CACHE, { recursive: true });
+const CACHE = path.join(OUT, '.puppet_cache_' + process.pid); fs.rmSync(CACHE, { recursive: true, force: true }); fs.mkdirSync(CACHE, { recursive: true });
+process.on('exit', () => { try { fs.rmSync(CACHE, { recursive: true, force: true }); } catch {} });
 for (const s of src) { if (!fs.existsSync(s)) { console.error('puppet package not found: ' + s); process.exit(1); }
   for (const f of fs.statSync(s).isDirectory() ? fs.readdirSync(s).filter(n => n.endsWith('.mjs')).map(n => path.join(s, n)) : [s]) { const d = path.join(CACHE, path.basename(f)); if (!fs.existsSync(d)) fs.copyFileSync(f, d); } }
 for (const s of src) { const sd = path.join(s, 'sheets'); if (fs.existsSync(s) && fs.statSync(s).isDirectory() && fs.existsSync(sd)) { fs.mkdirSync(path.join(CACHE, 'sheets'), { recursive: true }); for (const n of fs.readdirSync(sd).filter(n => n.endsWith('.mjs'))) { const d = path.join(CACHE, 'sheets', n); if (!fs.existsSync(d)) fs.copyFileSync(path.join(sd, n), d); } } }
@@ -43,7 +44,7 @@ if (has('--serve')) { console.log(`Open ${BASE}/kit/film_page.html?film=/ep/${pa
 
 let chromium; try { ({ chromium } = await import('playwright')); } catch { ({ chromium } = require(process.env.PLAYWRIGHT_DIR || '/opt/node-tools/node_modules/playwright')); }
 const [FW, FH] = film.size || [1080, 1920], scale = +val('--scale', has('--storyboard') ? 0.4 : 0.5), W = Math.round(FW * scale / 2) * 2, H = Math.round(FH * scale / 2) * 2;
-const browser = await chromium.launch({ args: ['--enable-unsafe-swiftshader', '--disable-gpu-vsync', '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--disable-features=CalculateNativeWinOcclusion', '--no-sandbox'] }), page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 1 });
+const browser = await chromium.launch({ args: ['--ignore-gpu-blocklist', '--enable-gpu-rasterization', '--enable-zero-copy', '--use-gl=angle', '--use-angle=gl-egl', '--disable-gpu-vsync', '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--disable-features=CalculateNativeWinOcclusion', '--no-sandbox'] }), page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 1 });
 page.on('console', m => { if ((m.type() === 'warning' || m.type() === 'error') && !/GL Driver Message/.test(m.text())) console.log('[page]', m.text()); }); page.on('pageerror', e => console.log('[page error]', e.message));
 await page.goto(`${BASE}/kit/film_page.html`);
 const info = await page.evaluate(c => window.setup(c), { film: '/ep/' + path.basename(FILM), W, H, captions: !has('--no-captions'), sheets: SHEETS, epSets: fs.existsSync(path.join(EP, 'sets')) ? fs.readdirSync(path.join(EP, 'sets')) : [] });
