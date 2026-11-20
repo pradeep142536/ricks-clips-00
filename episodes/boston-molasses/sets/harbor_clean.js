@@ -97,20 +97,20 @@ export async function build(THREE, scene, film, ctx) {
     const nozGeo = new THREE.CylinderGeometry(0.12, 0.07, 1.6, 10);
     const noz = add(nozGeo, M.brassMonitor, 'monitor_nozzle', 'metal', V(x, y, z + 1.1));
     noz.rotation.y = aimAng;
-    noz.rotation.z = -0.4;
+    noz.rotation.z = -0.6;
 
-    // High pressure arcing seawater jet stream
-    const jetGeo = new THREE.CylinderGeometry(0.06, 0.22, 7.0, 10);
-    const jet = add(jetGeo, M.waterJet, 'seawater_jet_stream', 'fx', V(x - 2.8, y + 0.5, z + 1.8));
+    // High pressure arcing seawater jet stream aimed low into the water/docks
+    const jetGeo = new THREE.CylinderGeometry(0.04, 0.25, 6.0, 10);
+    const jet = add(jetGeo, M.waterJet, 'seawater_jet_stream', 'fx', V(x - 2.5, y + 0.8, z + 0.6));
     jet.rotation.y = aimAng;
-    jet.rotation.z = 1.15; // Arcing downward toward the pier/harbor
+    jet.rotation.z = 0.5; // Angled down toward harbor water
 
-    // Foaming splash cloud at contact point
+    // Foaming splash cloud at contact point in the water
     const splashGeo = new THREE.SphereGeometry(1.2, 10, 8);
-    add(splashGeo, M.waterSpray, 'seawater_spray_impact', 'fx', V(x - 5.8, y + 1.2, 1.3));
+    add(splashGeo, M.waterSpray, 'seawater_spray_impact', 'fx', V(x - 4.5, y + 1.5, 0.3));
   };
-  monitor(2.2, 3.0, 1.6, -0.6);
-  monitor(2.2, -3.0, 1.6, -0.4);
+  monitor(3.2, 2.5, 1.6, -0.4);
+  monitor(3.2, -2.5, 1.6, -0.3);
 
   // 5. Heavy Canvas Fire Hoses Snaking Across the Wharf
   const hoseSpline = [

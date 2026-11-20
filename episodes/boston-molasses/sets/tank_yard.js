@@ -83,10 +83,11 @@ export async function build(THREE, scene, film, ctx) {
 
   // 2. Giant USAA Molasses Tank (Commercial Street)
   // 50 ft (15m) tall, 27m diameter curved steel section
-  const tankRadius = 11.0;
-  const tankH = 14.0;
-  const tankCenterX = 8.5;
-  const tankCenterY = 6.5;
+  // Positioned back and to the right so it forms a dramatic backdrop without blocking the camera line of sight
+  const tankRadius = 9.0;
+  const tankH = 15.0;
+  const tankCenterX = 10.5;
+  const tankCenterY = 7.5;
 
   const tankGeo = new THREE.CylinderGeometry(tankRadius, tankRadius, tankH, 48, 1, false, 0, Math.PI * 2);
   const tankMesh = add(tankGeo, M.tankSteel, 'molasses_tank', 'metal', V(tankCenterX, tankCenterY, tankH / 2));

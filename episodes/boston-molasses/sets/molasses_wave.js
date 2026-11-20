@@ -91,16 +91,16 @@ export async function build(THREE, scene, film, ctx) {
   crestMesh.rotation.x = Math.PI / 2;
 
   // 4. ATLANTIC AVENUE ELEVATED TRAIN GIRDER COLLAPSE
-  // Steel trestle pillars and bent I-beams being violently ripped off
+  // Steel trestle pillars and bent I-beams framed safely in the midground/background
   // Upright girder pillar (standing)
-  box(0.5, 0.5, 7.0, -3.8, -4.0, 0.0, M.steelBeam, 'el_pillar_standing', 'metal');
-  box(0.5, 0.5, 7.0, -3.8, 4.0, 0.0, M.steelBeam, 'el_pillar_standing_north', 'metal');
+  box(0.5, 0.5, 7.0, -4.8, -3.0, 0.0, M.steelBeam, 'el_pillar_standing', 'metal');
+  box(0.5, 0.5, 7.0, -4.8, 4.0, 0.0, M.steelBeam, 'el_pillar_standing_north', 'metal');
 
-  // Sheared / bent girder pillar (bent at 35 degrees by the wave force)
-  const shearedPillar = box(0.48, 0.48, 6.8, -1.8, -0.5, 0.0, M.steelBeam, 'el_pillar_bent', 'metal', 0.2, 0.45);
+  // Sheared / bent girder pillar (bent at 35 degrees by the wave force, placed in the background)
+  const shearedPillar = box(0.45, 0.45, 6.5, -3.8, 2.5, 0.0, M.steelBeam, 'el_pillar_bent', 'metal', 0.2, 0.35);
 
   // Heavy steel cross girder track bed buckling downward
-  const buckledBed = box(1.2, 9.5, 0.6, -2.8, 0.0, 6.2, M.steelBeam, 'el_track_bed_buckled', 'metal', 0.1, -0.22);
+  const buckledBed = box(1.0, 9.0, 0.5, -4.2, 0.5, 6.2, M.steelBeam, 'el_track_bed_buckled', 'metal', 0.1, -0.18);
 
   // Dangling rail tracks
   box(0.12, 10.0, 0.18, -2.5, 0.0, 6.6, M.steelBeam, 'el_rail_1', 'metal', 0.1, -0.25);
