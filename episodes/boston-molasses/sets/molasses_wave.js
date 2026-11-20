@@ -140,6 +140,23 @@ export async function build(THREE, scene, film, ctx) {
   wheelMesh.rotation.x = 0.8;
   wheelMesh.rotation.y = 0.4;
 
+  // Clean, readable 3D depth behind the hero wave: warehouse bays, rail
+  // supports, signal lights and a layered skyline keep the frame from becoming
+  // an empty dark plane during the wide reveal.
+  for (const [x, y, h] of [[-12, 13, 6], [-7, 16, 8], [7, 18, 7], [13, 14, 5]]) {
+    box(4.2, 1.0, h, x, y, 0, M.steelBeam, `wave_warehouse_${x}`, 'metal');
+    for (let z = 1; z < h; z += 1.5) box(0.12, 0.08, 0.55, x - 1.25, y - 0.55, z, M.rivetFlying, `wave_window_${x}_${z}`, 'metal');
+  }
+  for (const x of [-10, -4, 4, 11]) {
+    box(0.22, 8.0, 0.22, x, 7.0, 3.8, M.steelBeam, `wave_rail_beam_${x}`, 'metal', 0, 0, 0.08);
+    box(0.28, 0.28, 4.2, x, 7.0, 1.9, M.steelBeam, `wave_rail_post_${x}`, 'metal');
+  }
+  for (const [x, y] of [[-13, 5], [-6, 6], [8, 7], [15, 5]]) {
+    const lamp = add(new THREE.CylinderGeometry(0.08, 0.08, 2.8, 8), M.steelBeam, `wave_signal_pole_${x}`, 'metal', V(x, y, 1.4));
+    add(new THREE.SphereGeometry(0.18, 10, 8), M.rivetFlying, `wave_signal_lamp_${x}`, 'light', V(x, y, 2.9));
+    lamp.rotation.z = 0.03;
+  }
+
   scene.add(root);
   return {
     anchors: {

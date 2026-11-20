@@ -115,6 +115,25 @@ export async function build(THREE, scene, film, ctx) {
   box(0.25, 1.8, 0.08, 1.2, -2.2, 0.68, M.debrisSplinter, 'floating_plank_2', 'wood', -0.5);
   box(0.4, 1.4, 0.1, 0.0, -1.0, 0.69, M.debrisSplinter, 'floating_crate_lid', 'wood', 0.15);
 
+  // Rebuild the far street as a readable 1919 neighbourhood: facade planes,
+  // windows, rooflines and practical lamps add the layered 3D background seen
+  // in the approved references instead of a flat wall behind the flood.
+  for (const [x, y, w, h] of [[-13, 10, 5, 7], [-7, 12, 4, 6], [7, 13, 5, 8], [13, 11, 4, 6]]) {
+    box(w, 1.0, h, x, y, 0, M.brick, `street_rowhouse_${x}`, 'brick');
+    for (let wx = -w * 0.3; wx <= w * 0.3; wx += 0.75) {
+      for (let wz = 1.4; wz < h - 0.4; wz += 1.45) box(0.28, 0.08, 0.42, x + wx, y - 0.54, wz, M.ironLamp, `street_window_${x}_${wx}_${wz}`, 'metal');
+    }
+    box(0.32, 0.35, 1.3, x + w * 0.28, y + 0.2, h, M.brickShattered, `street_chimney_${x}`, 'brick');
+  }
+  for (const [x, y] of [[-10, 5], [-4, 6], [5, 6], [11, 5]]) {
+    add(new THREE.CylinderGeometry(0.07, 0.1, 3.2, 8), M.ironLamp, `street_gas_pole_${x}`, 'metal', V(x, y, 1.6));
+    add(new THREE.SphereGeometry(0.2, 10, 8), M.curbStone, `street_gas_globe_${x}`, 'light', V(x, y, 3.25));
+  }
+  for (const [x, y, z] of [[-8, 2.8, 1.2], [6, 1.5, 1.0], [10, -2.0, 0.9]]) {
+    box(1.5, 1.1, z, x, y, 0.7, M.woodPlank, `street_rescue_crate_${x}`, 'wood');
+    box(1.6, 0.06, 0.06, x, y - 0.56, 1.1, M.ironLamp, `street_crate_band_${x}`, 'metal');
+  }
+
   scene.add(root);
   return {
     anchors: {

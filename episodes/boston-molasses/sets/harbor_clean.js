@@ -137,6 +137,22 @@ export async function build(THREE, scene, film, ctx) {
     hMesh.rotation.z = Math.PI / 2;
   }
 
+  // Layered Boston waterfront depth: warehouse facades, cranes, mast lights
+  // and a distant lighthouse give the clean-up shot a designed 3D horizon.
+  for (const [x, y, w, h] of [[-13, 14, 5, 6], [-7, 16, 4, 8], [9, 17, 6, 7], [15, 14, 4, 5]]) {
+    box(w, 1.2, h, x, y, 0, M.pierTimber, `harbor_warehouse_${x}`, 'wood');
+    for (let wx = -w * 0.3; wx <= w * 0.3; wx += 0.8) for (let wz = 1.4; wz < h - 0.3; wz += 1.5)
+      box(0.26, 0.08, 0.4, x + wx, y - 0.64, wz, M.fireboatWhite, `harbor_window_${x}_${wx}_${wz}`, 'metal');
+  }
+  for (const [x, y] of [[-11, 8], [-4, 9], [6, 10], [13, 8]]) {
+    box(0.16, 0.16, 7.5, x, y, 3.75, M.bollardIron, `harbor_crane_leg_${x}`, 'metal');
+    box(0.12, 5.5, 0.12, x, y, 7.4, M.bollardIron, `harbor_crane_arm_${x}`, 'metal', 0, 0, 0.08);
+    add(new THREE.SphereGeometry(0.18, 10, 8), M.brassMonitor, `harbor_crane_light_${x}`, 'light', V(x, y, 7.55));
+  }
+  const lighthouse = add(new THREE.CylinderGeometry(0.42, 0.7, 6.5, 12), M.fireboatWhite, 'harbor_lighthouse', 'metal', V(15, 20, 3.25));
+  lighthouse.rotation.z = 0.02;
+  add(new THREE.CylinderGeometry(0.55, 0.55, 0.35, 12), M.brassMonitor, 'harbor_lighthouse_cap', 'metal', V(15, 20, 6.6));
+
   scene.add(root);
   return {
     anchors: {
