@@ -74,4 +74,5 @@ jobs:
           path: |
             episodes/${{ env.EPISODE }}/out/stills
             ${{ env.EPISODE }}_full_episode_1080p.mp4
+            ${{ env.EPISODE }}_full_visual_animatic_1080p.mp4
           retention-days: 14
