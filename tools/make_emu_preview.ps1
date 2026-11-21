@@ -2,7 +2,7 @@ $ErrorActionPreference = 'Stop'
 $root = Join-Path $PSScriptRoot '..'
 $ep = Join-Path $root 'episodes\emu-war'
 New-Item -ItemType Directory -Force (Join-Path $ep 'voice') | Out-Null
-Copy-Item (Join-Path $root 'episodes\boston-molasses\cast') (Join-Path $ep 'cast') -Recurse -Force
+if (!(Test-Path (Join-Path $ep 'cast\CAST_KEYS.json'))) { Copy-Item (Join-Path $root 'episodes\boston-molasses\cast\*') (Join-Path $ep 'cast') -Recurse -Force }
 Copy-Item (Join-Path $root 'episodes\boston-molasses\film.json') (Join-Path $ep 'film.json') -Force
 $film = Get-Content (Join-Path $ep 'film.json') -Raw | ConvertFrom-Json
 $film.title = 'The Army That Lost a War to Birds'
