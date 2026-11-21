@@ -18,22 +18,22 @@
                     },
     "cast":  {
                  "anthony":  {
-                                 "puppet":  "cast:construction",
+                                 "puppet":  "cast:sheet05/redcoat",
                                  "height":  1.74,
                                  "heads_tall":  2.85
                              },
                  "usaa_boss":  {
-                                   "puppet":  "cast:construction",
+                                   "puppet":  "cast:sheet05/sheriff",
                                    "height":  1.78,
                                    "heads_tall":  2.65
                                },
                  "chief":  {
-                               "puppet":  "cast:construction",
+                               "puppet":  "cast:sheet05/redcoat",
                                "height":  1.75,
                                "heads_tall":  2.8
                            },
                  "kid_sal":  {
-                                 "puppet":  "cast:construction",
+                                 "puppet":  "cast:sheet05/redcoat",
                                  "height":  1.25,
                                  "heads_tall":  3.4
                              }
@@ -1644,9 +1644,9 @@
                  }
              ],
     "post":  {
-                 "dof":  0.25,
-                 "dust":  0.8,
-                 "bloom":  0.7,
-                 "vignette":  0.72
+                 "dof":  0,
+                 "dust":  0.55,
+                 "bloom":  0.65,
+                 "vignette":  0.68
              }
 }
