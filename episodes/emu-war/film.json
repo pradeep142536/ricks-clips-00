@@ -1,0 +1,1652 @@
+{
+    "title":  "The Army That Lost a War to Birds",
+    "fps":  30,
+    "size":  [
+                 1080,
+                 1920
+             ],
+    "kit3d":  true,
+    "words":  "voice/words.json",
+    "puppet_pkg":  [
+                       "cast",
+                       "../../templates/vector2d_characters/code"
+                   ],
+    "camera_idea":  {
+                        "name":  "The Flock That Outsmarted the Gun",
+                        "why":  "Start on the soldier and gun, reveal the enormous wheat field, track the emus through the fence, then return to the baffled soldier.",
+                        "signature":  "A low tracking move follows the flock while the gun and truck shrink behind it."
+                    },
+    "cast":  {
+                 "anthony":  {
+                                 "puppet":  "cast:construction",
+                                 "height":  1.74,
+                                 "heads_tall":  2.85
+                             },
+                 "usaa_boss":  {
+                                   "puppet":  "cast:construction",
+                                   "height":  1.78,
+                                   "heads_tall":  2.65
+                               },
+                 "chief":  {
+                               "puppet":  "cast:construction",
+                               "height":  1.75,
+                               "heads_tall":  2.8
+                           },
+                 "kid_sal":  {
+                                 "puppet":  "cast:construction",
+                                 "height":  1.25,
+                                 "heads_tall":  3.4
+                             }
+             },
+    "places":  {
+                   "tank_yard":  {
+                                     "set":  "emu_field",
+                                     "light":  "day",
+                                     "sky_kind":  "clear-day",
+                                     "backdrop":  7.0,
+                                     "ground":  [
+                                                    0.0,
+                                                    0.0,
+                                                    0.0
+                                                ]
+                                 },
+                   "molasses_wave":  {
+                                         "set":  "emu_field",
+                                         "light":  "golden",
+                                         "sky_kind":  "clear-day",
+                                         "backdrop":  7.0,
+                                         "ground":  [
+                                                        0.0,
+                                                        0.0,
+                                                        0.0
+                                                    ]
+                                     },
+                   "flooded_street":  {
+                                          "set":  "emu_field",
+                                          "light":  "overcast",
+                                          "sky_kind":  "clear-day",
+                                          "backdrop":  7.0,
+                                          "ground":  [
+                                                         0.0,
+                                                         0.0,
+                                                         0.0
+                                                     ]
+                                      },
+                   "harbor_clean":  {
+                                        "set":  "emu_field",
+                                        "light":  "day",
+                                        "sky_kind":  "clear-day",
+                                        "backdrop":  7.0,
+                                        "ground":  [
+                                                       0.0,
+                                                       0.0,
+                                                       0.0
+                                                   ]
+                                    }
+               },
+    "fx":  [
+               {
+                   "at":  [
+                              "tsunami",
+                              1
+                          ],
+                   "type":  "glint",
+                   "pos":  [
+                               -0.3,
+                               0.0,
+                               1.4
+                           ]
+               },
+               {
+                   "at":  [
+                              "50",
+                              1
+                          ],
+                   "type":  "glow",
+                   "pos":  [
+                               3.0,
+                               3.0,
+                               5.0
+                           ]
+               },
+               {
+                   "at":  [
+                              "buckets",
+                              1
+                          ],
+                   "type":  "dust",
+                   "pos":  [
+                               0.2,
+                               0.2,
+                               0.2
+                           ]
+               },
+               {
+                   "at":  [
+                              "brown",
+                              1
+                          ],
+                   "type":  "stamp",
+                   "pos":  [
+                               0.7,
+                               0.4,
+                               1.2
+                           ]
+               },
+               {
+                   "at":  [
+                              "popped",
+                              1
+                          ],
+                   "type":  "bolt",
+                   "pos":  [
+                               -0.2,
+                               0.5,
+                               3.5
+                           ]
+               },
+               {
+                   "at":  [
+                              "wave",
+                              1
+                          ],
+                   "type":  "splash",
+                   "pos":  [
+                               -0.2,
+                               1.5,
+                               4.0
+                           ]
+               },
+               {
+                   "at":  [
+                              "ripped",
+                              1
+                          ],
+                   "type":  "dust",
+                   "pos":  [
+                               -3.5,
+                               0.0,
+                               4.0
+                           ]
+               },
+               {
+                   "at":  [
+                              "concrete",
+                              1
+                          ],
+                   "type":  "stamp",
+                   "pos":  [
+                               0.0,
+                               0.0,
+                               0.6
+                           ]
+               },
+               {
+                   "at":  [
+                              "seawater",
+                              1
+                          ],
+                   "type":  "splash",
+                   "pos":  [
+                               0.0,
+                               1.2,
+                               0.4
+                           ]
+               },
+               {
+                   "at":  [
+                              "pancakes",
+                              1
+                          ],
+                   "type":  "glow",
+                   "pos":  [
+                               0.3,
+                               0.0,
+                               1.4
+                           ]
+               }
+           ],
+    "moods":  [
+                  {
+                      "at":  0,
+                      "light":  "day",
+                      "color":  [
+                                    1.0,
+                                    0.98,
+                                    0.95
+                                ]
+                  },
+                  {
+                      "at":  [
+                                 "tsunami",
+                                 1
+                             ],
+                      "light":  "golden",
+                      "color":  [
+                                    1.05,
+                                    0.92,
+                                    0.82
+                                ]
+                  },
+                  {
+                      "at":  [
+                                 "warm",
+                                 1
+                             ],
+                      "light":  "day",
+                      "color":  [
+                                    1.08,
+                                    0.95,
+                                    0.88
+                                ]
+                  },
+                  {
+                      "at":  [
+                                 "exploded",
+                                 1
+                             ],
+                      "light":  "storm",
+                      "color":  [
+                                    0.85,
+                                    0.82,
+                                    0.9
+                                ]
+                  },
+                  {
+                      "at":  [
+                                 "hardened",
+                                 1
+                             ],
+                      "light":  "dusk",
+                      "color":  [
+                                    0.92,
+                                    0.82,
+                                    0.85
+                                ]
+                  },
+                  {
+                      "at":  [
+                                 "Firefighters",
+                                 1
+                             ],
+                      "light":  "morning",
+                      "color":  [
+                                    0.9,
+                                    0.96,
+                                    1.05
+                                ]
+                  },
+                  {
+                      "at":  [
+                                 "pancakes",
+                                 1
+                             ],
+                      "light":  "golden",
+                      "color":  [
+                                    1.08,
+                                    0.96,
+                                    0.85
+                                ]
+                  }
+              ],
+    "sound":  [
+                  {
+                      "at":  0,
+                      "name":  "dry_wind_wheat"
+                  },
+                  {
+                      "at":  30,
+                      "name":  "truck_engine"
+                  },
+                  {
+                      "at":  45,
+                      "name":  "emu_footsteps_and_calls"
+                  },
+                  {
+                      "at":  60,
+                      "name":  "metal_gun_click"
+                  }
+              ],
+    "sentences":  [
+                      {
+                          "text":  "A soldier aimed a machine gun at a flock of emus in a wheat field.",
+                          "words":  [
+                                        0,
+                                        13
+                                    ],
+                          "subject":  "anthony",
+                          "nouns":  [
+                                        {
+                                            "word":  "gun",
+                                            "at":  0,
+                                            "show":  "gun"
+                                        },
+                                        {
+                                            "word":  "emus",
+                                            "at":  45,
+                                            "show":  "emu"
+                                        },
+                                        {
+                                            "word":  "wheat",
+                                            "at":  90,
+                                            "show":  "wheat"
+                                        }
+                                    ]
+                      },
+                      {
+                          "text":  "But the birds split apart, ran through the fence, and vanished into the golden grass.",
+                          "words":  [
+                                        14,
+                                        28
+                                    ],
+                          "subject":  "chief",
+                          "nouns":  [
+                                        {
+                                            "word":  "fence",
+                                            "at":  135,
+                                            "show":  "fence"
+                                        },
+                                        {
+                                            "word":  "grass",
+                                            "at":  180,
+                                            "show":  "wheat"
+                                        }
+                                    ]
+                      },
+                      {
+                          "text":  "The army brought trucks, ammunition, and confidence. The emus brought speed.",
+                          "words":  [
+                                        29,
+                                        40
+                                    ],
+                          "subject":  "usaa_boss",
+                          "nouns":  [
+                                        {
+                                            "word":  "truck",
+                                            "at":  225,
+                                            "show":  "truck"
+                                        },
+                                        {
+                                            "word":  "speed",
+                                            "at":  270,
+                                            "show":  "emu"
+                                        }
+                                    ]
+                      },
+                      {
+                          "text":  "After days of chasing them, the soldiers had one problem: the birds were winning.",
+                          "words":  [
+                                        41,
+                                        55
+                                    ],
+                          "subject":  "anthony",
+                          "nouns":  [
+                                        {
+                                            "word":  "birds",
+                                            "at":  315,
+                                            "show":  "emu"
+                                        }
+                                    ]
+                      },
+                      {
+                          "text":  "The Great Emu War ended with the emus still running.",
+                          "words":  [
+                                        56,
+                                        66
+                                    ],
+                          "subject":  "chief",
+                          "nouns":  [
+                                        {
+                                            "word":  "running",
+                                            "at":  360,
+                                            "show":  "emu"
+                                        }
+                                    ]
+                      }
+                  ],
+    "takes":  [
+                  {
+                      "id":  "t1",
+                      "place":  "tank_yard",
+                      "stations":  [
+                                       {
+                                           "at":  0,
+                                           "pos":  [
+                                                       -0.3,
+                                                       -3.4,
+                                                       1.4
+                                                   ],
+                                           "aim":  [
+                                                       -0.3,
+                                                       0.0,
+                                                       1.25
+                                                   ],
+                                           "lens":  26,
+                                           "subject":  "anthony",
+                                           "framing":  "W",
+                                           "shows":  [
+                                                         "anthony",
+                                                         "chief",
+                                                         "usaa_boss",
+                                                         "gun",
+                                                         "emu",
+                                                         "wheat",
+                                                         "fence",
+                                                         "grass",
+                                                         "truck",
+                                                         "speed",
+                                                         "birds",
+                                                         "running"
+                                                     ],
+                                           "hold":  0.5
+                                       },
+                                       {
+                                           "at":  [
+                                                      "tsunami",
+                                                      1
+                                                  ],
+                                           "lead":  6,
+                                           "pos":  [
+                                                       -0.3,
+                                                       -2.5,
+                                                       1.42
+                                                   ],
+                                           "aim":  [
+                                                       -0.3,
+                                                       0.0,
+                                                       1.3
+                                                   ],
+                                           "lens":  32,
+                                           "subject":  "anthony",
+                                           "framing":  "M",
+                                           "shows":  [
+                                                         "anthony",
+                                                         "chief",
+                                                         "usaa_boss",
+                                                         "gun",
+                                                         "emu",
+                                                         "wheat",
+                                                         "fence",
+                                                         "grass",
+                                                         "truck",
+                                                         "speed",
+                                                         "birds",
+                                                         "running"
+                                                     ],
+                                           "word":  "tsunami",
+                                           "travel":  1.2,
+                                           "hold":  1.2
+                                       },
+                                       {
+                                           "at":  [
+                                                      "50",
+                                                      1
+                                                  ],
+                                           "lead":  6,
+                                           "pos":  [
+                                                       3.5,
+                                                       -7.5,
+                                                       4.2
+                                                   ],
+                                           "aim":  [
+                                                       4.5,
+                                                       4.2,
+                                                       5.5
+                                                   ],
+                                           "lens":  24,
+                                           "subject":  "molasses_tank",
+                                           "framing":  "W",
+                                           "creep":  0.0008,
+                                           "shows":  [
+                                                         "anthony",
+                                                         "chief",
+                                                         "usaa_boss",
+                                                         "gun",
+                                                         "emu",
+                                                         "wheat",
+                                                         "fence",
+                                                         "grass",
+                                                         "truck",
+                                                         "speed",
+                                                         "birds",
+                                                         "running"
+                                                     ],
+                                           "word":  "50",
+                                           "travel":  3.9,
+                                           "hold":  1.5
+                                       },
+                                       {
+                                           "at":  [
+                                                      "buckets",
+                                                      1
+                                                  ],
+                                           "lead":  6,
+                                           "pos":  [
+                                                       0.0,
+                                                       -2.8,
+                                                       1.3
+                                                   ],
+                                           "aim":  [
+                                                       0.0,
+                                                       0.2,
+                                                       1.25
+                                                   ],
+                                           "lens":  30,
+                                           "subject":  "kid_sal",
+                                           "framing":  "M",
+                                           "shows":  [
+                                                         "anthony",
+                                                         "chief",
+                                                         "usaa_boss",
+                                                         "gun",
+                                                         "emu",
+                                                         "wheat",
+                                                         "fence",
+                                                         "grass",
+                                                         "truck",
+                                                         "speed",
+                                                         "birds",
+                                                         "running"
+                                                     ],
+                                           "word":  "buckets",
+                                           "travel":  1.2,
+                                           "hold":  0.8
+                                       },
+                                       {
+                                           "at":  [
+                                                      "solution",
+                                                      1
+                                                  ],
+                                           "lead":  6,
+                                           "pos":  [
+                                                       0.6,
+                                                       -2.8,
+                                                       1.45
+                                                   ],
+                                           "aim":  [
+                                                       0.6,
+                                                       0.5,
+                                                       1.35
+                                                   ],
+                                           "lens":  32,
+                                           "subject":  "usaa_boss",
+                                           "framing":  "M",
+                                           "shows":  [
+                                                         "anthony",
+                                                         "chief",
+                                                         "usaa_boss",
+                                                         "gun",
+                                                         "emu",
+                                                         "wheat",
+                                                         "fence",
+                                                         "grass",
+                                                         "truck",
+                                                         "speed",
+                                                         "birds",
+                                                         "running"
+                                                     ],
+                                           "word":  "solution",
+                                           "travel":  1.0,
+                                           "hold":  0.8
+                                       },
+                                       {
+                                           "at":  [
+                                                      "brown",
+                                                      1
+                                                  ],
+                                           "lead":  6,
+                                           "pos":  [
+                                                       0.1,
+                                                       -3.6,
+                                                       1.45
+                                                   ],
+                                           "aim":  [
+                                                       0.1,
+                                                       0.2,
+                                                       1.25
+                                                   ],
+                                           "lens":  26,
+                                           "subject":  "usaa_boss",
+                                           "framing":  "W",
+                                           "shows":  [
+                                                         "anthony",
+                                                         "chief",
+                                                         "usaa_boss",
+                                                         "gun",
+                                                         "emu",
+                                                         "wheat",
+                                                         "fence",
+                                                         "grass",
+                                                         "truck",
+                                                         "speed",
+                                                         "birds",
+                                                         "running"
+                                                     ],
+                                           "word":  "brown",
+                                           "travel":  1.1,
+                                           "hold":  0.9
+                                       }
+                                   ]
+                  },
+                  {
+                      "id":  "t2",
+                      "place":  "molasses_wave",
+                      "stations":  [
+                                       {
+                                           "at":  705,
+                                           "pos":  [
+                                                       -0.2,
+                                                       -3.4,
+                                                       1.4
+                                                   ],
+                                           "aim":  [
+                                                       -0.2,
+                                                       -0.2,
+                                                       1.25
+                                                   ],
+                                           "lens":  28,
+                                           "subject":  "anthony",
+                                           "framing":  "W",
+                                           "shows":  [
+                                                         "anthony",
+                                                         "chief",
+                                                         "usaa_boss",
+                                                         "gun",
+                                                         "emu",
+                                                         "wheat",
+                                                         "fence",
+                                                         "grass",
+                                                         "truck",
+                                                         "speed",
+                                                         "birds",
+                                                         "running"
+                                                     ],
+                                           "hold":  0.6
+                                       },
+                                       {
+                                           "at":  [
+                                                      "popped",
+                                                      1
+                                                  ],
+                                           "lead":  6,
+                                           "pos":  [
+                                                       -0.2,
+                                                       -2.6,
+                                                       1.45
+                                                   ],
+                                           "aim":  [
+                                                       -0.2,
+                                                       -0.2,
+                                                       1.3
+                                                   ],
+                                           "lens":  32,
+                                           "subject":  "anthony",
+                                           "framing":  "M",
+                                           "shows":  [
+                                                         "anthony",
+                                                         "chief",
+                                                         "usaa_boss",
+                                                         "gun",
+                                                         "emu",
+                                                         "wheat",
+                                                         "fence",
+                                                         "grass",
+                                                         "truck",
+                                                         "speed",
+                                                         "birds",
+                                                         "running"
+                                                     ],
+                                           "word":  "popped",
+                                           "travel":  1.2,
+                                           "hold":  1.2
+                                       },
+                                       {
+                                           "at":  [
+                                                      "towering",
+                                                      1
+                                                  ],
+                                           "lead":  6,
+                                           "pos":  [
+                                                       -4.0,
+                                                       -7.2,
+                                                       3.8
+                                                   ],
+                                           "aim":  [
+                                                       -0.2,
+                                                       2.2,
+                                                       5.8
+                                                   ],
+                                           "lens":  24,
+                                           "subject":  "molasses_tidal_wave",
+                                           "framing":  "W",
+                                           "creep":  0.0008,
+                                           "shows":  [
+                                                         "anthony",
+                                                         "chief",
+                                                         "usaa_boss",
+                                                         "gun",
+                                                         "emu",
+                                                         "wheat",
+                                                         "fence",
+                                                         "grass",
+                                                         "truck",
+                                                         "speed",
+                                                         "birds",
+                                                         "running"
+                                                     ],
+                                           "word":  "towering",
+                                           "travel":  3.2,
+                                           "hold":  1.5
+                                       }
+                                   ]
+                  },
+                  {
+                      "id":  "t3",
+                      "place":  "flooded_street",
+                      "stations":  [
+                                       {
+                                           "at":  1074,
+                                           "pos":  [
+                                                       -0.5,
+                                                       -4.0,
+                                                       1.8
+                                                   ],
+                                           "aim":  [
+                                                       -0.2,
+                                                       0.0,
+                                                       1.2
+                                                   ],
+                                           "lens":  26,
+                                           "subject":  "knocked_brick_wall",
+                                           "framing":  "W",
+                                           "shows":  [
+                                                         "anthony",
+                                                         "chief",
+                                                         "usaa_boss",
+                                                         "gun",
+                                                         "emu",
+                                                         "wheat",
+                                                         "fence",
+                                                         "grass",
+                                                         "truck",
+                                                         "speed",
+                                                         "birds",
+                                                         "running"
+                                                     ],
+                                           "hold":  0.6
+                                       },
+                                       {
+                                           "at":  [
+                                                      "smashed",
+                                                      1
+                                                  ],
+                                           "lead":  6,
+                                           "pos":  [
+                                                       -0.4,
+                                                       -3.2,
+                                                       1.6
+                                                   ],
+                                           "aim":  [
+                                                       0.0,
+                                                       0.2,
+                                                       1.2
+                                                   ],
+                                           "lens":  28,
+                                           "subject":  "overturned_wagon_body",
+                                           "framing":  "O",
+                                           "shows":  [
+                                                         "anthony",
+                                                         "chief",
+                                                         "usaa_boss",
+                                                         "gun",
+                                                         "emu",
+                                                         "wheat",
+                                                         "fence",
+                                                         "grass",
+                                                         "truck",
+                                                         "speed",
+                                                         "birds",
+                                                         "running"
+                                                     ],
+                                           "word":  "smashed",
+                                           "travel":  1.2,
+                                           "hold":  0.8
+                                       },
+                                       {
+                                           "at":  [
+                                                      "trapped",
+                                                      1
+                                                  ],
+                                           "lead":  6,
+                                           "pos":  [
+                                                       0.0,
+                                                       -2.8,
+                                                       1.45
+                                                   ],
+                                           "aim":  [
+                                                       0.0,
+                                                       0.0,
+                                                       1.25
+                                                   ],
+                                           "lens":  32,
+                                           "subject":  "anthony",
+                                           "framing":  "M",
+                                           "shows":  [
+                                                         "anthony",
+                                                         "chief",
+                                                         "usaa_boss",
+                                                         "gun",
+                                                         "emu",
+                                                         "wheat",
+                                                         "fence",
+                                                         "grass",
+                                                         "truck",
+                                                         "speed",
+                                                         "birds",
+                                                         "running"
+                                                     ],
+                                           "word":  "trapped",
+                                           "travel":  1.0,
+                                           "hold":  0.8
+                                       },
+                                       {
+                                           "at":  [
+                                                      "concrete",
+                                                      1
+                                                  ],
+                                           "lead":  6,
+                                           "pos":  [
+                                                       0.0,
+                                                       -2.4,
+                                                       1.4
+                                                   ],
+                                           "aim":  [
+                                                       0.0,
+                                                       0.0,
+                                                       1.25
+                                                   ],
+                                           "lens":  35,
+                                           "subject":  "anthony",
+                                           "framing":  "M",
+                                           "shows":  [
+                                                         "anthony",
+                                                         "chief",
+                                                         "usaa_boss",
+                                                         "gun",
+                                                         "emu",
+                                                         "wheat",
+                                                         "fence",
+                                                         "grass",
+                                                         "truck",
+                                                         "speed",
+                                                         "birds",
+                                                         "running"
+                                                     ],
+                                           "word":  "concrete",
+                                           "travel":  1.0,
+                                           "hold":  1.0
+                                       }
+                                   ]
+                  },
+                  {
+                      "id":  "t4",
+                      "place":  "harbor_clean",
+                      "stations":  [
+                                       {
+                                           "at":  1404,
+                                           "pos":  [
+                                                       -0.5,
+                                                       -3.8,
+                                                       1.8
+                                                   ],
+                                           "aim":  [
+                                                       -0.2,
+                                                       0.1,
+                                                       1.5
+                                                   ],
+                                           "lens":  26,
+                                           "subject":  "chief",
+                                           "framing":  "W",
+                                           "shows":  [
+                                                         "anthony",
+                                                         "chief",
+                                                         "usaa_boss",
+                                                         "gun",
+                                                         "emu",
+                                                         "wheat",
+                                                         "fence",
+                                                         "grass",
+                                                         "truck",
+                                                         "speed",
+                                                         "birds",
+                                                         "running"
+                                                     ],
+                                           "hold":  0.6
+                                       },
+                                       {
+                                           "at":  [
+                                                      "pumping",
+                                                      1
+                                                  ],
+                                           "lead":  6,
+                                           "pos":  [
+                                                       -0.6,
+                                                       -2.8,
+                                                       1.7
+                                                   ],
+                                           "aim":  [
+                                                       -0.3,
+                                                       0.4,
+                                                       1.55
+                                                   ],
+                                           "lens":  30,
+                                           "subject":  "fireboat_hull",
+                                           "framing":  "M",
+                                           "shows":  [
+                                                         "anthony",
+                                                         "chief",
+                                                         "usaa_boss",
+                                                         "gun",
+                                                         "emu",
+                                                         "wheat",
+                                                         "fence",
+                                                         "grass",
+                                                         "truck",
+                                                         "speed",
+                                                         "birds",
+                                                         "running"
+                                                     ],
+                                           "word":  "pumping",
+                                           "travel":  1.0,
+                                           "hold":  0.8
+                                       },
+                                       {
+                                           "at":  [
+                                                      "brown",
+                                                      2
+                                                  ],
+                                           "lead":  6,
+                                           "pos":  [
+                                                       -0.2,
+                                                       -3.4,
+                                                       1.65
+                                                   ],
+                                           "aim":  [
+                                                       -0.1,
+                                                       0.0,
+                                                       1.45
+                                                   ],
+                                           "lens":  28,
+                                           "subject":  "chief",
+                                           "framing":  "W",
+                                           "shows":  [
+                                                         "anthony",
+                                                         "chief",
+                                                         "usaa_boss",
+                                                         "gun",
+                                                         "emu",
+                                                         "wheat",
+                                                         "fence",
+                                                         "grass",
+                                                         "truck",
+                                                         "speed",
+                                                         "birds",
+                                                         "running"
+                                                     ],
+                                           "word":  "brown",
+                                           "travel":  1.3,
+                                           "hold":  0.9
+                                       },
+                                       {
+                                           "at":  [
+                                                      "pancakes",
+                                                      1
+                                                  ],
+                                           "lead":  6,
+                                           "pos":  [
+                                                       0.3,
+                                                       -2.5,
+                                                       1.55
+                                                   ],
+                                           "aim":  [
+                                                       0.3,
+                                                       0.0,
+                                                       1.45
+                                                   ],
+                                           "lens":  32,
+                                           "subject":  "anthony",
+                                           "framing":  "M",
+                                           "shows":  [
+                                                         "anthony",
+                                                         "chief",
+                                                         "usaa_boss",
+                                                         "gun",
+                                                         "emu",
+                                                         "wheat",
+                                                         "fence",
+                                                         "grass",
+                                                         "truck",
+                                                         "speed",
+                                                         "birds",
+                                                         "running"
+                                                     ],
+                                           "word":  "pancakes",
+                                           "travel":  1.1,
+                                           "hold":  1.2
+                                       }
+                                   ]
+                  }
+              ],
+    "acts":  [
+                 {
+                     "who":  "anthony",
+                     "at":  0,
+                     "pos":  [
+                                 -0.3,
+                                 0.0,
+                                 0.0
+                             ],
+                     "view":  "front",
+                     "dir":  1,
+                     "face":  "k:worried",
+                     "pose":  "point_out",
+                     "visible":  true
+                 },
+                 {
+                     "who":  "anthony",
+                     "at":  [
+                                "destroyed",
+                                1
+                            ],
+                     "face":  "sus",
+                     "pose":  "shrug",
+                     "dir":  1
+                 },
+                 {
+                     "who":  "anthony",
+                     "at":  [
+                                "earthquake",
+                                1
+                            ],
+                     "face":  "bruh",
+                     "pose":  "tiltL",
+                     "dir":  1
+                 },
+                 {
+                     "who":  "anthony",
+                     "at":  [
+                                "tsunami",
+                                1
+                            ],
+                     "face":  "jawdrop",
+                     "pose":  "point_out",
+                     "dir":  1
+                 },
+                 {
+                     "who":  "anthony",
+                     "at":  [
+                                "boiling",
+                                1
+                            ],
+                     "face":  "strain",
+                     "pose":  "hold_out",
+                     "dir":  1
+                 },
+                 {
+                     "who":  "anthony",
+                     "at":  [
+                                "hour",
+                                1
+                            ],
+                     "face":  "k:smirk",
+                     "pose":  "hands_hips",
+                     "dir":  1
+                 },
+                 {
+                     "who":  "anthony",
+                     "at":  [
+                                "Street",
+                                1
+                            ],
+                     "view":  "34",
+                     "dir":  1,
+                     "face":  "k:open",
+                     "pose":  "point_up"
+                 },
+                 {
+                     "who":  "anthony",
+                     "at":  [
+                                "fermenting",
+                                1
+                            ],
+                     "face":  "disgust",
+                     "pose":  "hand_mouth",
+                     "dir":  1
+                 },
+                 {
+                     "who":  "anthony",
+                     "at":  [
+                                "neighborhood",
+                                1
+                            ],
+                     "face":  "k:smirk",
+                     "pose":  "point_out",
+                     "dir":  1
+                 },
+                 {
+                     "who":  "anthony",
+                     "at":  [
+                                "buckets",
+                                1
+                            ],
+                     "face":  "sus",
+                     "pose":  "hands_hips",
+                     "dir":  1
+                 },
+                 {
+                     "who":  "anthony",
+                     "at":  [
+                                "solution",
+                                1
+                            ],
+                     "face":  "confused",
+                     "pose":  "shrug",
+                     "dir":  1
+                 },
+                 {
+                     "who":  "anthony",
+                     "at":  [
+                                "painted",
+                                1
+                            ],
+                     "face":  "deadInside",
+                     "pose":  "hand_mouth",
+                     "dir":  1
+                 },
+                 {
+                     "who":  "anthony",
+                     "at":  [
+                                "brown",
+                                1
+                            ],
+                     "face":  "bruh",
+                     "pose":  "shrug",
+                     "dir":  1
+                 },
+                 {
+                     "who":  "anthony",
+                     "at":  [
+                                "leaks",
+                                1
+                            ],
+                     "face":  "sus",
+                     "pose":  "hands_hips",
+                     "dir":  1
+                 },
+                 {
+                     "who":  "anthony",
+                     "at":  705,
+                     "pos":  [
+                                 -0.2,
+                                 -0.2,
+                                 0.0
+                             ],
+                     "view":  "front",
+                     "dir":  1,
+                     "face":  "bruh",
+                     "pose":  "stand",
+                     "visible":  true
+                 },
+                 {
+                     "who":  "anthony",
+                     "at":  [
+                                "January",
+                                1
+                            ],
+                     "face":  "k:worried",
+                     "pose":  "tiltR",
+                     "dir":  1
+                 },
+                 {
+                     "who":  "anthony",
+                     "at":  [
+                                "afternoon",
+                                1
+                            ],
+                     "face":  "sus",
+                     "pose":  "crouch",
+                     "dir":  1
+                 },
+                 {
+                     "who":  "anthony",
+                     "at":  [
+                                "rivets",
+                                1
+                            ],
+                     "face":  "jawdrop",
+                     "pose":  "flinch",
+                     "dir":  1
+                 },
+                 {
+                     "who":  "anthony",
+                     "at":  [
+                                "popped",
+                                1
+                            ],
+                     "face":  "scream",
+                     "pose":  "flinch",
+                     "dir":  1
+                 },
+                 {
+                     "who":  "anthony",
+                     "at":  [
+                                "machine",
+                                1
+                            ],
+                     "face":  "terrified",
+                     "pose":  "crouch_low",
+                     "dir":  1
+                 },
+                 {
+                     "who":  "anthony",
+                     "at":  [
+                                "heavy",
+                                1
+                            ],
+                     "face":  "terrified",
+                     "pose":  "reach_up",
+                     "dir":  -1
+                 },
+                 {
+                     "who":  "anthony",
+                     "at":  [
+                                "exploded",
+                                1
+                            ],
+                     "face":  "terrified",
+                     "pose":  "flinch",
+                     "dir":  -1
+                 },
+                 {
+                     "who":  "anthony",
+                     "at":  [
+                                "towering",
+                                1
+                            ],
+                     "face":  "terrified",
+                     "pose":  "crouch_low",
+                     "dir":  -1
+                 },
+                 {
+                     "who":  "anthony",
+                     "at":  1074,
+                     "pos":  [
+                                 0.0,
+                                 0.0,
+                                 0.55
+                             ],
+                     "view":  "front",
+                     "dir":  1,
+                     "face":  "terrified",
+                     "pose":  "crouch",
+                     "visible":  true
+                 },
+                 {
+                     "who":  "anthony",
+                     "at":  [
+                                "wooden",
+                                1
+                            ],
+                     "face":  "jawdrop",
+                     "pose":  "hold_out",
+                     "dir":  1
+                 },
+                 {
+                     "who":  "anthony",
+                     "at":  [
+                                "smashed",
+                                1
+                            ],
+                     "face":  "jawdrop",
+                     "pose":  "flinch",
+                     "dir":  1
+                 },
+                 {
+                     "who":  "anthony",
+                     "at":  [
+                                "horses",
+                                1
+                            ],
+                     "face":  "strain",
+                     "pose":  "bend_down",
+                     "dir":  1
+                 },
+                 {
+                     "who":  "anthony",
+                     "at":  [
+                                "trapped",
+                                1
+                            ],
+                     "face":  "strain",
+                     "pose":  "reach_up",
+                     "dir":  1
+                 },
+                 {
+                     "who":  "anthony",
+                     "at":  [
+                                "cooling",
+                                1
+                            ],
+                     "face":  "disgust",
+                     "pose":  "crouch",
+                     "dir":  1
+                 },
+                 {
+                     "who":  "anthony",
+                     "at":  [
+                                "concrete",
+                                1
+                            ],
+                     "face":  "deadInside",
+                     "pose":  "push",
+                     "dir":  1
+                 },
+                 {
+                     "who":  "anthony",
+                     "at":  1404,
+                     "pos":  [
+                                 0.3,
+                                 0.0,
+                                 1.33
+                             ],
+                     "view":  "front",
+                     "dir":  1,
+                     "face":  "tired",
+                     "pose":  "stand",
+                     "visible":  true
+                 },
+                 {
+                     "who":  "anthony",
+                     "at":  [
+                                "weeks",
+                                1
+                            ],
+                     "face":  "tired",
+                     "pose":  "hand_mouth",
+                     "dir":  1
+                 },
+                 {
+                     "who":  "anthony",
+                     "at":  [
+                                "millions",
+                                1
+                            ],
+                     "face":  "strain",
+                     "pose":  "hold_out",
+                     "dir":  1
+                 },
+                 {
+                     "who":  "anthony",
+                     "at":  [
+                                "clean",
+                                1
+                            ],
+                     "face":  "k:happy",
+                     "pose":  "hands_hips",
+                     "dir":  1
+                 },
+                 {
+                     "who":  "anthony",
+                     "at":  [
+                                "brown",
+                                2
+                            ],
+                     "face":  "k:smirk",
+                     "pose":  "point_out",
+                     "dir":  1
+                 },
+                 {
+                     "who":  "anthony",
+                     "at":  [
+                                "decades",
+                                1
+                            ],
+                     "face":  "bruh",
+                     "pose":  "tiltL",
+                     "dir":  1
+                 },
+                 {
+                     "who":  "anthony",
+                     "at":  [
+                                "summer",
+                                1
+                            ],
+                     "face":  "k:smirk",
+                     "pose":  "reach_up",
+                     "dir":  1
+                 },
+                 {
+                     "who":  "anthony",
+                     "at":  [
+                                "pancakes",
+                                1
+                            ],
+                     "face":  "k:smirk",
+                     "pose":  "shrug",
+                     "dir":  1
+                 },
+                 {
+                     "who":  "usaa_boss",
+                     "at":  0,
+                     "visible":  false
+                 },
+                 {
+                     "who":  "usaa_boss",
+                     "at":  [
+                                "company\u0027s",
+                                1
+                            ],
+                     "visible":  true,
+                     "pos":  [
+                                 0.7,
+                                 0.4,
+                                 0.0
+                             ],
+                     "view":  "front",
+                     "dir":  -1,
+                     "face":  "proud",
+                     "pose":  "hands_hips"
+                 },
+                 {
+                     "who":  "usaa_boss",
+                     "at":  [
+                                "solution",
+                                1
+                            ],
+                     "face":  "evil",
+                     "pose":  "finger_up",
+                     "dir":  -1
+                 },
+                 {
+                     "who":  "usaa_boss",
+                     "at":  [
+                                "painted",
+                                1
+                            ],
+                     "face":  "troll",
+                     "pose":  "point_out",
+                     "dir":  -1
+                 },
+                 {
+                     "who":  "usaa_boss",
+                     "at":  [
+                                "brown",
+                                1
+                            ],
+                     "face":  "money",
+                     "pose":  "hold_out",
+                     "dir":  -1
+                 },
+                 {
+                     "who":  "usaa_boss",
+                     "at":  [
+                                "leaks",
+                                1
+                            ],
+                     "face":  "cool",
+                     "pose":  "hands_hips",
+                     "dir":  -1
+                 },
+                 {
+                     "who":  "usaa_boss",
+                     "at":  705,
+                     "pos":  [
+                                 0.6,
+                                 0.2,
+                                 0.0
+                             ],
+                     "view":  "front",
+                     "dir":  -1,
+                     "face":  "proud",
+                     "pose":  "hands_hips",
+                     "visible":  true
+                 },
+                 {
+                     "who":  "usaa_boss",
+                     "at":  [
+                                "rivets",
+                                1
+                            ],
+                     "face":  "jawdrop",
+                     "pose":  "flinch",
+                     "dir":  -1
+                 },
+                 {
+                     "who":  "usaa_boss",
+                     "at":  [
+                                "popped",
+                                1
+                            ],
+                     "face":  "terrified",
+                     "pose":  "crouch_low",
+                     "dir":  -1,
+                     "exit":  true
+                 },
+                 {
+                     "who":  "kid_sal",
+                     "at":  0,
+                     "visible":  false
+                 },
+                 {
+                     "who":  "kid_sal",
+                     "at":  [
+                                "leaked",
+                                1
+                            ],
+                     "visible":  true,
+                     "pos":  [
+                                 0.2,
+                                 0.3,
+                                 0.0
+                             ],
+                     "view":  "side",
+                     "dir":  -1,
+                     "face":  "delight",
+                     "pose":  "crouch"
+                 },
+                 {
+                     "who":  "kid_sal",
+                     "at":  [
+                                "buckets",
+                                1
+                            ],
+                     "pos":  [
+                                 0.0,
+                                 0.2,
+                                 0.0
+                             ],
+                     "view":  "side",
+                     "dir":  -1,
+                     "face":  "delight",
+                     "pose":  "reach_up"
+                 },
+                 {
+                     "who":  "kid_sal",
+                     "at":  [
+                                "company\u0027s",
+                                1
+                            ],
+                     "pos":  [
+                                 -1.8,
+                                 0.2,
+                                 0.0
+                             ],
+                     "exit":  true
+                 },
+                 {
+                     "who":  "chief",
+                     "at":  0,
+                     "visible":  false
+                 },
+                 {
+                     "who":  "chief",
+                     "at":  1404,
+                     "visible":  true,
+                     "pos":  [
+                                 -0.6,
+                                 0.2,
+                                 1.33
+                             ],
+                     "view":  "front",
+                     "dir":  1,
+                     "face":  "k:angry",
+                     "pose":  "point_out"
+                 },
+                 {
+                     "who":  "chief",
+                     "at":  [
+                                "pumping",
+                                1
+                            ],
+                     "face":  "k:angry",
+                     "pose":  "hold_out",
+                     "dir":  1
+                 },
+                 {
+                     "who":  "chief",
+                     "at":  [
+                                "seawater",
+                                1
+                            ],
+                     "face":  "strain",
+                     "pose":  "shrug",
+                     "dir":  1
+                 },
+                 {
+                     "who":  "chief",
+                     "at":  [
+                                "clean",
+                                1
+                            ],
+                     "face":  "k:happy",
+                     "pose":  "hands_hips",
+                     "dir":  1
+                 },
+                 {
+                     "who":  "chief",
+                     "at":  [
+                                "brown",
+                                2
+                            ],
+                     "face":  "proud",
+                     "pose":  "point_out",
+                     "dir":  1
+                 }
+             ],
+    "post":  {
+                 "dof":  0.25,
+                 "dust":  0.8,
+                 "bloom":  0.7,
+                 "vignette":  0.72
+             }
+}

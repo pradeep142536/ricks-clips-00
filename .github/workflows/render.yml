@@ -6,11 +6,12 @@ on:
       episode:
         description: 'Choose episode to render'
         required: true
-        default: 'lake-peigneur'
+        default: 'emu-war'
         type: choice
         options:
           - 'boston-molasses'
           - 'lake-peigneur'
+          - 'emu-war'
   push:
     branches: [ main, master ]
 
@@ -49,7 +50,7 @@ jobs:
         run: |
           EP="${{ github.event.inputs.episode }}"
           if [ -z "$EP" ]; then
-            EP="lake-peigneur"
+            EP="emu-war"
           fi
           echo "EPISODE=$EP" >> $GITHUB_ENV
           echo "Selected episode: $EP"
@@ -58,13 +59,19 @@ jobs:
         run: |
           python tools/film_plan.py check episodes/$EPISODE/film.json
 
-      - name: Render Full Video (1080x1920)
+      - name: Render Preview Stills or Full Video
         run: |
-          xvfb-run -s "-screen 0 1080x1920x24" node templates/threejs_film/render.mjs episodes/$EPISODE/film.json --animatic --scale 1.0 --out ${EPISODE}_full_episode_1080p.mp4
+          if [ "$EPISODE" = "emu-war" ]; then
+            xvfb-run -s "-screen 0 1080x1920x24" node templates/threejs_film/render.mjs episodes/$EPISODE/film.json --frames 0,90,180,270 --no-captions --scale 0.75
+          else
+            xvfb-run -s "-screen 0 1080x1920x24" node templates/threejs_film/render.mjs episodes/$EPISODE/film.json --animatic --scale 1.0 --out ${EPISODE}_full_episode_1080p.mp4
+          fi
 
       - name: Upload Video Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.EPISODE }}_full_episode_1080p
-          path: ${{ env.EPISODE }}_full_episode_1080p.mp4
+          name: ${{ env.EPISODE }}_preview_or_full
+          path: |
+            episodes/${{ env.EPISODE }}/out/stills
+            ${{ env.EPISODE }}_full_episode_1080p.mp4
           retention-days: 14
