@@ -1,0 +1,20 @@
+{
+  "title": "The Army That Lost a War to Birds",
+  "target_duration_seconds": 65,
+  "word_count_target": 180,
+  "beats": [
+    {"id":"hook","line":"Australian soldiers once went to war against a flock of birds.","emotion":"surprised","pace":"fast","location":"wheat field","hero_prop":"Lewis gun"},
+    {"id":"problem","line":"In 1932, thousands of emus moved into Western Australia’s wheat country.","emotion":"curious","pace":"steady","location":"wheat field","hero_prop":"damaged fence"},
+    {"id":"damage","line":"Drought had pushed them toward food and water, and the birds tore through crops and fences.","emotion":"concerned","pace":"steady","location":"farm road","hero_prop":"broken fence"},
+    {"id":"request","line":"The farmers asked the government for help.","emotion":"urgent","pace":"short pause","location":"farmhouse","hero_prop":"map"},
+    {"id":"arrival","line":"So Australia sent Major Meredith and a few artillery soldiers with Lewis machine guns.","emotion":"confident","pace":"measured","location":"military staging area","hero_prop":"truck and Lewis guns"},
+    {"id":"plan","line":"The plan was simple: find the flock, line up the guns, and end the problem quickly.","emotion":"overconfident","pace":"brisk","location":"dirt road","hero_prop":"field map"},
+    {"id":"reveal","line":"Then the emus appeared.","emotion":"shocked","pace":"dramatic pause","location":"hill overlook","hero_prop":"large emu flock"},
+    {"id":"chaos","line":"They were fast, spread out, and suddenly heading in every direction.","emotion":"panicked","pace":"fast","location":"wheat field","hero_prop":"dust trail"},
+    {"id":"ambush","line":"At a watering point, the army prepared a perfect ambush.","emotion":"tense","pace":"slower","location":"watering point","hero_prop":"dam and gun tripod"},
+    {"id":"failure","line":"More than a thousand emus came into view. The gun jammed.","emotion":"shocked then comic","pace":"pause on jammed","location":"watering point","hero_prop":"jammed Lewis gun"},
+    {"id":"retreat","line":"The flock scattered, and the soldiers were left chasing birds across the dust.","emotion":"frustrated","pace":"fast","location":"open outback","hero_prop":"truck and dust"},
+    {"id":"twist","line":"In the end, farmers turned to fences instead.","emotion":"relieved","pace":"steady","location":"fenced wheat boundary","hero_prop":"new fence"},
+    {"id":"button","line":"Australia’s strangest war was defeated by birds—and solved with better barriers.","emotion":"amused","pace":"landing","location":"wheat boundary","hero_prop":"continuous fence"}
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "title": "The Army That Lost a War to Birds — Connected World Map",
+  "units": "metres",
+  "world_bounds": { "x": [-220, 220], "z": [-160, 260] },
+  "scale_reference": { "soldier_height": 1.7, "emu_height": 1.9, "truck_length": 5.0 },
+  "sun": { "azimuth_degrees": 235, "elevation_degrees": 32, "description": "late-afternoon west-south-west sunlight" },
+  "locations": [
+    { "id": "farmhouse", "center": [-150, -70], "size": [44, 36], "purpose": "farmers discover damaged crops", "palette": "warm ochre and cream" },
+    { "id": "wheat_field", "center": [-65, -22], "size": [145, 110], "purpose": "emu damage and first flock reveal", "palette": "gold wheat and dusty olive" },
+    { "id": "army_staging", "center": [45, -45], "size": [55, 42], "purpose": "truck, crates and Lewis-gun preparation", "palette": "khaki, steel and red dust" },
+    { "id": "campion_road", "center": [65, 40], "size": [34, 140], "purpose": "continuous road travel between places", "palette": "burnt sienna and scrub green" },
+    { "id": "hill_gun_position", "center": [5, 110], "size": [70, 50], "purpose": "low-wide flock charge view", "palette": "sunlit ochre and long shadows" },
+    { "id": "watering_point", "center": [-85, 145], "size": [58, 50], "purpose": "ambush and jammed Lewis gun", "palette": "cool water, reeds and dust" },
+    { "id": "outback_run", "center": [85, 155], "size": [95, 80], "purpose": "emu flock escaping across open country", "palette": "red earth and deep-blue distance" },
+    { "id": "fence_boundary", "center": [-25, 220], "size": [190, 45], "purpose": "fence-solution ending", "palette": "golden wheat and wood brown" }
+  ],
+  "connections": [
+    { "id": "farm_track", "from": "farmhouse", "to": "wheat_field", "surface": "rutted dirt road", "width": 4.2 },
+    { "id": "supply_road", "from": "wheat_field", "to": "army_staging", "surface": "compacted red dirt", "width": 5.0 },
+    { "id": "campion_road", "from": "army_staging", "to": "hill_gun_position", "surface": "graded dirt road", "width": 5.0 },
+    { "id": "dam_track", "from": "hill_gun_position", "to": "watering_point", "surface": "wheel track through wheat", "width": 3.5 },
+    { "id": "run_path", "from": "hill_gun_position", "to": "outback_run", "surface": "open scrub", "width": 12.0 },
+    { "id": "fence_track", "from": "watering_point", "to": "fence_boundary", "surface": "maintenance path", "width": 3.0 }
+  ],
+  "landmarks": [
+    { "id": "farmhouse", "position": [-150, -70], "must_match_every_angle": true },
+    { "id": "water_tank", "position": [-132, -48], "must_match_every_angle": true },
+    { "id": "dam", "position": [-85, 145], "must_match_every_angle": true },
+    { "id": "windmill", "position": [-64, 132], "must_match_every_angle": true },
+    { "id": "fence_line", "position": [-25, 220], "must_match_every_angle": true }
+  ],
+  "required_tests": ["world_flythrough.mp4", "scale_test.png", "continuity_contact_sheet.png", "ground_contact_report.json"]
+}

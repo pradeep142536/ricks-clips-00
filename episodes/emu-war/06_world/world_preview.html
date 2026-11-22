@@ -1,0 +1,17 @@
+<!doctype html><meta charset="utf-8"><title>Emu War Connected World Inspection</title>
+<style>html,body,#stage{margin:0;width:100%;height:100%;overflow:hidden;background:#91b6d8}#note{position:fixed;left:26px;top:24px;z-index:2;color:#fff7df;font:700 20px/1.25 Arial;text-shadow:0 2px 4px #1d170d}#note small{display:block;font-size:13px;font-weight:600;margin-top:4px}</style>
+<div id="note">EMU WAR — CONNECTED WORLD INSPECTION<small>440m × 420m shared terrain · farmhouse → road → staging → hill → dam → fence</small></div><div id="stage"></div>
+<script type="module">
+import * as THREE from '/templates/threejs_film/vendor/three.module.js';
+import { build } from './emu_connected_world.js';
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false}); renderer.setSize(innerWidth,innerHeight); renderer.setPixelRatio(1); renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap; renderer.outputColorSpace=THREE.SRGBColorSpace; document.querySelector('#stage').append(renderer.domElement);
+const scene=new THREE.Scene(); scene.background=new THREE.Color('#91b6d8'); scene.fog=new THREE.Fog('#91b6d8',110,410);
+const camera=new THREE.PerspectiveCamera(43,innerWidth/innerHeight,.1,800); camera.position.set(125,108,160); camera.lookAt(-25,2,-40);
+const hemi=new THREE.HemisphereLight('#d9ecff','#6d4027',2.15); scene.add(hemi); const sun=new THREE.DirectionalLight('#ffd7a0',3.0); sun.position.set(-130,190,95); sun.castShadow=true; sun.shadow.mapSize.set(2048,2048); sun.shadow.camera.left=-250; sun.shadow.camera.right=250; sun.shadow.camera.top=250; sun.shadow.camera.bottom=-250; scene.add(sun);
+const toon=c=>new THREE.MeshToonMaterial({color:c}); const B2T=p=>new THREE.Vector3(p[0],p[2],-p[1]);
+build(THREE,scene,{}, {B2T,toon});
+scene.add(new THREE.Mesh(new THREE.SphereGeometry(38,24,16),new THREE.MeshBasicMaterial({color:'#ffecc0'}))); const moon=scene.children.at(-1); moon.position.set(-100,102,-210);
+let start=performance.now(); function draw(now){const t=(now-start)/1000; scene.traverse(o=>{if(o.name==='moving_dust')o.position.z=Math.sin(t*.6)*.8}); renderer.render(scene,camera); requestAnimationFrame(draw)} requestAnimationFrame(draw);
+addEventListener('resize',()=>{renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix()});
+window.__WORLD_READY__=true;
+</script>

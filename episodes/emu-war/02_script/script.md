@@ -1,0 +1,37 @@
+# The Army That Lost a War to Birds
+
+## Draft narration
+
+Australian soldiers once went to war against a flock of birds.
+
+In 1932, thousands of emus moved into Western Australia’s wheat country. Drought had pushed them toward food and water, and the birds tore through crops and fences.
+
+The farmers asked the government for help.
+
+So Australia sent Major Meredith and a few artillery soldiers with Lewis machine guns.
+
+The plan was simple: find the flock, line up the guns, and end the problem quickly.
+
+Then the emus appeared.
+
+They were fast, spread out, and suddenly heading in every direction. The soldiers fired, but the targets were not standing still like soldiers on a parade ground.
+
+At a watering point, the army prepared a perfect ambush. More than a thousand emus came into view.
+
+The gun jammed.
+
+The flock scattered, and the soldiers were left chasing birds across the dust.
+
+The operation was withdrawn. The emus had not captured a flag or taken a city. They had simply made machine guns useless.
+
+In the end, farmers turned to fences instead.
+
+Australia’s strangest war was defeated by birds—and solved with better barriers.
+
+## Storytelling notes
+
+- Opening: immediate action and surprise.
+- Middle: confidence turns into confusion.
+- Button: the practical fence solution defeats the military plan.
+- Simplification: “thousands” is used instead of a disputed exact total.
+- “War” is explained through the story as a humorous name for a pest-control operation.

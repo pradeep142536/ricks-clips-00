@@ -1,0 +1,15 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
+import { CHARACTERS, renderCharacter } from './rig.mjs';
+const require=createRequire(import.meta.url); const { chromium }=require('../../../templates/threejs_film/node_modules/playwright');
+const out=path.dirname(fileURLToPath(import.meta.url));
+const cut=s=>s.replace(/^<svg[^>]*>/,'').replace(/<defs>[\s\S]*?<\/defs>/,'').replace(/<rect width="420" height="720" fill="url\(#bg\)"\/>/,'').replace(/<path d="M0 575[\s\S]*?Z" fill="#a47543"\/>/,'').replace(/<path d="M0 580 H420"[^>]*\/>/,'').replace(/<text[\s\S]*?<\/text>/,'').replace(/<\/svg>$/,'');
+const scene=(spec,x)=>`<g transform="translate(${x} 55) scale(.72)">${cut(renderCharacter(spec,spec.build==='emu'?'three-quarter-right':'three-quarter-right',spec.build==='emu'?'curious':'determined',spec.build==='emu'?'stand':'carry'))}</g>`;
+const truck=`<g transform="translate(70 300)"><path d="M0 105 L530 80 L570 210 L10 230Z" fill="#35576b" stroke="#162633" stroke-width="8"/><path d="M360 85 L485 92 L505 155 L350 150Z" fill="#8bb6c3" stroke="#162633" stroke-width="8"/><circle cx="100" cy="220" r="44" fill="#1f2931" stroke="#162633" stroke-width="10"/><circle cx="450" cy="205" r="44" fill="#1f2931" stroke="#162633" stroke-width="10"/><path d="M385 85 L385 28 L490 28 L490 92" fill="#526e80" stroke="#162633" stroke-width="8"/></g>`;
+const fence=`<g stroke="#6c442d" stroke-width="12" fill="none"><path d="M30 370 V120 M640 370 V120 M30 210 H640 M30 285 H640"/></g>`;
+const panels=Object.values(CHARACTERS).map((s,i)=>`<g transform="translate(${(i%3)*720} ${Math.floor(i/3)*620})"><rect width="700" height="580" rx="18" fill="#99c8de"/><path d="M0 390 L700 330 V580 H0Z" fill="#a67545"/><path d="M0 420 L700 360" stroke="#cf9d5a" stroke-width="12" opacity=".65"/>${fence}${truck}${scene(s,240)}<text x="26" y="40" font-family="Arial" font-size="24" font-weight="700" fill="#162633">ALIGNMENT · ${s.label}</text><text x="26" y="550" font-family="Arial" font-size="18" fill="#162633">ground contact + cast shadow + truck + fence</text></g>`).join('');
+const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="2160" height="1240" viewBox="0 0 2160 1240"><rect width="100%" height="100%" fill="#101722"/>${panels}</svg>`;
+await fs.writeFile(path.join(out,'alignment_test.svg'),svg);
+const browser=await chromium.launch({headless:true}); const page=await browser.newPage({viewport:{width:2160,height:1240}}); await page.setContent(`<body style="margin:0">${svg}</body>`); await page.locator('svg').screenshot({path:path.join(out,'alignment_test.png'),timeout:120000}); await browser.close(); console.log('wrote alignment_test.png');
