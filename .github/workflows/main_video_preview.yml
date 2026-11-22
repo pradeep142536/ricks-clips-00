@@ -1,0 +1,43 @@
+name: Main Video World Preview
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'main_video/**'
+      - '.github/workflows/main_video_preview.yml'
+
+jobs:
+  validate-and-package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install inspection browser
+        run: |
+          cd templates/threejs_film
+          npm install playwright
+          npx playwright install --with-deps chromium
+      - name: Validate clean project
+        working-directory: main_video
+        run: |
+          node tools/validate_world.mjs
+          node tools/validate_inspection.mjs
+          node tools/validate_render_spec.mjs
+      - name: Package inspection source
+        run: |
+          node main_video/tools/render_inspection.mjs
+          tar -czf main_video_world_preview.tgz main_video
+      - name: Upload inspection source
+        uses: actions/upload-artifact@v4
+        with:
+          name: main-video-world-preview-source
+          path: |
+            main_video_world_preview.tgz
+            main_video/08_preview/world_inspection_contact_sheet.png
+          retention-days: 14

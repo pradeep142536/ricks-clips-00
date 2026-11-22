@@ -1,0 +1,27 @@
+{
+  "project": "main-video-emu-war",
+  "episode": "The Army That Lost a War to Birds",
+  "source_root": "C:/Users/PC/Downloads/Main video",
+  "gpu": {"provider":"Google Colab","accelerator":"T4","max_runtime_seconds":10800},
+  "output": {
+    "contact_sheet": "08_preview/world_inspection_contact_sheet.png",
+    "scale_test": "08_preview/world_scale_test.png",
+    "ground_report": "08_preview/world_ground_contact_report.json"
+  },
+  "cameras": "08_preview/world_inspection_plan.json",
+  "required_source_files": [
+    "01_story/facts.md",
+    "02_script/script.md",
+    "02_script/beats.json",
+    "04_world/world_map.json",
+    "04_world/emu_connected_world.js"
+  ],
+  "forbidden_legacy_inputs": [
+    "episodes/emu-war/film.json",
+    "episodes/emu-war/sets/emu_field.js",
+    "episodes/emu-war/voice/voice.wav",
+    "episodes/emu-war/voice/voice.mp3"
+  ],
+  "mode": "inspection-only",
+  "full_video_allowed": false
+}

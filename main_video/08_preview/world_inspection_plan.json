@@ -1,0 +1,49 @@
+{
+  "title": "Emu War Connected World Inspection",
+  "format": [1080, 1920],
+  "units": "metres",
+  "camera_tests": [
+    {
+      "id": "farmhouse_to_wheat",
+      "position": [-132, -108, 7],
+      "look_at": [-90, -35, 2],
+      "must_show": ["farmhouse_main", "farm_water_tank", "farm_track", "wheat field"],
+      "scale_check": ["soldier 1.7m", "truck 5m"]
+    },
+    {
+      "id": "army_staging",
+      "position": [61, -72, 5],
+      "look_at": [45, -45, 2],
+      "must_show": ["truck_chassis", "lewis_receiver", "ammo_crate_0", "campion_road"],
+      "scale_check": ["soldier 1.7m", "Lewis gun readable"]
+    },
+    {
+      "id": "hill_flock_charge",
+      "position": [-22, 86, 3.2],
+      "look_at": [28, 126, 2.0],
+      "must_show": ["hill_gun_position", "flock_emu_0", "flock_emu_4", "emu_run_scrub"],
+      "scale_check": ["emu 1.9m", "foreground emu larger than background emus"]
+    },
+    {
+      "id": "watering_point_ambush",
+      "position": [-119, 126, 3.0],
+      "look_at": [-78, 145, 1.5],
+      "must_show": ["watering_dam", "dam_reed_0", "windmill_tower", "dam_track"],
+      "scale_check": ["gun and soldier feet touch ground"]
+    },
+    {
+      "id": "fence_solution",
+      "position": [-78, 197, 4.2],
+      "look_at": [-25, 220, 1.6],
+      "must_show": ["fence_post_-120", "fence_post_-25", "fence_post_90", "fence_maintenance_track"],
+      "scale_check": ["continuous fence line", "no floating posts"]
+    }
+  ],
+  "pass_conditions": [
+    "All five cameras remain inside the declared world bounds.",
+    "Every landmark is a 3D mesh in the same connected scene.",
+    "Trees have trunks, branches, layered foliage, and cast shadows.",
+    "Ground, roads, water, wheat, props, and characters share one metre scale.",
+    "No old emu_field.js, Boston voice, or old film.json is used."
+  ]
+}

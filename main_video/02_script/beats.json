@@ -1,0 +1,16 @@
+{
+  "title": "The Army That Lost a War to Birds",
+  "duration_target_seconds": 62,
+  "beats": [
+    {"id":"hook","seconds":[0,4],"location":"army_staging","feeling":"confident surprise","visual":"soldiers march beside a truck toward camera"},
+    {"id":"drought","seconds":[4,10],"location":"outback_run","feeling":"pressure","visual":"dry wind, empty water trough, emu tracks"},
+    {"id":"damage","seconds":[10,16],"location":"wheat_field","feeling":"farmer panic","visual":"emus tear through wheat and snap fence wire"},
+    {"id":"deployment","seconds":[16,23],"location":"army_staging","feeling":"military confidence","visual":"Major Meredith points while gunner loads Lewis gun"},
+    {"id":"flock","seconds":[23,30],"location":"hill_gun_position","feeling":"shocked scale","visual":"large emu flock crests the hill"},
+    {"id":"scatter","seconds":[30,38],"location":"campion_road","feeling":"confusion","visual":"emus split around truck as soldiers turn"},
+    {"id":"ambush","seconds":[38,46],"location":"watering_point","feeling":"tense hope","visual":"low angle, dam reeds, gun aimed across water"},
+    {"id":"jam","seconds":[46,51],"location":"watering_point","feeling":"comic failure","visual":"Lewis gun recoils, jams, smoke and stunned gunner"},
+    {"id":"withdrawal","seconds":[51,57],"location":"outback_run","feeling":"defeat","visual":"soldiers run after dust trail while emus escape"},
+    {"id":"button","seconds":[57,62],"location":"fence_boundary","feeling":"practical victory","visual":"farmers raise a continuous fence as emus pass behind"}
+  ]
+}
