@@ -54,6 +54,23 @@ export function build(THREE, scene, film, ctx) {
   road([5, 110], [85, 155], 12.0, 'emu_run_scrub', M.earthHi);
   road([-85, 145], [-25, 220], 3.0, 'fence_maintenance_track');
 
+  // Roadside rocks and scrub break up the open ground and give every wide shot
+  // readable foreground depth without changing the shared map coordinates.
+  const rock = (x, z, sx, sy, sz, name) => {
+    const mesh = add(new THREE.DodecahedronGeometry(1, 0), M.earthHi, name, 'rock', P(x, z, sy * .45));
+    mesh.scale.set(sx, sy, sz); mesh.rotation.set(.12 * Math.sin(x), .2 * Math.cos(z), .18 * Math.sin(z)); return mesh;
+  };
+  [[-118,-61,1.2,.45,.8],[-98,-43,.8,.32,.55],[-12,-33,1.5,.5,.7],[28,-18,.9,.38,.6],
+   [-4,78,1.1,.42,.8],[26,105,.7,.3,.5],[-108,119,1.4,.5,.9],[-52,170,.9,.34,.65],
+   [54,182,1.6,.48,.85],[112,143,1.1,.4,.7],[-76,228,1.3,.46,.7]].forEach((v, i) => rock(...v, `roadside_rock_${i}`));
+  [[-133,-52],[-115,-30],[-92,15],[58,3],[104,55],[118,116],[-139,184],[46,211]].forEach((p, i) => {
+    const g = new THREE.Group(); g.name = `scrub_cluster_${i}`; root.add(g);
+    for (let j = 0; j < 7; j++) {
+      const r = .35 + (j % 3) * .12;
+      add(new THREE.SphereGeometry(r, 8, 6), j % 2 ? M.scrub : M.leafHi, `scrub_${i}_${j}`, 'foliage', P(p[0] + Math.sin(j * 2.4) * .9, p[1] + Math.cos(j * 1.8) * .8, r), g);
+    }
+  });
+
   // Wheat field: broad rows plus individual stalks prevent a flat tiled floor.
   for (let z = -72; z <= 25; z += 3.0) for (let x = -130; x <= -2; x += 2.4) {
     const damaged = (x > -55 && x < -16 && z > -42 && z < -5);
