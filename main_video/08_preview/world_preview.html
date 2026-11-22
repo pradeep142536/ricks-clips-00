@@ -6,7 +6,7 @@ import * as THREE from '/templates/threejs_film/vendor/three.module.js';
 import { build } from '../04_world/emu_connected_world.js';
 const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false}); renderer.setSize(innerWidth,innerHeight); renderer.setPixelRatio(1); renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap; renderer.outputColorSpace=THREE.SRGBColorSpace; document.querySelector('#stage').append(renderer.domElement);
 const scene=new THREE.Scene(); scene.background=new THREE.Color('#8fb9df'); scene.fog=new THREE.Fog('#8fb9df',260,620);
-const camera=new THREE.PerspectiveCamera(48,innerWidth/innerHeight,.1,800); camera.position.set(82,52,112); camera.lookAt(0,3,0);
+const camera=new THREE.PerspectiveCamera(52,innerWidth/innerHeight,.1,500); camera.position.set(18,13,62); camera.lookAt(45,3,45);
 const hemi=new THREE.HemisphereLight('#d9ecff','#6d4027',2.15); scene.add(hemi); const sun=new THREE.DirectionalLight('#ffd7a0',3.0); sun.position.set(-130,190,95); sun.castShadow=true; sun.shadow.mapSize.set(2048,2048); sun.shadow.camera.left=-250; sun.shadow.camera.right=250; sun.shadow.camera.top=250; sun.shadow.camera.bottom=-250; scene.add(sun);
 const toon=c=>new THREE.MeshToonMaterial({color:c}); const B2T=p=>new THREE.Vector3(p[0],p[2],-p[1]);
 build(THREE,scene,{}, {B2T,toon});
