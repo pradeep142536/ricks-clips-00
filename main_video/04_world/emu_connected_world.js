@@ -109,6 +109,20 @@ export function build(THREE, scene, film, ctx) {
   beam([35,-42,1.15],[33.9,-43.0,.08],.065,M.iron,'lewis_leg_l','gun'); beam([35,-42,1.15],[36.1,-43.0,.08],.065,M.iron,'lewis_leg_r','gun');
   box(1.1,.42,.35,35,-42,1.45,M.iron,'lewis_receiver','gun'); beam([35,-42,1.58],[38,-42,1.58],.075,M.steel,'lewis_barrel','gun');
   const drum = add(new THREE.CylinderGeometry(.42,.42,.12,20), M.iron, 'lewis_drum', 'gun', P(35,-42,1.88)); drum.rotation.x = Math.PI / 2;
+  // Army staging camp: tents, poles and warm lamps create the readable middle
+  // ground used by the reference compositions instead of an isolated truck.
+  const tent = (x, z, name) => {
+    const canopy = add(new THREE.ConeGeometry(3.2, 3.8, 4), M.canvas, `${name}_canopy`, 'camp', P(x, z, 1.9));
+    canopy.rotation.y = Math.PI / 4;
+    beam([x, z, .05], [x, z, 3.75], .07, M.wood, `${name}_pole`, 'camp');
+    for (const dx of [-2.3, 2.3]) beam([x + dx, z, .08], [x + dx * .7, z, 1.5], .045, M.wood, `${name}_rope_${dx}`, 'camp');
+  };
+  tent(52, -52, 'command_tent'); tent(59, -43, 'supply_tent');
+  for (const [x, z, n] of [[48, -54, 'camp_lamp_a'], [57, -48, 'camp_lamp_b'], [39, -50, 'camp_lamp_c']]) {
+    beam([x, z, .05], [x, z, 2.0], .045, M.wood, `${n}_post`, 'camp');
+    add(new THREE.SphereGeometry(.18, 10, 8), M.wheatHi, `${n}_glow`, 'light', P(x, z, 2.1));
+  }
+  box(8, .35, 1.1, 50, -38, 0, M.wood, 'camp_notice_board', 'camp');
 
   // Watering point and windmill: a deliberate ambush landmark, not a blue square.
   const dam = add(new THREE.CircleGeometry(10, 40), M.water, 'watering_dam', 'landmark', P(-85,145,.08)); dam.rotation.x = -Math.PI / 2;

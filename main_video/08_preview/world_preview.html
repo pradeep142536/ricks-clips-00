@@ -5,14 +5,16 @@
 import * as THREE from '/templates/threejs_film/vendor/three.module.js';
 import { build } from '../04_world/emu_connected_world.js';
 const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false}); renderer.setSize(innerWidth,innerHeight); renderer.setPixelRatio(1); renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap; renderer.outputColorSpace=THREE.SRGBColorSpace; document.querySelector('#stage').append(renderer.domElement);
-const scene=new THREE.Scene(); scene.background=new THREE.Color('#8fb9df'); scene.fog=new THREE.Fog('#8fb9df',260,620);
+const mode=new URLSearchParams(location.search).get('mode')||'day';
+const looks={day:{sky:'#8fb9df',fog:'#8fb9df',hemi:'#d9ecff',ground:'#6d4027',sun:'#ffd7a0',sunPower:3.0},dusk:{sky:'#5b416d',fog:'#5b416d',hemi:'#9a86b8',ground:'#3a2635',sun:'#ff9a68',sunPower:2.0},night:{sky:'#101b42',fog:'#101b42',hemi:'#536da8',ground:'#17162b',sun:'#9ab7ff',sunPower:1.1},storm:{sky:'#293052',fog:'#293052',hemi:'#7b83aa',ground:'#211c2b',sun:'#d6ddff',sunPower:1.5}};
+const look=looks[mode]||looks.day; const scene=new THREE.Scene(); scene.background=new THREE.Color(look.sky); scene.fog=new THREE.Fog(look.fog,90,300);
 const camera=new THREE.PerspectiveCamera(52,innerWidth/innerHeight,.1,500); camera.position.set(18,13,62); camera.lookAt(45,3,45);
-const hemi=new THREE.HemisphereLight('#d9ecff','#6d4027',2.15); scene.add(hemi); const sun=new THREE.DirectionalLight('#ffd7a0',3.0); sun.position.set(-130,190,95); sun.castShadow=true; sun.shadow.mapSize.set(2048,2048); sun.shadow.camera.left=-250; sun.shadow.camera.right=250; sun.shadow.camera.top=250; sun.shadow.camera.bottom=-250; scene.add(sun);
+const hemi=new THREE.HemisphereLight(look.hemi,look.ground,mode==='night'?1.35:2.15); scene.add(hemi); const sun=new THREE.DirectionalLight(look.sun,look.sunPower); sun.position.set(-130,190,95); sun.castShadow=true; sun.shadow.mapSize.set(2048,2048); sun.shadow.camera.left=-250; sun.shadow.camera.right=250; sun.shadow.camera.top=250; sun.shadow.camera.bottom=-250; scene.add(sun);
 const toon=c=>new THREE.MeshToonMaterial({color:c}); const B2T=p=>new THREE.Vector3(p[0],p[2],-p[1]);
 build(THREE,scene,{}, {B2T,toon});
 const skyClouds=new THREE.Group(); skyClouds.name='reference_style_cloud_layer'; scene.add(skyClouds);
-const cloudMat=new THREE.MeshToonMaterial({color:'#dce8f2',transparent:true,opacity:.88});
-[[ -55,34,-35,18],[18,40,-70,24],[92,31,-25,20],[-95,48,42,28]].forEach(([x,y,z,s],i)=>{
+const cloudMat=new THREE.MeshToonMaterial({color:mode==='storm'?'#6f7696':mode==='night'?'#38456e':'#dce8f2',transparent:true,opacity:.88});
+[[ 18,34,18,18],[70,40,5,24],[100,31,42,20],[-35,48,28,28]].forEach(([x,y,z,s],i)=>{
   const g=new THREE.Group(); g.position.set(x,y,z); skyClouds.add(g);
   [[0,0,0,1.0],[s*.38,1.5,1.5,.72],[-s*.36,-.5,1.2,.82],[s*.7,-.6,0,.55]].forEach(([dx,dy,dz,k])=>{const puff=new THREE.Mesh(new THREE.SphereGeometry(s*.22*k,14,9),cloudMat); puff.scale.set(1.7,.55,1); puff.position.set(dx,dy,dz); g.add(puff)});
 });
