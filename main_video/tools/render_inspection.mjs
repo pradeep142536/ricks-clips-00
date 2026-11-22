@@ -17,9 +17,11 @@ const server = http.createServer((request, response) => {
   fs.createReadStream(filePath).pipe(response);
 });
 const port = await new Promise(resolve => server.listen(0, '127.0.0.1', () => resolve(server.address().port)));
-const browser = await chromium.launch({ headless: true, args: ['--use-gl=angle', '--use-angle=swiftshader', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ headless: true, args: ['--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu-sandbox', '--use-gl=swiftshader', '--use-angle=swiftshader', '--ignore-gpu-blocklist'] });
 try {
   const page = await browser.newPage({ viewport: { width: 1080, height: 1920 }, deviceScaleFactor: 1 });
+  page.on('console', message => console.log(`[browser:${message.type()}] ${message.text()}`));
+  page.on('pageerror', error => console.log(`[browser:pageerror] ${error.stack || error.message}`));
   await page.goto(`http://127.0.0.1:${port}/main_video/08_preview/world_preview.html`, { waitUntil: 'domcontentloaded', timeout: 30000 });
   await page.waitForFunction(() => window.__WORLD_READY__ === true, null, { timeout: 30000 });
   await page.screenshot({ path: path.join(repo, 'main_video/08_preview/world_inspection_contact_sheet.png') });
