@@ -10,6 +10,12 @@ const camera=new THREE.PerspectiveCamera(52,innerWidth/innerHeight,.1,500); came
 const hemi=new THREE.HemisphereLight('#d9ecff','#6d4027',2.15); scene.add(hemi); const sun=new THREE.DirectionalLight('#ffd7a0',3.0); sun.position.set(-130,190,95); sun.castShadow=true; sun.shadow.mapSize.set(2048,2048); sun.shadow.camera.left=-250; sun.shadow.camera.right=250; sun.shadow.camera.top=250; sun.shadow.camera.bottom=-250; scene.add(sun);
 const toon=c=>new THREE.MeshToonMaterial({color:c}); const B2T=p=>new THREE.Vector3(p[0],p[2],-p[1]);
 build(THREE,scene,{}, {B2T,toon});
+const skyClouds=new THREE.Group(); skyClouds.name='reference_style_cloud_layer'; scene.add(skyClouds);
+const cloudMat=new THREE.MeshToonMaterial({color:'#dce8f2',transparent:true,opacity:.88});
+[[ -55,34,-35,18],[18,40,-70,24],[92,31,-25,20],[-95,48,42,28]].forEach(([x,y,z,s],i)=>{
+  const g=new THREE.Group(); g.position.set(x,y,z); skyClouds.add(g);
+  [[0,0,0,1.0],[s*.38,1.5,1.5,.72],[-s*.36,-.5,1.2,.82],[s*.7,-.6,0,.55]].forEach(([dx,dy,dz,k])=>{const puff=new THREE.Mesh(new THREE.SphereGeometry(s*.22*k,14,9),cloudMat); puff.scale.set(1.7,.55,1); puff.position.set(dx,dy,dz); g.add(puff)});
+});
 scene.add(new THREE.Mesh(new THREE.SphereGeometry(38,24,16),new THREE.MeshBasicMaterial({color:'#ffecc0'}))); const moon=scene.children.at(-1); moon.position.set(-100,102,-210);
 let start=performance.now(); function draw(now){const t=(now-start)/1000; scene.traverse(o=>{if(o.name==='moving_dust')o.position.z=Math.sin(t*.6)*.8}); renderer.render(scene,camera); requestAnimationFrame(draw)} requestAnimationFrame(draw);
 addEventListener('resize',()=>{renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix()});
