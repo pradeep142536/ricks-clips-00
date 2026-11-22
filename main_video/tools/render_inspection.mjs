@@ -10,9 +10,12 @@ const require = createRequire(import.meta.url);
 const { chromium } = require('../../templates/threejs_film/node_modules/playwright');
 const mime = { '.html':'text/html', '.js':'text/javascript', '.mjs':'text/javascript', '.json':'application/json' };
 const server = http.createServer((request, response) => {
-  const urlPath = decodeURIComponent(request.url.split('?')[0]);
-  const filePath = path.normalize(path.join(repo, urlPath));
-  if (!filePath.startsWith(repo) || !fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) { response.writeHead(404); response.end('not found'); return; }
+  const urlPath = decodeURIComponent((request.url || '/').split('?')[0]).replace(/^\/+/, '');
+  const filePath = path.resolve(repo, urlPath);
+  if (filePath !== repo && !filePath.startsWith(repo + path.sep) || !fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
+    console.log(`PREVIEW_404 url=${request.url} file=${filePath}`);
+    response.writeHead(404); response.end('not found'); return;
+  }
   response.writeHead(200, { 'content-type': mime[path.extname(filePath)] || 'application/octet-stream' });
   fs.createReadStream(filePath).pipe(response);
 });
