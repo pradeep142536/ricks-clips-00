@@ -248,26 +248,24 @@ poll_session = f"{runtime_name}/sessions/poll_status_session"
 
 poll_code = r"""
 import os, glob
-dirs = sorted(glob.glob("/tmp/film_frames_*"))
-total_frames = sum(len(glob.glob(d + "/*.png")) for d in dirs)
 done = os.path.exists('/content/emu-war_full_episode_1080p.mp4')
 size = os.path.getsize('/content/emu-war_full_episode_1080p.mp4') if done else 0
-print(f"FRAMES={total_frames}|DONE={done}|SIZE={size}")
+chunks = len(glob.glob('/content/chunk_emu_*.mp4'))
+print(f"CHUNKS={chunks}|DONE={done}|SIZE={size}")
 """
 
 completed = False
 while time.time() - start_monitor < 1800: # 30 min max
-    time.sleep(15)
+    time.sleep(10)
     try:
         status_line = exec_code(poll_code, session_name=poll_session, timeout_sec=20).strip()
-        if "FRAMES=" in status_line:
+        if "DONE=" in status_line:
             parts = dict(kv.split("=", 1) for kv in status_line.split("|") if "=" in kv)
-            frames = int(parts.get("FRAMES", 0))
             is_done = parts.get("DONE", "False") == "True"
             size = int(parts.get("SIZE", 0))
+            chunks = int(parts.get("CHUNKS", 0))
             elapsed = time.time() - start_monitor
-            pct = min(100.0, (frames / TOTAL_FRAMES) * 100)
-            log(f"Render progress: {frames}/{TOTAL_FRAMES} frames ({pct:.1f}%) | Elapsed: {elapsed:.0f}s")
+            log(f"Render progress: {chunks}/{WORKERS} chunks finished | Elapsed: {elapsed:.0f}s")
             if is_done and size > 1000:
                 log(f"Render completed on Colab! File size: {size/(1024*1024):.2f} MB ({size} bytes)")
                 completed = True

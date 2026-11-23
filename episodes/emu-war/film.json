@@ -9,7 +9,7 @@
   "words": "voice/words.json",
   "puppet_pkg": [
     "cast",
-    "../../RicksClips_Skill_V1.1/templates/vector2d_characters/code"
+    "../../templates/vector2d_characters/code"
   ],
   "camera_idea": {
     "name": "Outback Military Absurdity Flow",
