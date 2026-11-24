@@ -17,7 +17,18 @@ if (!fs.existsSync(path.join(OUT, 'plan', 'camera_baked.json'))) { console.error
 // Sources are searched in order, the first file with a name wins. Default = the locked character package next to this kit (templates/vector2d_characters/code, CB's lock of 2026-11-09), else its cloud copy.
 // A source folder's sheets/ (cast sheets, each exports CAST) is copied too, so film.json can name any cast character: "puppet": "cast:<name>".
 const LOCAL = path.join(KIT, '..', 'vector2d_characters', 'code'), DEF = [fs.existsSync(path.join(LOCAL, 'char2d.mjs')) ? LOCAL : '/mnt/project-files/new-characters/vector2d/LOCKED_cast_v2_NEW_STYLE/code/'];
-const src = (val('--puppets') ? val('--puppets').split(',') : process.env.PUPPET_PKG ? process.env.PUPPET_PKG.split(',') : film.puppet_pkg ? [].concat(film.puppet_pkg) : DEF).map(p => path.resolve(EP, p));
+const src = (val('--puppets') ? val('--puppets').split(',') : process.env.PUPPET_PKG ? process.env.PUPPET_PKG.split(',') : film.puppet_pkg ? [].concat(film.puppet_pkg) : DEF).map(p => {
+  const direct = path.resolve(EP, p);
+  if (fs.existsSync(direct)) return direct;
+  if (p.includes('vector2d_characters')) {
+    if (fs.existsSync(LOCAL)) return LOCAL;
+    const rootFall = path.resolve(EP, '../../templates/vector2d_characters/code');
+    if (fs.existsSync(rootFall)) return rootFall;
+    const skillFall = path.resolve(EP, '../../RicksClips_Skill_V1.1/templates/vector2d_characters/code');
+    if (fs.existsSync(skillFall)) return skillFall;
+  }
+  return direct;
+});
 const CACHE = path.join(OUT, '.puppet_cache_' + process.pid); fs.rmSync(CACHE, { recursive: true, force: true }); fs.mkdirSync(CACHE, { recursive: true });
 process.on('exit', () => { try { fs.rmSync(CACHE, { recursive: true, force: true }); } catch {} });
 for (const s of src) { if (!fs.existsSync(s)) { console.error('puppet package not found: ' + s); process.exit(1); }

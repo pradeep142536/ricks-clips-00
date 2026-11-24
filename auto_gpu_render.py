@@ -268,7 +268,15 @@ import os, glob
 done = os.path.exists('/content/emu-war_full_episode_1080p.mp4')
 size = os.path.getsize('/content/emu-war_full_episode_1080p.mp4') if done else 0
 chunks = len(glob.glob('/content/chunk_emu_*.mp4'))
-print(f"CHUNKS={chunks}|DONE={done}|SIZE={size}")
+failed = False
+err_msg = ""
+if os.path.exists('/content/render_job.log'):
+    with open('/content/render_job.log') as f:
+        txt = f.read()
+        if "RENDER_FAILED" in txt:
+            failed = True
+            err_msg = txt.replace("\n", " ")[:300]
+print(f"CHUNKS={chunks}|DONE={done}|SIZE={size}|FAILED={failed}|ERR={err_msg}")
 """
 
 completed = False
@@ -281,8 +289,13 @@ while time.time() - start_monitor < 1800: # 30 min max
             is_done = parts.get("DONE", "False") == "True"
             size = int(parts.get("SIZE", 0))
             chunks = int(parts.get("CHUNKS", 0))
+            failed = parts.get("FAILED", "False") == "True"
+            err = parts.get("ERR", "")
             elapsed = time.time() - start_monitor
             log(f"Render progress: {chunks}/{WORKERS} chunks finished | Elapsed: {elapsed:.0f}s")
+            if failed:
+                log(f"Render FAILED on Colab: {err}")
+                break
             if is_done and size > 1000:
                 log(f"Render completed on Colab! File size: {size/(1024*1024):.2f} MB ({size} bytes)")
                 completed = True
