@@ -30,43 +30,60 @@ headers = {
     'Content-Type': 'application/json'
 }
 
-# 1. Provision fresh Tesla T4 runtime
-log("Step 1/5: Provisioning Tesla T4 GPU runtime on Google Cloud...")
-req_id = str(uuid.uuid4())
-create_body = json.dumps({
+# 1. Check existing runtime or provision fresh Tesla T4 runtime
+log("Step 1/5: Checking/Provisioning Tesla T4 GPU runtime on Google Cloud...")
+runtime_name = None
+list_body = json.dumps({
     'jsonrpc': '2.0',
     'id': 1,
     'method': 'tools/call',
-    'params': {
-        'name': 'create_runtime',
-        'arguments': {
-            'requestId': req_id,
-            'runtime': {
-                'runtimeSpec': {
-                    'variant': 'VARIANT_GPU',
-                    'accelerator': 'T4',
-                    'shape': 'SHAPE_STANDARD'
+    'params': {'name': 'list_runtimes', 'arguments': {}}
+}).encode()
+try:
+    with urllib.request.urlopen(urllib.request.Request('https://colaboratory.googleapis.com/mcp', data=list_body, headers=headers), timeout=30) as resp:
+        res = json.loads(resp.read().decode('utf-8'))
+        rts = res.get('result', {}).get('structuredContent', {}).get('runtimes', [])
+        if rts:
+            runtime_name = rts[0]['name']
+            log(f"Reusing active GPU runtime: {runtime_name}")
+except Exception as e:
+    log(f"Notice on list_runtimes: {e}")
+
+if not runtime_name:
+    log("Creating fresh Tesla T4 runtime...")
+    req_id = str(uuid.uuid4())
+    create_body = json.dumps({
+        'jsonrpc': '2.0',
+        'id': 1,
+        'method': 'tools/call',
+        'params': {
+            'name': 'create_runtime',
+            'arguments': {
+                'requestId': req_id,
+                'runtime': {
+                    'runtimeSpec': {
+                        'variant': 'VARIANT_GPU',
+                        'accelerator': 'T4',
+                        'shape': 'SHAPE_STANDARD'
+                    }
                 }
             }
         }
-    }
-}).encode()
-
-req = urllib.request.Request('https://colaboratory.googleapis.com/mcp', data=create_body, headers=headers)
-runtime_name = None
-with urllib.request.urlopen(req, timeout=120) as resp:
-    raw = resp.read().decode('utf-8')
-    obj = json.loads(raw)
-    if 'result' in obj:
-        for c in obj['result'].get('content', []):
-            try:
-                sub = json.loads(c.get('text', ''))
-                if 'name' in sub:
-                    runtime_name = sub['name']
-            except:
-                pass
-        if not runtime_name and 'structuredContent' in obj['result']:
-            runtime_name = obj['result']['structuredContent'].get('name')
+    }).encode()
+    req = urllib.request.Request('https://colaboratory.googleapis.com/mcp', data=create_body, headers=headers)
+    with urllib.request.urlopen(req, timeout=120) as resp:
+        raw = resp.read().decode('utf-8')
+        obj = json.loads(raw)
+        if 'result' in obj:
+            for c in obj['result'].get('content', []):
+                try:
+                    sub = json.loads(c.get('text', ''))
+                    if 'name' in sub:
+                        runtime_name = sub['name']
+                except:
+                    pass
+            if not runtime_name and 'structuredContent' in obj['result']:
+                runtime_name = obj['result']['structuredContent'].get('name')
 
 if not runtime_name:
     log(f"Failed to obtain runtime name from response: {raw}")

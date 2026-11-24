@@ -1,35 +1,39 @@
 // SET 1: SUN-BAKED OUTBACK WHEAT FIELD (Campion District, Western Australia)
-// Golden ripe wheat stalks, dry cracked red earth, split-rail timber fence, Eucalyptus gum trees,
-// and parked 1930s hero military truck.
+// Golden wheat paddock, rich red earthen soil, Australian split-rail timber fence,
+// procedural gum/olive/cypress trees (from kit3d), cel clouds, parked hero truck,
+// and distant foraging/running 3D emu flock.
 
 import { buildHeroTruck } from './hero_truck.js';
+import { buildEmuFlock } from './emu_flock.js';
 
 export async function build(THREE, scene, film, ctx) {
-  const { B2T, toon } = ctx;
+  const { B2T, toon, pbr, relief, sky, trees } = ctx;
   const V = (x, y, z) => B2T([x, y, z]);
   const root = new THREE.Group();
   root.name = 'wheat_field';
 
-  if (ctx.sky?.clouds) ctx.sky.clouds({
-    kind: ctx.place?.sky_kind || 'clear-day',
-    seed: 1932,
-    coverage: 0.25,
-    scale: 1.2,
-    sunDir: [0.35, 0.75, 0.45]
-  });
+  // 1. DYNAMIC VOLUMETRIC SKY (Clear hot Australian sun + soft cel clouds)
+  if (sky?.clouds) {
+    sky.clouds({
+      kind: 'clear-day',
+      seed: 1932,
+      coverage: 0.35,
+      scale: 1.3,
+      sunDir: [0.35, 0.75, 0.45]
+    });
+  }
 
-  const RL = (kind, c, o = {}) => ctx.relief ? ctx.relief(kind, c, o) : toon(c);
-  const MT = (kind, o = {}) => ctx.pbr ? ctx.pbr.metal(kind, o) : toon(o.toon || o.color || '#3c4470');
+  const RL = (kind, c, o = {}) => relief ? relief(kind, c, o) : toon(c);
+  const MT = (kind, o = {}) => pbr ? pbr.metal(kind, o) : toon(o.toon || o.color || '#3c4470');
 
   const M = {
-    redDirt: RL('stone', '#a84c2a', { scale: 1.6 }),
-    wheatGold: new THREE.MeshStandardMaterial({ color: 0xdec068, roughness: 0.85, metalness: 0.05 }),
-    wheatStraw: RL('wood', '#c9a54b', { scale: 0.9 }),
-    timberPost: RL('wood', '#63442a', { scale: 1.1 }),
-    timberRail: RL('wood', '#785334', { scale: 1.0 }),
-    gumBark: RL('wood', '#5c544d', { scale: 1.3 }),
-    gumLeaves: new THREE.MeshStandardMaterial({ color: 0x485c3b, roughness: 0.7, metalness: 0.1 }),
-    shadowMat: new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.35 })
+    outbackRedSoil: RL('mud', '#a44426', { scale: 2.0 }),
+    wheatPaddockSoil: RL('grass', '#bfa048', { scale: 2.4 }),
+    wheatGoldHead: new THREE.MeshStandardMaterial({ color: 0xdec068, roughness: 0.85, metalness: 0.05 }),
+    wheatStrawStem: RL('wood', '#c49a3c', { scale: 0.8 }),
+    fenceTimber: RL('wood', '#58402c', { scale: 1.1 }),
+    fenceWire: MT('steel', { color: '#68707c', rough: 0.4, toon: '#58606c' }),
+    contactAO: new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.55 })
   };
 
   const add = (geo, mat, name, role, p, parent = root) => {
@@ -43,67 +47,98 @@ export async function build(THREE, scene, film, ctx) {
     return m;
   };
 
-  const box = (w, d, h, x, y, z, mat, name, role = 'prop') => {
-    return add(new THREE.BoxGeometry(w, h, d), mat, name, role, V(x, y, z + h / 2));
+  const box = (w, d, h, x, y, z, mat, name, role = 'prop', parent = root) => {
+    return add(new THREE.BoxGeometry(w, h, d), mat, name, role, V(x, y, z + h / 2), parent);
   };
 
-  // 1. Red Clay Outback Ground
-  const groundGeo = new THREE.PlaneGeometry(40, 40);
-  const ground = add(groundGeo, M.redDirt, 'outback_red_soil', 'ground', V(0, 0, 0));
+  // 2. RED CLAY OUTBACK TERRAIN (Not patio bricks!)
+  const groundGeo = new THREE.PlaneGeometry(60, 60);
+  const ground = add(groundGeo, M.outbackRedSoil, 'outback_red_soil', 'ground', V(0, 5, 0));
   ground.rotation.x = -Math.PI / 2;
 
-  // 2. Dense Golden Wheat Field (Patches of wheat clusters)
-  const wheatGeo = new THREE.CylinderGeometry(0.015, 0.02, 0.85, 5);
-  const wheatHeadGeo = new THREE.ConeGeometry(0.04, 0.18, 5);
+  // Golden wheat field paddock soil patch
+  const paddockGeo = new THREE.PlaneGeometry(28, 20);
+  const paddock = add(paddockGeo, M.wheatPaddockSoil, 'wheat_paddock_patch', 'ground', V(0, 6.5, 0.005));
+  paddock.rotation.x = -Math.PI / 2;
 
-  for (let gx = -7; gx <= 7; gx += 0.45) {
-    for (let gy = 1.2; gy <= 8.5; gy += 0.45) {
-      if (Math.abs(gx) < 1.0 && gy < 4.0) continue; // Clear path for actors
-      const ox = gx + (Math.sin(gx * 5 + gy) * 0.18);
-      const oy = gy + (Math.cos(gy * 3 + gx) * 0.18);
-      const stalk = add(wheatGeo, M.wheatStraw, 'wheat_stalk', 'plant', V(ox, oy, 0.42));
-      stalk.rotation.z = (Math.sin(ox * 2) * 0.08);
-      const head = add(wheatHeadGeo, M.wheatGold, 'wheat_head', 'plant', V(ox, oy, 0.88));
-      head.rotation.z = stalk.rotation.z;
+  // 3. PROCEDURAL AUSTRALIAN TREES (Using the engine tree generator)
+  if (trees?.tree) {
+    trees.tree({ kind: 'olive', at: [-6.8, 10.5, 0], seed: 1932, height: 6.2 });
+    trees.tree({ kind: 'oak', at: [7.2, 11.0, 0], seed: 1933, height: 7.6 });
+    trees.tree({ kind: 'cypress', at: [9.5, 8.5, 0], seed: 1934, height: 9.8 });
+    trees.tree({ kind: 'olive', at: [-8.8, 8.0, 0], seed: 1935, height: 6.8 });
+    for (let i = 0; i < 7; i++) {
+      trees.tree({ kind: 'cypress', at: [-20 + i * 6.5, 26 + (i % 2) * 4, 0], seed: 100 + i, height: 8 + (i % 3) * 2 });
     }
   }
 
-  // 3. Split-Rail Wooden Paddock Fence
-  for (let fx = -8; fx <= 8; fx += 2.5) {
-    box(0.18, 0.18, 1.35, fx, 0.5, 0.0, M.timberPost, `fence_post_${fx}`, 'wood');
-    // Horizontal split rails
-    box(2.5, 0.08, 0.14, fx + 1.25, 0.5, 0.45, M.timberRail, `fence_rail_low_${fx}`, 'wood');
-    box(2.5, 0.08, 0.14, fx + 1.25, 0.5, 0.95, M.timberRail, `fence_rail_high_${fx}`, 'wood');
+  // 4. ORGANIC WHEAT BLADE CLUSTERS
+  const stalkGeo = new THREE.CylinderGeometry(0.012, 0.016, 0.82, 5);
+  const headGeo = new THREE.ConeGeometry(0.038, 0.20, 6);
+
+  // Instanced clusters behind the paddock fence
+  for (let gx = -9; gx <= 9; gx += 0.55) {
+    for (let gy = 2.2; gy <= 8.5; gy += 0.55) {
+      if (Math.abs(gx) < 1.2 && gy < 4.5) continue; // Clear path for camera & actors
+      const ox = gx + (Math.sin(gx * 7 + gy) * 0.22);
+      const oy = gy + (Math.cos(gy * 5 + gx) * 0.22);
+      const lean = Math.sin(ox * 3) * 0.12;
+
+      const stalk = add(stalkGeo, M.wheatStrawStem, 'wheat_stalk', 'plant', V(ox, oy, 0.41));
+      stalk.rotation.z = lean;
+      const head = add(headGeo, M.wheatGoldHead, 'wheat_head', 'plant', V(ox, oy, 0.86));
+      head.rotation.z = lean;
+    }
   }
 
-  // 4. Australian Eucalyptus Gum Trees (Background)
-  const gumTreePositions = [
-    [-6.5, 9.5, 3.8], [5.8, 10.2, 4.2], [9.2, 8.0, 3.6], [-8.5, 7.5, 3.4]
-  ];
-  gumTreePositions.forEach(([tx, ty, th], idx) => {
-    const trunk = add(new THREE.CylinderGeometry(0.24, 0.38, th, 8), M.gumBark, `gum_tree_trunk_${idx}`, 'wood', V(tx, ty, th / 2));
-    // Canopy
-    const foliage = add(new THREE.DodecahedronGeometry(1.4, 1), M.gumLeaves, `gum_tree_foliage_${idx}`, 'plant', V(tx, ty, th + 0.6));
-  });
+  // 5. AUSTRALIAN PADDOCK TIMBER FENCE & WIRE
+  for (let fx = -9; fx <= 9; fx += 2.8) {
+    // Rough-hewn timber post
+    box(0.16, 0.16, 1.35, fx, 1.2, 0.0, M.fenceTimber, `fence_post_${fx}`, 'wood');
+    // Top & bottom split-rails
+    box(2.8, 0.08, 0.12, fx + 1.4, 1.2, 0.42, M.fenceTimber, `fence_rail_low_${fx}`, 'wood');
+    box(2.8, 0.08, 0.12, fx + 1.4, 1.2, 0.96, M.fenceTimber, `fence_rail_high_${fx}`, 'wood');
+  }
+  // Galvanized wire strands running through fence
+  for (const wz of [0.28, 0.68, 1.15]) {
+    const wire = add(new THREE.CylinderGeometry(0.005, 0.005, 20.0, 6), M.fenceWire, `fence_wire_${wz}`, 'metal', V(0, 1.2, wz));
+    wire.rotation.z = Math.PI / 2;
+  }
 
-  // 5. Parked Hero Military Flatbed Truck
+  // 6. PARKED HERO MILITARY FLATBED TRUCK
   const heroTruck = buildHeroTruck(THREE, ctx, {
-    pos: [2.8, -0.4, 0.0],
-    yaw: -0.25
+    pos: [3.2, 0.2, 0.0],
+    yaw: -0.32
   });
   root.add(heroTruck);
 
-  // Contact Shadow under truck
-  const truckShadow = add(new THREE.PlaneGeometry(2.4, 5.0), M.shadowMat, 'truck_contact_shadow', 'shadow', V(2.8, -0.4, 0.01));
-  truckShadow.rotation.x = -Math.PI / 2;
-  truckShadow.rotation.z = -0.25;
+  // 7. DISTANT 3D EMU FLOCK (Foraging and moving across the wheat horizon)
+  const emuFlock = buildEmuFlock(THREE, ctx, {
+    count: 10,
+    baseX: -1.0,
+    baseY: 9.5,
+    spreadX: 14.0,
+    spreadY: 4.0,
+    yaw: Math.PI * 0.95
+  });
+  root.add(emuFlock);
+
+  // 8. CONTACT AO SHADOWS FOR ACTORS (Grounded, no floating cards)
+  const soldierShadow = add(new THREE.PlaneGeometry(0.7, 0.35), M.contactAO, 'soldier_contact_shadow', 'shadow', V(-0.6, 0.0, 0.01));
+  soldierShadow.rotation.x = -Math.PI / 2;
+  const officerShadow = add(new THREE.PlaneGeometry(0.7, 0.35), M.contactAO, 'officer_contact_shadow', 'shadow', V(0.5, -0.2, 0.01));
+  officerShadow.rotation.x = -Math.PI / 2;
 
   scene.add(root);
+
   return {
     anchors: {
       soldier_station: V(-0.6, 0.0, 0.0),
       officer_spot: V(0.5, -0.2, 0.0),
-      emu_horizon: V(0.0, 9.0, 0.0)
+      emu_horizon: V(0.0, 9.5, 0.0)
+    },
+    update: (time, dt) => {
+      emuFlock.userData.update && emuFlock.userData.update(time);
     }
   };
 }

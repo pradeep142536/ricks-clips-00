@@ -9,7 +9,7 @@
   "words": "voice/words.json",
   "puppet_pkg": [
     "cast",
-    "../../templates/vector2d_characters/code"
+    "../../RicksClips_Skill_V1.1/templates/vector2d_characters/code"
   ],
   "camera_idea": {
     "name": "Outback Military Absurdity Flow",
@@ -685,7 +685,7 @@
           "aim": [
             -0.4,
             0.0,
-            1.15
+            1.28
           ],
           "lens": 28,
           "subject": "major_meredith",
@@ -742,7 +742,7 @@
           "aim": [
             -0.5,
             0.5,
-            1.2
+            1.28
           ],
           "lens": 26,
           "subject": "bird",
@@ -774,7 +774,7 @@
           "aim": [
             -0.5,
             0.0,
-            1.15
+            1.28
           ],
           "lens": 28,
           "subject": "farmer",
@@ -806,7 +806,7 @@
           "aim": [
             -0.6,
             0.3,
-            1.15
+            1.28
           ],
           "lens": 28,
           "subject": "farmer",
@@ -865,7 +865,7 @@
           "aim": [
             -0.3,
             0.2,
-            1.15
+            1.28
           ],
           "lens": 28,
           "subject": "gunner",
@@ -886,12 +886,12 @@
           "pos": [
             2.2,
             -4.8,
-            2.1
+            1.9
           ],
           "aim": [
             -0.3,
             0.8,
-            1.2
+            1.12
           ],
           "lens": 26,
           "subject": "gunner",
@@ -916,14 +916,14 @@
           ],
           "lead": 6,
           "pos": [
-            -0.3,
+            -0.2,
             -1.8,
-            1.32
+            1.10
           ],
           "aim": [
-            -0.3,
-            0.4,
-            1.25
+            -0.1,
+            0.25,
+            1.05
           ],
           "lens": 36,
           "subject": "gunner",
@@ -943,14 +943,14 @@
           ],
           "lead": 6,
           "pos": [
-            -0.3,
+            -0.2,
             -1.8,
-            1.38
+            1.12
           ],
           "aim": [
-            -0.3,
+            -0.1,
             0.2,
-            1.32
+            1.05
           ],
           "lens": 38,
           "subject": "gunner",
@@ -969,14 +969,14 @@
           ],
           "lead": 6,
           "pos": [
-            -0.3,
+            -0.2,
             -1.7,
-            1.4
+            1.12
           ],
           "aim": [
-            -0.3,
-            0.3,
-            1.32
+            -0.1,
+            0.25,
+            1.05
           ],
           "lens": 38,
           "subject": "gunner",
@@ -1008,7 +1008,7 @@
           "aim": [
             1.0,
             0.5,
-            1.2
+            1.28
           ],
           "lens": 24,
           "subject": "bird",
@@ -1040,7 +1040,7 @@
           "aim": [
             -0.5,
             0.5,
-            1.2
+            1.28
           ],
           "lens": 24,
           "subject": "gunner",
@@ -1073,7 +1073,7 @@
           "aim": [
             0.2,
             0.0,
-            0.85
+            1.28
           ],
           "lens": 38,
           "subject": "gunner",
@@ -1137,7 +1137,7 @@
           "aim": [
             -0.3,
             0.0,
-            1.15
+            1.28
           ],
           "lens": 28,
           "subject": "major_meredith",
@@ -1189,7 +1189,7 @@
           "aim": [
             -0.4,
             0.0,
-            1.15
+            1.28
           ],
           "lens": 28,
           "subject": "major_meredith",
@@ -1253,7 +1253,7 @@
           "aim": [
             0.75,
             0.3,
-            1.15
+            1.28
           ],
           "lens": 28,
           "subject": "farmer",
@@ -1442,12 +1442,12 @@
         1
       ],
       "pos": [
-        0.0,
-        0.0,
+        -1.2,
+        1.5,
         0.0
       ],
       "face": "bruh",
-      "pose": "stand",
+      "pose": "hands_hips",
       "dir": 1
     },
     {
@@ -1456,7 +1456,13 @@
         "medals",
         1
       ],
-      "visible": false
+      "visible": false,
+      "pos": [
+        -1.2,
+        1.5,
+        0.0
+      ],
+      "pose": "hands_hips"
     },
     {
       "who": "gunner",
@@ -1504,12 +1510,12 @@
         1
       ],
       "pos": [
-        -0.3,
-        0.3,
-        0.0
+        0.0,
+        0.25,
+        -0.34
       ],
       "face": "strain",
-      "pose": "crouch",
+      "pose": "hold_out",
       "dir": 1
     },
     {
@@ -1519,8 +1525,13 @@
         1
       ],
       "face": "standard",
-      "pose": "crouch",
-      "dir": 1
+      "pose": "hold_out",
+      "dir": 1,
+      "pos": [
+        0.0,
+        0.25,
+        -0.34
+      ]
     },
     {
       "who": "gunner",
@@ -1530,7 +1541,12 @@
       ],
       "face": "strain",
       "pose": "hold_out",
-      "dir": 1
+      "dir": 1,
+      "pos": [
+        0.0,
+        0.25,
+        -0.34
+      ]
     },
     {
       "who": "gunner",
@@ -1540,7 +1556,12 @@
       ],
       "face": "strain",
       "pose": "hold_out",
-      "dir": 1
+      "dir": 1,
+      "pos": [
+        0.0,
+        0.25,
+        -0.34
+      ]
     },
     {
       "who": "gunner",
@@ -1549,8 +1570,13 @@
         1
       ],
       "face": "jawdrop",
-      "pose": "shrug",
-      "dir": 1
+      "pose": "hold_out",
+      "dir": 1,
+      "pos": [
+        0.0,
+        0.25,
+        -0.34
+      ]
     },
     {
       "who": "gunner",
@@ -1568,8 +1594,8 @@
       ],
       "pos": [
         0.0,
-        0.0,
-        0.0
+        0.75,
+        0.68
       ],
       "face": "jawdrop",
       "pose": "hold_out",
@@ -1583,8 +1609,13 @@
         1
       ],
       "face": "strain",
-      "pose": "tiltL",
-      "dir": 1
+      "pose": "hold_out",
+      "dir": 1,
+      "pos": [
+        0.0,
+        0.75,
+        0.68
+      ]
     },
     {
       "who": "gunner",
@@ -1593,9 +1624,9 @@
         1
       ],
       "pos": [
-        0.2,
-        0.0,
-        0.0
+        0.3,
+        0.65,
+        0.68
       ],
       "face": "bruh",
       "pose": "tiltL",
@@ -1631,7 +1662,7 @@
         1
       ],
       "pos": [
-        -0.5,
+        -0.8,
         0.0,
         0.0
       ],
@@ -1647,8 +1678,13 @@
         1
       ],
       "face": "jawdrop",
-      "pose": "point_out",
-      "dir": 1
+      "pose": "point_up",
+      "dir": 1,
+      "pos": [
+        -0.8,
+        0.0,
+        0.0
+      ]
     },
     {
       "who": "farmer",
@@ -1657,8 +1693,8 @@
         1
       ],
       "pos": [
-        -0.8,
-        0.3,
+        0.6,
+        0.1,
         0.0
       ],
       "face": "strain",
@@ -1674,7 +1710,12 @@
       ],
       "face": "jawdrop",
       "pose": "tiltL",
-      "dir": 1
+      "dir": 1,
+      "pos": [
+        0.6,
+        0.1,
+        0.0
+      ]
     },
     {
       "who": "farmer",
@@ -1854,8 +1895,9 @@
       ],
       "face": "k:smirk",
       "pose": "stand",
-      "visible": true,
+      "visible": false,
       "dir": 1
     }
-  ]
+  ],
+  "face_shadow": false
 }
