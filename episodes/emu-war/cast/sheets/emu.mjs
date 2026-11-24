@@ -29,7 +29,7 @@ O('officer1932', 'Australian Artillery Officer: tailored khaki tunic, brass butt
   [
     ['lapels', 'a', WHITE, 'tie', '#2e2b1d'],
     ['buttons', 5, BRASS_GOLD, .35, .88],
-    ['pockets', 'a', .38, .22],
+    ['pocket', .38, .22],
     ['suspenders', LEATHER_BROWN, .16],
     ['low', KHAKI_PANTS, .88],
     ['seams']
@@ -41,7 +41,7 @@ O('gunner1932', 'Australian Lewis Gunner: rolled sleeve khaki shirt, ammunition 
   [
     ['shirtCollar', 'a'],
     ['buttons', 4, '#1e2018', .40, .88],
-    ['pockets', 'a', .36, .20],
+    ['pocket', .36, .20],
     ['suspenders', LEATHER_BROWN, .18],
     ['low', KHAKI_PANTS, .88],
     ['seams']
