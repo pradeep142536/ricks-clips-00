@@ -60,7 +60,8 @@ page.on('console', m => { if ((m.type() === 'warning' || m.type() === 'error') &
 await page.goto(`${BASE}/kit/film_page.html`);
 const info = await page.evaluate(c => window.setup(c), { film: '/ep/' + path.basename(FILM), W, H, captions: !has('--no-captions'), sheets: SHEETS, epSets: fs.existsSync(path.join(EP, 'sets')) ? fs.readdirSync(path.join(EP, 'sets')) : [] });
 const stage = page.locator('#stage');
-const shot = async (f, file) => { await page.evaluate(f => window.renderFrame(f), f); await stage.screenshot({ path: file }); };
+page.setDefaultTimeout(0);
+const shot = async (f, file) => { await page.evaluate(f => window.renderFrame(f), f); await page.screenshot({ path: file, timeout: 0 }); };
 console.log(`film: ${info.frames} frames at ${info.fps} fps, ${W}x${H}, cast ${info.cast.join(', ')}`);
 
 if (has('--frames')) {
