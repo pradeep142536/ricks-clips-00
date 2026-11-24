@@ -112,7 +112,8 @@ if (has('--animatic')) {
   const voice = !has('--no-audio') && ['voice/voice.wav', 'voice/voice.mp3'].map(v => path.join(EP, v)).find(fs.existsSync);
   const mp4 = val('--out') ? path.resolve(val('--out')) : path.join(OUT, 'animatic.mp4');
   fs.mkdirSync(path.dirname(mp4), { recursive: true });
-  const args = ['-y', '-v', 'error', '-framerate', String(info.fps / step), '-i', path.join(tmp, 'f_%05d.png'), ...(voice ? ['-i', voice, '-map', '0:v:0', '-map', '1:a:0', '-c:a', 'aac', '-af', 'apad', '-shortest']   /* kit 2026-11-13 (fireworks test): apad pads the voice with silence so -shortest ends on the LAST VIDEO frame; a 20.13 s voice cut a 21.2 s film */ : []), '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '20', '-r', String(info.fps), mp4];
+  const vf = scale < 1 ? ['-vf', `scale=${FW}:${FH}:flags=lanczos`] : [];
+  const args = ['-y', '-v', 'error', '-framerate', String(info.fps / step), '-i', path.join(tmp, 'f_%05d.png'), ...vf, ...(voice ? ['-i', voice, '-map', '0:v:0', '-map', '1:a:0', '-c:a', 'aac', '-af', 'apad', '-shortest']   /* kit 2026-11-13 (fireworks test): apad pads the voice with silence so -shortest ends on the LAST VIDEO frame; a 20.13 s voice cut a 21.2 s film */ : []), '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '20', '-r', String(info.fps), mp4];
   const r = spawnSync('ffmpeg', args, { stdio: 'inherit' }); fs.rmSync(tmp, { recursive: true, force: true });
   console.log(r.status === 0 ? `animatic -> ${mp4}  (${n} frames, ${((Date.now() - t0) / n).toFixed(0)} ms/frame${voice ? ', with voice' : ', silent: no voice/voice.wav'})` : 'ffmpeg failed');
 }
