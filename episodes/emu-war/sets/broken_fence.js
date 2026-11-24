@@ -76,7 +76,7 @@ export async function build(THREE, scene, film, ctx) {
       new THREE.Vector3(s * 0.9, 0.8, 0.5),
       new THREE.Vector3(s * 0.6, 0.7, 0.2)
     ]);
-    add(new THREE.Mesh(new THREE.TubeGeometry(curlCurve, 16, 0.006, 6), M.wireMetal), `snapped_wire_${s}`, 'metal');
+    add(new THREE.TubeGeometry(curlCurve, 16, 0.006, 6), M.wireMetal, `snapped_wire_${s}`, 'metal');
   }
 
   // 4. LEAPING 3D EMU BURSTING THROUGH THE GAP
