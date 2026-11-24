@@ -55,7 +55,23 @@ if (has('--serve')) { console.log(`Open ${BASE}/kit/film_page.html?film=/ep/${pa
 
 let chromium; try { ({ chromium } = await import('playwright')); } catch { ({ chromium } = require(process.env.PLAYWRIGHT_DIR || '/opt/node-tools/node_modules/playwright')); }
 const [FW, FH] = film.size || [1080, 1920], scale = +val('--scale', has('--storyboard') ? 0.4 : 0.5), W = Math.round(FW * scale / 2) * 2, H = Math.round(FH * scale / 2) * 2;
-const browser = await chromium.launch({ args: ['--ignore-gpu-blocklist', '--enable-gpu-rasterization', '--enable-zero-copy', '--use-gl=angle', '--use-angle=gl-egl', '--disable-gpu-vsync', '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--disable-features=CalculateNativeWinOcclusion', '--no-sandbox'] }), page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 1 });
+const browser = await chromium.launch({
+  headless: true,
+  ignoreDefaultArgs: ['--use-angle=swiftshader-webgl', '--disable-gpu'],
+  args: [
+    '--no-sandbox',
+    '--headless=new',
+    '--use-gl=angle',
+    '--use-angle=vulkan',
+    '--enable-features=Vulkan',
+    '--disable-vulkan-surface',
+    '--ignore-gpu-blocklist',
+    '--disable-gpu-vsync',
+    '--disable-background-timer-throttling',
+    '--disable-renderer-backgrounding',
+    '--disable-features=CalculateNativeWinOcclusion'
+  ]
+}), page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 1 });
 page.on('console', m => { if ((m.type() === 'warning' || m.type() === 'error') && !/GL Driver Message/.test(m.text())) console.log('[page]', m.text()); }); page.on('pageerror', e => console.log('[page error]', e.message));
 await page.goto(`${BASE}/kit/film_page.html`);
 const info = await page.evaluate(c => window.setup(c), { film: '/ep/' + path.basename(FILM), W, H, captions: !has('--no-captions'), sheets: SHEETS, epSets: fs.existsSync(path.join(EP, 'sets')) ? fs.readdirSync(path.join(EP, 'sets')) : [] });
