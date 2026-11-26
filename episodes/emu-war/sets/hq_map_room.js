@@ -1,95 +1,115 @@
 // SET 5: MILITARY HEADQUARTERS MAP ROOM (Perth, October 1932)
-// Australian Army HQ: warm tungsten pendant lamp, tactical battle map of Western Australia,
-// brass magnifying glass, telegraph transceiver, timber plotting table, and officer chairs.
+// Eliminates dark void walls: uses warm wood wainscot paneling, cream upper plaster walls,
+// daylight window frames with golden light shafts, warm bounced tungsten lamp glow,
+// and CC0 .glb props (map_table, wooden_chair, desk_lamp, field_radio, bookshelf, war_diary, window_frame).
+// Actor spacing guarantees Major Meredith stands cleanly BEHIND the map table, zero clipping.
+
+import { makeMatteMat, makePropSpawner } from './procedural_props.mjs';
 
 export async function build(THREE, scene, film, ctx) {
-  const { B2T, toon, pbr, relief } = ctx;
+  const { B2T } = ctx;
   const V = (x, y, z) => B2T([x, y, z]);
   const root = new THREE.Group();
   root.name = 'hq_map_room';
 
-  const RL = (kind, c, o = {}) => relief ? relief(kind, c, o) : toon(c);
-  const MT = (kind, o = {}) => pbr ? pbr.metal(kind, o) : toon(o.toon || o.color || '#3c4470');
-
   const M = {
-    floorWood: RL('wood', '#523824', { scale: 1.2 }),
-    wallPlaster: RL('plaster', '#8a7d6b', { scale: 1.6 }),
-    tableOak: RL('wood', '#68482e', { scale: 1.0 }),
-    mapPaper: new THREE.MeshStandardMaterial({ color: 0xdec89e, roughness: 0.85, metalness: 0.0 }),
-    mapInk: new THREE.MeshBasicMaterial({ color: 0x5a2a22 }),
-    brassLamp: MT('brass', { color: '#d8aa32', rough: 0.28, toon: '#c09628' }),
-    lampShadeGreen: new THREE.MeshStandardMaterial({ color: 0x1e4828, roughness: 0.35, metalness: 0.1 }),
-    lampGlow: new THREE.MeshBasicMaterial({ color: 0xfff0b8 }),
-    contactAO: new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.55 })
+    floorOak: makeMatteMat(THREE, '#6a4a30', 0.84, 0.0),
+    wainscot: makeMatteMat(THREE, '#53351f', 0.85, 0.0),
+    upperWall: makeMatteMat(THREE, '#c8b99e', 0.92, 0.0),
+    trimWood: makeMatteMat(THREE, '#3e2514', 0.84, 0.0),
+    ceiling: makeMatteMat(THREE, '#dfd3bd', 0.95, 0.0),
+    mapPaper: makeMatteMat(THREE, '#e6d3a7', 0.88, 0.0),
+    mapInk: makeMatteMat(THREE, '#7c2b22', 0.85, 0.0),
+    shaftMat: new THREE.MeshBasicMaterial({
+      color: '#ffe6ae',
+      transparent: true,
+      opacity: 0.14,
+      depthWrite: false,
+      side: THREE.DoubleSide
+    })
   };
 
-  const add = (geo, mat, name, role, p, parent = root) => {
-    const m = new THREE.Mesh(geo, mat);
+  // Bright warm bounced interior fill so HQ never reads like a dark box
+  const warmFill = new THREE.PointLight('#ffdca4', 3.2, 16, 1.4);
+  warmFill.position.copy(V(0.0, 1.35, 2.75));
+  scene.add(warmFill);
+  const windowKey = new THREE.PointLight('#fff4d8', 2.4, 14, 1.2);
+  windowKey.position.copy(V(-3.8, 2.8, 2.4));
+  scene.add(windowKey);
+
+  const box = (w, d, h, x, y, z, mat, name) => {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
     m.name = name;
-    m.userData.role = role;
-    if (p) m.position.copy(p);
-    m.castShadow = true;
+    m.position.copy(V(x, y, z + h / 2));
     m.receiveShadow = true;
-    parent.add(m);
+    m.castShadow = true;
+    root.add(m);
     return m;
   };
 
-  const box = (w, d, h, x, y, z, mat, name, role = 'prop', parent = root) => {
-    return add(new THREE.BoxGeometry(w, h, d), mat, name, role, V(x, y, z + h / 2), parent);
-  };
-
-  // 1. HARDWOOD FLOOR & OFFICE WALLS
-  box(16, 14, 0.1, 0, 3, -0.05, M.floorWood, 'hq_wood_floor', 'ground');
-  box(16, 0.3, 4.8, 0, 8.5, 0, M.wallPlaster, 'hq_back_wall', 'wood');
-  box(0.3, 14, 4.8, -7.5, 3, 0, M.wallPlaster, 'hq_left_wall', 'wood');
-  box(0.3, 14, 4.8, 7.5, 3, 0, M.wallPlaster, 'hq_right_wall', 'wood');
-
-  // 2. LARGE PLOTTING TABLE & CHAIRS
-  box(2.8, 1.8, 0.08, 0.0, 1.2, 0.82, M.tableOak, 'plotting_table_top', 'wood');
-  // 4 Table legs
-  for (const lx of [-1.25, 1.25]) {
-    for (const ly of [0.45, 1.95]) {
-      box(0.10, 0.10, 0.82, lx, ly, 0.0, M.tableOak, `table_leg_${lx}_${ly}`, 'wood');
-    }
+  // 1. Warm Timber Floor, Two-Tone Wood-Paneled Walls & Ceiling
+  box(14, 12, 0.1, 0, 2.2, -0.1, M.floorOak, 'hq_wood_floor');
+  box(14, 12, 0.1, 0, 2.2, 4.4, M.ceiling, 'hq_ceiling');
+  // Back wall (y = 5.4m) - wainscot + cream plaster upper wall + chair rail
+  box(14, 0.25, 1.4, 0, 5.4, 0, M.wainscot, 'hq_back_wainscot');
+  box(14, 0.25, 3.0, 0, 5.4, 1.4, M.upperWall, 'hq_back_plaster');
+  box(14, 0.30, 0.08, 0, 5.36, 1.4, M.trimWood, 'hq_back_rail');
+  // Side walls (x = +-5.5m)
+  for (const sx of [-5.5, 5.5]) {
+    box(0.25, 12, 1.4, sx, 2.2, 0, M.wainscot, `hq_side_wainscot_${sx}`);
+    box(0.25, 12, 3.0, sx, 2.2, 1.4, M.upperWall, `hq_side_plaster_${sx}`);
   }
 
-  // 3. TACTICAL MILITARY MAP OF CAMPION WHEATBELT
-  const mapMesh = add(new THREE.PlaneGeometry(2.2, 1.4), M.mapPaper, 'campion_tactical_map', 'prop', V(0.0, 1.2, 0.87));
-  mapMesh.rotation.x = -Math.PI / 2;
+  // Framed Strategy Wall Board behind Major Meredith
+  box(2.6, 0.06, 1.5, 0.0, 5.24, 1.55, M.trimWood, 'hq_wall_map_frame');
+  box(2.4, 0.07, 1.3, 0.0, 5.23, 1.65, M.mapPaper, 'hq_wall_map_sheet');
+  box(0.45, 0.08, 0.10, -0.4, 5.22, 2.15, M.mapInk, 'hq_wall_pin_1');
 
-  // Red and blue tactical map arrows / markers
-  box(0.4, 0.08, 0.01, -0.4, 1.1, 0.88, M.mapInk, 'tactical_marker_1', 'prop');
-  box(0.08, 0.35, 0.01, 0.3, 1.3, 0.88, M.mapInk, 'tactical_marker_2', 'prop');
+  // 2. CC0 GLB Furniture & Props (table, chairs, bookshelf, window, desk_lamp, radio, war_diary)
+  const [mapTable, spawnChair, spawnShelf, spawnWindow, deskLamp, fieldRadio, warDiary] = await Promise.all([
+    ctx.assets.spawn('map_table', { pos: [0.0, 1.35, 0.0], parent: root, solid: true }),
+    makePropSpawner(ctx, 'wooden_chair', { shadow: true }),
+    makePropSpawner(ctx, 'bookshelf', { shadow: true }),
+    makePropSpawner(ctx, 'window_frame', { shadow: false }),
+    ctx.assets.spawn('desk_lamp', { pos: [0.76, 1.48, 0.642], parent: root, solid: false }),
+    ctx.assets.spawn('field_radio', { pos: [-0.74, 1.52, 0.642], yaw: 0.35, parent: root, solid: false }),
+    ctx.assets.spawn('war_diary', { pos: [0.35, 1.15, 0.642], yaw: -0.25, parent: root, solid: false })
+  ]);
+  void mapTable; void deskLamp; void fieldRadio; void warDiary;
 
-  // Brass Magnifying Glass on Table
-  const glassRim = add(new THREE.TorusGeometry(0.11, 0.018, 8, 20), M.brassLamp, 'magnifying_rim', 'metal', V(0.65, 0.9, 0.89));
-  glassRim.rotation.x = Math.PI / 2;
-  const glassHandle = add(new THREE.CylinderGeometry(0.014, 0.014, 0.22, 8), M.tableOak, 'magnifying_handle', 'wood', V(0.65, 0.72, 0.89));
-  glassHandle.rotation.x = Math.PI / 2;
+  // Map sheet & markers resting flush on top of CC0 WoodenTable_01 (height = 0.6404m)
+  const tableTopZ = 0.644;
+  const mapSheet = new THREE.Mesh(new THREE.PlaneGeometry(1.15, 0.56), M.mapPaper);
+  mapSheet.rotation.x = -Math.PI / 2;
+  mapSheet.position.copy(V(-0.08, 1.34, tableTopZ));
+  mapSheet.receiveShadow = true;
+  root.add(mapSheet);
+  box(0.28, 0.05, 0.01, -0.25, 1.32, tableTopZ, M.mapInk, 'map_sector_line_1');
+  box(0.06, 0.24, 0.01, 0.18, 1.36, tableTopZ, M.mapInk, 'map_sector_line_2');
 
-  // 4. WARM OVERHEAD PENDANT SHADE LAMP (Direct dramatic lighting pool)
-  const lampCord = add(new THREE.CylinderGeometry(0.008, 0.008, 2.2, 6), M.brassLamp, 'lamp_cord', 'metal', V(0.0, 1.2, 3.2));
-  const lampShade = add(new THREE.ConeGeometry(0.48, 0.28, 16, 1, true), M.lampShadeGreen, 'lamp_shade', 'prop', V(0.0, 1.2, 2.2));
-  lampShade.rotation.x = Math.PI;
-  const lampBulb = add(new THREE.SphereGeometry(0.09, 12, 8), M.lampGlow, 'lamp_glowing_bulb', 'lamp', V(0.0, 1.2, 2.12));
+  // Flanking chairs & wall archives
+  spawnChair([-1.55, 1.85, 0.0], { parent: root, yaw: 0.65, solid: true });
+  spawnChair([1.55, 1.85, 0.0], { parent: root, yaw: -0.65, solid: true });
+  spawnShelf([-3.2, 4.95, 0.0], { parent: root, solid: true });
+  spawnShelf([3.2, 4.95, 0.0], { parent: root, solid: true });
 
-  // Light pool on table
-  const lightPool = add(new THREE.CircleGeometry(1.6, 24), new THREE.MeshBasicMaterial({ color: 0xffecb0, transparent: true, opacity: 0.18 }), 'table_light_pool', 'fx', V(0.0, 1.2, 0.88));
-  lightPool.rotation.x = -Math.PI / 2;
-
-  // 5. CONTACT AO SHADOWS
-  const meredithAO = add(new THREE.PlaneGeometry(0.7, 0.35), M.contactAO, 'meredith_hq_ao', 'shadow', V(-0.6, 0.1, 0.01));
-  meredithAO.rotation.x = -Math.PI / 2;
-  const farmerAO = add(new THREE.PlaneGeometry(0.7, 0.35), M.contactAO, 'farmer_hq_ao', 'shadow', V(0.6, 0.1, 0.01));
-  farmerAO.rotation.x = -Math.PI / 2;
+  // Daylight Window Frames + Soft Volumetric Light Shafts on Left Wall & Back-Left
+  const winL = spawnWindow([-5.32, 2.2, 1.25], { parent: root, yaw: Math.PI / 2 });
+  const shaft = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 3.8), M.shaftMat);
+  shaft.position.copy(V(-3.6, 2.2, 1.75));
+  shaft.rotation.set(0.35, Math.PI / 2, -0.45);
+  shaft.userData.noExport = true;
+  root.add(shaft);
+  void winL;
 
   scene.add(root);
 
   return {
     anchors: {
-      meredith_hq: V(-0.6, 0.1, 0.0),
-      farmer_hq: V(0.6, 0.1, 0.0),
-      table_spot: V(0.0, 1.2, 0.87)
+      // Major Meredith stands cleanly BEHIND map_table (y: 0.96..1.74); farmer stands cleanly IN FRONT
+      meredith_hq: V(0.35, 2.25, 0.0),
+      farmer_hq: V(-0.85, 0.35, 0.0),
+      table_spot: V(0.0, 1.35, 0.65)
     }
   };
 }

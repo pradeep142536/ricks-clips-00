@@ -51,10 +51,13 @@ const FACE = (f) => {
 
 export function buildChar(spec, x) {
   const F = FORMS[spec.form || 'standard'];
-  let S = { ...formChar(spec.form || 'standard', x), coat: spec.coat || F.S.coat };
+  let S = { ...formChar(spec.form || 'standard', x), coat: spec.coat || (spec.palette ? undefined : F.S.coat), ...(spec.coat ? { _explicitCoat: spec.coat } : {}) };
   if (spec.size) S = sizeChar(S, spec.size);   // THREE body sizes (bodies.mjs SIZES, CB 2026-11-12): thin, standard, fat; body longer and head bigger with each size. Old look: oldThin, oldStandard, oldFat, oldExtremeFat
   if (spec.head) S.head = spec.head;
   if (spec.faceShadow === false) S.faceShadow = false;   // CB 2026-11-15: a sheet's faceShadow: false reaches char2d (was dropped here, so the grey face shadow stayed)
+  for (const k of ['build', 'palette', 'shoes', 'eyewear', 'facialHair', 'facialHairCol', 'scarf', 'bowtie', 'badge', 'cuffs', 'rolledSleeves', 'plain', 'handShape']) {
+    if (spec[k] !== undefined) S[k] = spec[k];
+  }
   const K = S.headK ?? 1.5, top = S.bodyTop ?? 333, bot = S.bodyBot ?? 640, hy = top - 100 * K * .78;
   const def = S.arms({ cx: x, view: 'front', dir: 1 }).front, parse = a => a.d.match(/M([-\d.]+),([-\d.]+)/).slice(1).map(Number);
   const B = { cx: x, top, bot, hy, K, R: 100 * K, ground: 1010, shL: parse(def[0]), shR: parse(def[1]), hdL: def[0].hand, hdR: def[1].hand, form: spec.form || 'standard' };

@@ -39,6 +39,33 @@ def vcross(a, b): return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], 
 def vlerp(a, b, u): return [a[i] + (b[i] - a[i]) * u for i in range(3)]
 def smoother(u):
     u = max(0.0, min(1.0, u)); return u * u * u * (u * (6 * u - 15) + 10)     # zero speed AND zero acceleration at both ends
+def whip_ease(u):
+    """High-speed whip-pan curve peaking sharply in the center over ~0.2s."""
+    u = max(0.0, min(1.0, u))
+    if u <= 0.0: return 0.0
+    if u >= 1.0: return 1.0
+    t = math.tanh(2.6)
+    return 0.5 * (1.0 + math.tanh(5.2 * (u - 0.5)) / t)
+def path_pos(F, name, f, perf=None):
+    """Resolve world [x, y, z] at frame f from film.json paths or baked perf."""
+    p = (F.get("paths") or {}).get(name)
+    if isinstance(p, dict):
+        keys = p.get("keys")
+        if keys:
+            if f <= keys[0][0]: return list(keys[0][1:4])
+            for k0, k1 in zip(keys, keys[1:]):
+                if f <= k1[0]:
+                    u = (f - k0[0]) / float(max(1, k1[0] - k0[0]))
+                    return vlerp(k0[1:4], k1[1:4], smoother(u) if p.get("ease") == "smooth" else u)
+            return list(keys[-1][1:4])
+        f0, f1 = fr(F, p.get("f0", 0)), fr(F, p.get("f1", F.get("_end", 150) - 1))
+        u = max(0.0, min(1.0, (f - f0) / float(max(1, f1 - f0))))
+        if p.get("ease") == "smooth": u = smoother(u)
+        elif p.get("ease") == "fast_in": u = fast_in(u)
+        return vlerp(p.get("p0", [0, 0, 0]), p.get("p1", [0, 0, 0]), u)
+    if perf and name in perf:
+        return list(perf_at(perf[name], f)["pos"])
+    return None
 def fast_in(u, k=3.2):
     """character moves: 60-70 % of the way in the first third, then a slow settle, no overshoot (Rick, measured)"""
     u = max(0.0, min(1.0, u)); return 1 - (1 - u) ** k
@@ -96,9 +123,14 @@ def camera_segments(F, tv_fix=None):
         for j, s in enumerate(S):
             if j + 1 < len(S):
                 nx = S[j + 1]; gap = nx["_arrive"] - s["_arrive"]
-                want = int(round(nx.get("travel", D["travel_max"]) * fps)); hold = int(round(s.get("hold", D["hold"]) * fps))
-                tv = max(1, min(want, gap - hold)) if gap - hold >= int(D["travel_min"] * fps) else max(1, min(want, gap // 2))   # too tight: split the gap, the gate will flag it
-                if "travel" not in nx: tv = min(tv, int(D["travel_max"] * fps))
+                if nx.get("whip"):
+                    want = max(2, int(round(nx.get("travel", nx.get("whip_s", 0.20)) * fps)))
+                    hold = int(round(s.get("hold", 0.1) * fps))
+                    tv = max(2, min(want, max(2, gap - hold)))
+                else:
+                    want = int(round(nx.get("travel", D["travel_max"]) * fps)); hold = int(round(s.get("hold", D["hold"]) * fps))
+                    tv = max(1, min(want, gap - hold)) if gap - hold >= int(D["travel_min"] * fps) else max(1, min(want, gap // 2))   # too tight: split the gap, the gate will flag it
+                    if "travel" not in nx: tv = min(tv, int(D["travel_max"] * fps))
                 tv = tv_fix.get((ti, nx["_at"]), tv); nx["_tv"] = tv; nx["_gap"] = gap
                 s["_depart"] = nx["_arrive"] - tv
             else: s["_depart"] = tk["_f1"] + 1
@@ -145,7 +177,7 @@ def bake_camera(F):
             S = tk["_S"]
             for j in range(len(S) - 1):
                 nx = S[j + 1]; a, b = S[j]["_depart"], nx["_arrive"]; pk = max([sp[f2i[f]] for f in range(a, b + 1) if f in f2i] or [0])
-                if pk > D["peak"] * 1.08 and "travel" not in nx:
+                if not nx.get("whip") and pk > D["peak"] * 1.08 and "travel" not in nx:
                     room = nx["_gap"] - int(round(S[j].get("min_hold", D["min_hold"]) * F["fps"])); want = int(math.ceil(nx["_tv"] * pk / D["peak"]))
                     new = max(nx["_tv"], min(want, room, int(D["travel_max"] * F["fps"])))
                     if new > nx["_tv"]: fix[(tk["_i"], nx["_at"])] = new; changed = True
@@ -161,24 +193,41 @@ def _bake(F, tv_fix=None):
         S = tk["_S"]
         for f in range(tk["_f0"], tk["_f1"] + 1):
             j = max(i for i, s in enumerate(S) if s["_arrive"] <= f); s = S[j]; roll = s.get("roll", 0.0); state = "rest"
+            whip_val = 0.0; whip_dir = [1.0, 0.0]
             if f < s["_depart"] or j + 1 >= len(S):
                 pos, aim, lens = _rest_pose(s, f - s["_arrive"])
-                if s.get("follow") in perf:                                            # tracking burst: keep the walker in frame, same offset as on arrival
-                    d = vmul(vsub(perf_at(perf[s["follow"]], f)["pos"], perf_at(perf[s["follow"]], s["_arrive"])["pos"]), s.get("follow_k", 1.0)); pos = vadd(pos, d); aim = vadd(aim, d)
+                fpos = s.get("follow") and path_pos(F, s["follow"], f, perf)
+                fpos0 = s.get("follow") and path_pos(F, s["follow"], s["_arrive"], perf)
+                if fpos and fpos0:
+                    d = vmul(vsub(fpos, fpos0), s.get("follow_k", 1.0)); pos = vadd(pos, d); aim = vadd(aim, d)
             else:
                 nx = S[j + 1]; p0, a0, l0 = _rest_pose(s, s["_depart"] - s["_arrive"])
-                if s.get("follow") in perf:
-                    d = vmul(vsub(perf_at(perf[s["follow"]], s["_depart"])["pos"], perf_at(perf[s["follow"]], s["_arrive"])["pos"]), s.get("follow_k", 1.0)); p0 = vadd(p0, d); a0 = vadd(a0, d)
-                u = smoother((f - s["_depart"]) / float(nx["_arrive"] - s["_depart"])); state = "travel"
+                fposd = s.get("follow") and path_pos(F, s["follow"], s["_depart"], perf)
+                fpos0 = s.get("follow") and path_pos(F, s["follow"], s["_arrive"], perf)
+                if fposd and fpos0:
+                    d = vmul(vsub(fposd, fpos0), s.get("follow_k", 1.0)); p0 = vadd(p0, d); a0 = vadd(a0, d)
+                raw_u = (f - s["_depart"]) / float(max(1, nx["_arrive"] - s["_depart"]))
+                is_whip = bool(nx.get("whip"))
+                u = whip_ease(raw_u) if is_whip else smoother(raw_u); state = "travel"
                 pos = _catmull([p0] + [list(v) for v in nx.get("via", [])] + [nx["pos"]], u); aim = vlerp(a0, nx["aim"], u)
                 lens = math.exp(math.log(l0) + (math.log(nx.get("lens", D["lens"])) - math.log(l0)) * u)        # zoom feels even in log focal length
-                roll = s.get("roll", 0.0) + (nx.get("roll", 0.0) - s.get("roll", 0.0)) * u + nx.get("travel_roll", 0.0) * math.sin(math.pi * u) ** 2   # dutch only inside the move, back to level on landing
+                extra_roll = (nx.get("whip_roll", -7.5) * math.sin(math.pi * raw_u)) if is_whip else (nx.get("travel_roll", 0.0) * math.sin(math.pi * u) ** 2)
+                roll = s.get("roll", 0.0) + (nx.get("roll", 0.0) - s.get("roll", 0.0)) * u + extra_roll   # dutch / whip roll only inside the move, back to level on landing
+                if is_whip:
+                    whip_val = round(math.sin(math.pi * max(0.0, min(1.0, (f - s["_depart"] + 0.5) / float(max(1, nx["_arrive"] - s["_depart"]))))) ** 0.75, 3)
+                    _, r_ax, u_ax = _basis(pos, aim, s.get("up"))
+                    da = vsub(nx["aim"], a0)
+                    wx, wy = vdot(da, r_ax), vdot(da, u_ax); wl = math.hypot(wx, wy)
+                    whip_dir = [round(wx / wl, 3), round(wy / wl, 3)] if wl > 1e-4 else [1.0, 0.0]
             for kf, amp in kicks:                                                                                  # impact kick: flips sign every frame, gone in 7
                 if 0 <= f - kf < 7: roll += amp * (1 - (f - kf) / 7.0) * (1 if (f - kf) % 2 == 0 else -1); aim = vadd(aim, [0, 0, 0.012 * amp * (1 - (f - kf) / 7.0) * (1 if (f - kf) % 2 == 0 else -1)])
             kicked = any(0 <= f - kf < 8 for kf, amp in kicks)
-            out.append(dict(f=f, kick=kicked, take=tk.get("id", "t%d" % tk["_i"]), place=tk.get("place", ""), backdrop=F.get("places", {}).get(tk.get("place", ""), {}).get("backdrop", 12.0), station=j, state=state, cut=(f == tk["_f0"] and f > 0),
-                            pos=[round(v, 4) for v in pos], aim=[round(v, 4) for v in aim], up=s.get("up"), roll=round(roll, 3), lens=round(lens, 2), fov_v=round(fov_v(lens), 2),
-                            subject=s.get("subject"), framing=s.get("framing", "W"), shows=s.get("shows", [])))
+            row = dict(f=f, kick=kicked, take=tk.get("id", "t%d" % tk["_i"]), place=tk.get("place", ""), backdrop=F.get("places", {}).get(tk.get("place", ""), {}).get("backdrop", 12.0), station=j, state=state, cut=(f == tk["_f0"] and f > 0),
+                       pos=[round(v, 4) for v in pos], aim=[round(v, 4) for v in aim], up=s.get("up"), roll=round(roll, 3), lens=round(lens, 2), fov_v=round(fov_v(lens), 2),
+                       subject=s.get("subject"), framing=s.get("framing", "W"), shows=s.get("shows", []))
+            if whip_val > 0.0:
+                row["whip"] = whip_val; row["whip_dir"] = whip_dir
+            out.append(row)
     return out, takes
 
 def project(c, P):
@@ -265,7 +314,7 @@ def bake_performance(F):
         mine = [a for a in acts if a["who"] == who]
         if not mine: continue
         f0 = fr(F, mine[0]["at"]) if mine[0].get("enter") else 0
-        st = dict(view="front", dir=1, pose="stand", face="standard", prop=None, hand=None, pos=list(mine[0].get("pos", [0, 0, 0])), visible=True, look=None, look_full=False, walk_pose=None, cling=None)
+        st = dict(view="front", dir=1, pose="stand", face="standard", prop=None, hand=None, pos=list(mine[0].get("pos", [0, 0, 0])), visible=True, look=None, look_full=False, walk_pose=None, cling=None, gait=None, lookAt=None, headTilt=None)
         frames = [None] * end; talk = [False] * end; punch = [False] * end; swaps = []
         keys = []                                                                # (frame, field changes)
         for a in mine:
@@ -275,7 +324,10 @@ def bake_performance(F):
             if "face" in a:
                 keys.append((tf, dict(face=a["face"])))
                 if not first: swaps.append(tf)
-            body = {k: a[k] for k in ("view", "dir", "pose", "prop", "hand", "visible", "look", "look_full", "walk_pose", "cling") if k in a}
+            body = {k: a[k] for k in ("view", "dir", "pose", "prop", "hand", "visible", "look", "look_full", "walk_pose", "cling", "gait", "speaking", "auto_lipsync", "mouth", "lock_view", "handShape", "shoes", "build", "attach", "in_vehicle") if k in a}
+            if "lookAt" in a or "look_at" in a: body["lookAt"] = a.get("lookAt", a.get("look_at"))
+            if "headTilt" in a or "head_tilt" in a: body["headTilt"] = a.get("headTilt", a.get("head_tilt"))
+            if "walk" in a and isinstance(a["walk"], str) and "gait" not in body: body["gait"] = a["walk"]
             if body: keys.append((tf + (1 if "face" in a and not first else 0), body))   # the body follows one frame later
             if "pos" in a and not first: keys.append((tf + 1, dict(_move=(list(a["pos"]), a.get("walk", False), int(round(a.get("move_s", 0.5) * fps)), bool(a.get("linear"))))))
             if a.get("exit"): keys.append((tf, dict(visible=False)))
@@ -307,6 +359,13 @@ def bake_performance(F):
                 if u >= 1: st["pos"] = pos = list(b_); move = None
                 else:
                     pos = vlerp(a_, b_, u if (walk or lin) else fast_in(u)); step = int((f - m0) / (fps * 0.27)) % 2 if walk else None    # walk: a step every ~8 f (Rick stride 1.07 head widths)
+            if st.get("attach"):
+                att = st["attach"]
+                aname = att.get("obj") if isinstance(att, dict) else att
+                aoff = att.get("offset", [0, 0, 0]) if isinstance(att, dict) else [0, 0, 0]
+                bp = path_pos(F, aname, f)
+                if bp is not None:
+                    pos = [bp[0] + aoff[0], bp[1] + aoff[1], bp[2] + (aoff[2] if len(aoff) > 2 else 0)]
             frames[f] = dict(view=st["view"], dir=st["dir"], pose=st["pose"] if step is None else "%s%d" % (st.get("walk_pose") or "walk", step), face=st["face"], mouth=mouth if talk[f] else None,
                              blink=None, prop=st["prop"], hand=st["hand"], pos=[round(v, 4) for v in pos], visible=st["visible"] and f >= f0)
             walking = bool(move and move[4] and F.get("auto_view"))
@@ -315,9 +374,14 @@ def bake_performance(F):
                 frames[f]["look"] = look
                 if walking or st.get("look_full"): frames[f]["look_full"] = True
             if st.get("cling"): frames[f]["cling"] = st["cling"]
-        # blinks: one covering each face swap, then every 0.5-2.3 s; 4 frames; never while talking or in a punch hold
-        marks = sorted(set(max(0, s - 1) for s in swaps)); f = int(rnd((who, "b0"), 0.5, 2.3) * fps)
-        while f < end: marks.append(f); f += int(rnd((who, f), 0.5, 2.3) * fps)
+            if st.get("gait"): frames[f]["gait"] = st["gait"]
+            if st.get("lookAt") is not None: frames[f]["lookAt"] = st["lookAt"]
+            if st.get("headTilt") is not None: frames[f]["headTilt"] = st["headTilt"]
+            for k in ("speaking", "auto_lipsync", "mouth", "lock_view", "handShape", "shoes", "build", "attach", "in_vehicle"):
+                if st.get(k) is not None: frames[f][k] = st[k]
+        # blinks: one covering each face swap, then natural every 2.5-4.0 s; 4 frames; never while talking or in a punch hold
+        marks = sorted(set(max(0, s - 1) for s in swaps)); f = int(rnd((who, "b0"), 2.5, 4.0) * fps)
+        while f < end: marks.append(f); f += int(rnd((who, f), 2.5, 4.0) * fps)
         last = -99
         for m in sorted(marks):
             if m - last < 8 or m + 4 > end or any(talk[m:m + 4]) or (any(punch[m:m + 4]) and m + 1 not in swaps): continue
@@ -506,11 +570,12 @@ def check(F, cam=None, perf=None):
     gate("camera", "speed p90 px/f", round(p90, 1), 15 <= p90 <= 27.4, 9.8 <= p90 <= 33.8, "about 23 (Rick 23, range 9.8-33.8)", "the travels crawl: cover more distance or take fewer frames (set travel on the station)" if p90 < 15 else "give fast travels more frames or less distance")
     fz = 100.0 * sum(1 for i in live if sp[i] < 0.7) / max(1, len(live))
     gate("camera", "dead still (reads under 0.3 px/f when measured), % of frames", round(fz, 1), fz <= 21, fz <= 29, "<= 21, aim 9 (Rick 9.3, range 1-29)", "the rests are parked: raise creep on those stations or add a drift")
-    pk = max(v) if v else 0
+    v_nw = [sp[i] for i in live if not cam[i].get("whip")]
+    pk = max(v_nw) if v_nw else 0
     gate("camera", "speed peak px/f", round(pk, 1), pk <= 60, pk <= 90, "<= 60 outside planned whips", "only passes and whips may exceed 40, for <= 10 f with motion blur")
     cuts = sum(1 for c in cam if c["cut"]); c10 = 10.0 * cuts / dur
     gate("camera", "cuts per 10 s", round(c10, 2), c10 <= 0.9, c10 <= 1.66, "<= 0.9, aim 0.4 (Rick 0.4; CB: fewer cuts)", "merge takes: travel between framings inside one take, cut only on a place or time jump")
-    rr = [abs(cam[i]["roll"] - cam[i - 1]["roll"]) for i in live if i > 0 and not cam[i]["cut"] and not cam[i]["kick"]]
+    rr = [abs(cam[i]["roll"] - cam[i - 1]["roll"]) for i in live if i > 0 and not cam[i]["cut"] and not cam[i]["kick"] and not cam[i].get("whip") and not cam[i - 1].get("whip")]
     rest_roll = max([abs(cam[i]["roll"]) for i in live if cam[i]["state"] == "rest" and settled[i] and not cam[i]["kick"]] or [0])
     gate("camera", "tilt while resting, deg", round(rest_roll, 2), rest_roll <= 0.5, rest_roll <= 1.8, "level (<= 0.5); tilt only inside a move (Rick: 0 % of holds)", "use travel_roll on the move instead of roll on the station")
     gate("camera", "roll rate peak deg/f", round(max(rr or [0]), 2), max(rr or [0]) <= 1.1, max(rr or [0]) <= 2.4, "<= 1.1 (Rick p99 1.08)", "lower travel_roll or lengthen that travel")
@@ -675,6 +740,9 @@ def write(F, R, cam, perf, sp):
     out = os.path.join(F["_dir"], "out", "plan"); os.makedirs(out, exist_ok=True)
     json.dump(dict(fps=F["fps"], size=F.get("size", [1080, 1920]), stations=stations_table(F, cam), frames=cam), open(os.path.join(out, "camera_baked.json"), "w"))
     json.dump(perf, open(os.path.join(out, "performance_baked.json"), "w"))
+    if F.get("paths"):
+        pb = {nm: [[round(v, 4) for v in (path_pos(F, nm, f) or [0, 0, 0])] for f in range(len(cam))] for nm in F["paths"]}
+        json.dump(dict(fps=F["fps"], frames=pb), open(os.path.join(out, "paths_baked.json"), "w"))
     ev = sorted([dict(t=round(fr(F, s["at"]) / float(F["fps"]), 3), name=s["name"], gain=s.get("gain", 0)) for s in F.get("sound", [])], key=lambda e: e["t"])
     json.dump(ev, open(os.path.join(out, "sound_events.json"), "w"), indent=1)
     json.dump(dict(gates=R, speed=[round(s, 2) for s in sp]), open(os.path.join(out, "plan_report.json"), "w"))

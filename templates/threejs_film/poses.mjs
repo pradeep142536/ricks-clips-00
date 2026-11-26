@@ -41,11 +41,19 @@ export const POSES = {
   sit:        { both: [0.24, 0.60], drop: 0.93, spread: 0.30, head: 2 },
   cheer:      { both: [0.92, -1.08], elbow: [0.74, -0.32], bow: 1, over: 1, head: 0 },   // both fists up and out, elbows bent (Rick cashier win)
   sit_chair:  { both: [0.30, 0.52], drop: 0.50, spread: 0.12, head: 2, chair: 1 },   // CB 2026-11-11 (Rick seated cashier): on a chair/bench, thighs level forward in outfit colour, shins straight down                                // sitting on the floor, legs out
-  shrug:      { both: [0.78, -0.04], bow: 1.3, head: 9 },
+  shrug:      { both: [0.80, -0.06], elbow: [0.46, 0.34], bow: 1.2, head: 11 },
   cool:       { both: [0.16, 0.60], bow: 1.0, rot: -3, legs: [[-10, 0, 0], [22, 0, 10]], head: -6 },           // weight on one leg, head cocked
   dust:       { both: 'centre', dy: 6, head: 5 },
   tiltL:      { head: -7 }, tiltR: { head: 7 },
   bend_down:  { both: [0.16, 0.60], bow: 1.0, rot: 12, dy: 96, legs: [[-28, 96, -44], [40, 96, 52]], head: 18 },   // bends right down to someone small (Rick's boss over the rail)
+  // ---- V3.5 & V4.0 EXPRESSIVE ARM POSE PRESETS (Ricks Clips Acting & Walking) ----
+  idle_alive:        { head: 0 },
+  hands_on_hips:     { both: [0.18, 0.58], bow: 1.05, head: -9, handShape: 'clenched_fist' },
+  point_forward:     { main: [0.98, 0.12], elbow: [0.44, 0.34], finger: 1, toDir: 1, over: 0, rot: 4, head: -8, handShape: 'pointing_finger' },
+  arms_raised_shock: { both: [0.86, -1.04], elbow: [0.68, -0.26], bow: 1.0, over: 1, rot: -6, head: -11, handShape: 'open_palm' },
+  hold_prop:         { prop: [0.64, 0.16], elbow: [0.30, 0.38], over: 1, head: 8, handShape: 'gripping_prop' },
+  thumbs_up:         { main: [0.68, -0.34], elbow: [0.44, 0.18], over: 1, handShape: 'thumbs_up', head: -8 },
+  steepled_hands:    { both: 'centre', elbow: [0.62, 0.30], dy: -2, handShape: 'open_palm', head: 7 },
   // ---- GRIPS 2026-11-12 (CB: "holding like human real hand"): the fist closes ROUND the thing (grips.mjs). act key "grip": { obj, kind, angle, at, scale, real } overrides the default object.
   grip_pole:  { prop: [0.50, 0.50], grip: { obj: 'staff' } },                          // upright pole / spear / staff beside the body, fist round the shaft (Rick king with spear)
   grip_point: { prop: [0.96, -0.16], grip: { obj: 'pointer' } },                      // points a stick at something (Rick priest at the price board)
@@ -67,6 +75,11 @@ export const POSES = {
   lie_front_kick: { both: [0.40, -0.55], over: 1, bow: 0.6, head: -70, lie: 'front', lieLegs: 'kick' },   // on the belly (on a bed): knees down, shins up in the air, feet crossed
   lie_flat:   { both: [0.22, 0.58], bow: 0.9, lie: 'flat' },                          // top-down camera: flat on the floor, face up
   lean_in:    { both: [0.16, 0.60], bow: 1.0, rot: 12, dy: 30, legs: [[-18, 30, -18], [30, 30, 26]], head: 8 },  // bends at the waist toward the facing side
+  // ---- V3.0 EXAGGERATED CARTOON ACTING POSES ----
+  feet_up:    { both: [0.32, 0.34], bow: 1.0, drop: 0.46, spread: 0.14, rot: -12, head: -6, legs: [[34, 42, 22], [28, 38, 18]], chair: 1 },
+  slump:      { both: [0.22, 0.78], bow: 0.6, drop: 0.56, spread: 0.12, rot: 14, head: 22, chair: 1 },
+  lean_prop:  { hands: [[0.90, 0.34], [0.22, 0.62]], bow: 0.85, rot: 9, rotSide: 1, head: -4 },
+  hold_camera:{ prop: [0.68, -0.25], over: 1, head: 2 },
 };
 const warned = new Set();
 // which way a pose lies (film.js turns the card): null | 'back' | 'front' | 'flat'
@@ -89,7 +102,7 @@ function arm(sh, hand, s, L, bow = 0.5, elbowDir = 0, elbowAt = null) {
   const f = v => v.toFixed(1);
   // CB 2026-11-11 23:52: a little bend AT the elbow (upper arm and forearm read as two parts with a soft round elbow), not one even curve
   const E = elbowAt ? elbowAt :  [sh[0] + dx / 2 + nx * off * .62, sh[1] + dy / 2 + ny * off * .62], r = elbowAt ? Math.min(60, L * .3) : Math.min(26, L * .2), pt = (p) => { const q = Math.hypot(p[0] - E[0], p[1] - E[1]) || 1, t = Math.min(r, q * .45) / q; return [E[0] + (p[0] - E[0]) * t, E[1] + (p[1] - E[1]) * t]; }, i = pt(sh), o = pt(hand);
-  return { d: `M${f(sh[0])},${f(sh[1])} L${f(i[0])},${f(i[1])} Q${f(E[0])},${f(E[1])} ${f(o[0])},${f(o[1])} L${f(hand[0])},${f(hand[1])}`, hand: [+f(hand[0]), +f(hand[1])], fwd: [dx / d, dy / d] };
+  return { d: `M${f(sh[0])},${f(sh[1])} L${f(i[0])},${f(i[1])} Q${f(E[0])},${f(E[1])} ${f(o[0])},${f(o[1])} L${f(hand[0])},${f(hand[1])}`, hand: [+f(hand[0]), +f(hand[1])], fwd: [dx / d, dy / d], ang: Math.atan2(hand[1] - E[1], hand[0] - E[0]) };
 }
 const PROPS = {
   key: (x, y, INK) => `<g transform="translate(${x},${y}) rotate(-20)"><circle cx="0" cy="-34" r="20" fill="none" stroke="${INK}" stroke-width="15"/><circle cx="0" cy="-34" r="20" fill="none" stroke="#e2b13c" stroke-width="8"/><path d="M0,-14 L0,44 M0,26 L18,26 M0,42 L22,42" stroke="${INK}" stroke-width="15" stroke-linecap="round"/><path d="M0,-14 L0,44 M0,26 L18,26 M0,42 L22,42" stroke="#e2b13c" stroke-width="8" stroke-linecap="round"/></g>`,
@@ -106,9 +119,9 @@ const propSvg = (name, x, y, INK) => PROPS[name] ? PROPS[name](x, y, INK)
 export const SIDE_GRIP = [1.7, 1.05];   // side hang ('aboveSide'): the upper hand, in head radii from the head centre [sideways, up]. tools/film_plan.py apply_clings uses the same numbers.
 export function applyPose(S, state, env) {
   const cx = S.x ?? 300, INK = env.INK, R = restArms(S, cx), over = [];
-  const armW = (S.legW ?? 17) + 2, handR = (S.handR ?? 15) + 9;   // CB 2026-11-12 00:08: bigger fists (Rick: fist about 2.5x the arm line)   // CB 2026-11-11 23:52: arms the SAME thickness as the legs
-  const draw = a => `<path d="${a.d}" fill="none" stroke="${INK}" stroke-width="${armW}" stroke-linecap="round" stroke-linejoin="round"/><circle cx="${a.hand[0]}" cy="${a.hand[1]}" r="${handR}" fill="${INK}"/>`;
-  const finger = a => `<path d="M${a.hand[0]},${a.hand[1]} l${(a.fwd[0] * (handR + 20)).toFixed(1)},${(a.fwd[1] * (handR + 20)).toFixed(1)}" stroke="${INK}" stroke-width="${Math.max(6, armW * .5)}" stroke-linecap="round"/>`;
+  const armW = (S.legW ?? 17) + 2, handR = (S.handR ?? 15) + 9;
+  const draw = (a, shName) => `<path d="${a.d}" fill="none" stroke="${INK}" stroke-width="${armW}" stroke-linecap="round" stroke-linejoin="round"/>${env.drawHand ? env.drawHand(a.hand[0], a.hand[1], a.handShape || shName || 'open_palm', Math.sign(a.hand[0] - cx) || state.dir || 1, a.ang ?? Math.PI / 2, handR) : `<circle cx="${a.hand[0]}" cy="${a.hand[1]}" r="${handR}" fill="${INK}"/>`}`;
+  const finger = a => env.drawHand ? '' : `<path d="M${a.hand[0]},${a.hand[1]} l${(a.fwd[0] * (handR + 20)).toFixed(1)},${(a.fwd[1] * (handR + 20)).toFixed(1)}" stroke="${INK}" stroke-width="${Math.max(6, armW * .5)}" stroke-linecap="round"/>`;
   const len = s => Math.hypot(R[s].hand[0] - R[s].sh[0], R[s].hand[1] - R[s].sh[1]) * 1.06;
   const at = (s, t) => [R[s].sh[0] + s * t[0] * len(s), R[s].sh[1] + t[1] * len(s)];
   // the side the work is on: the facing side, except a tool pose seen from the front or back works on the TOOL HAND's side (a right-handed worker works at his right: screen left from the front) - CB 2026-11-13 "which grip which side"
@@ -155,10 +168,14 @@ export function applyPose(S, state, env) {
   const habs = {}; if (state.hat) { const r0 = -rot * Math.PI / 180, cs = Math.cos(r0), sn = Math.sin(r0), GY = (S.ground ?? 900) + (S.dy || 0);
     for (const s of [-1, 1]) { const q = state.hat[s < 0 ? 'R' : 'L']; if (!q) continue; const dx = q[0] - cx, dy0 = q[1] - dy - GY, x = cx + dx * cs - dy0 * sn, y = GY + dx * sn + dy0 * cs - (S.dy || 0); habs[s] = [x, y]; tgt[s] = state.view === 'back' ? [2 * cx - x, y] : [x, y]; } }
   S.legPose = legs.some(l => l.some(v => v)) ? legs : null; S.headTilt = head; S.kneelPose = !!(p.kneel && !(state.tw && state.u < .5)); S.kneelOne = S.kneelPose && p.kneelOne ? workSide(p, state) : 0;   // the knee that is UP is on the work side S.chairPose = !!(p.chair && !(state.tw && state.u < .5)); S.liePose = p.lie && p.lie !== 'flat' && !(state.tw && state.u < .5) ? { lie: p.lie, legs: p.lieLegs || 'straight', art: state.lie_art || 'side' } : null; S.lieFlat = p.lie === 'flat' || state.lie_art === 'top'; if (S.liePose && S.liePose.art !== 'side') S.headTilt = 0;   // lie_art: film.js lie_cam.mjs picks it from the camera (side | top | feet)   // rule 22: kneeling = knees on the ground, shins back
+  const poseShape = p.handShape || state.handShape || (state.prop || state.grip || p.grip ? 'gripping_prop' : /angry|furious/.test(state.face || '') ? 'clenched_fist' : 'open_palm');
   const made = {};
-  for (const s of [-1, 1]) made[s] = arm(R[s].sh, tgt[s] || R[s].hand, s, len(s), bow(s), state.view === 'side' ? -(state.dir || 1) : 0, p.elbow && tgt[s] && !(state.tw && state.u < 1) ? [R[s].sh[0] + s * p.elbow[0] * len(s), R[s].sh[1] + p.elbow[1] * len(s)] : null);   // p.elbow: an explicit elbow [out, down] in arm lengths (cheer: upper arm out to the side, forearm up)
-  if (p.bothDir === 'aboveHead' && !(state.tw && state.u < 1)) for (const s of [-1, 1]) { const HR = 100 * env.headK, h = tgt[s], sh = R[s].sh, f = v => v.toFixed(1); made[s] = { d: `M${f(sh[0])},${f(sh[1])} C${f(cx + s * HR * 1.9)},${f(env.hy + HR * .7)} ${f(cx + s * HR * 1.75)},${f(env.hy - HR * 1.3)} ${f(h[0])},${f(h[1])}`, hand: h, fwd: [0, -1] }; }   // hang: each arm goes out and up round its own side of the head
-  if (p.bothDir === 'aboveSide' && !(state.tw && state.u < 1)) { const d = state.dir || 1, HR = 100 * env.headK, h = tgt[d], sh = R[d].sh, f = v => v.toFixed(1); made[d] = { d: `M${f(sh[0])},${f(sh[1])} C${f(cx + d * HR * 1.25)},${f(env.hy + HR * 1.2)} ${f(cx + d * HR * 1.8)},${f(env.hy + HR * .1)} ${f(h[0])},${f(h[1])}`, hand: h, fwd: [0, -1] }; }   // side hang: the near arm goes out and up round the head; the far arm passes behind the head
+  for (const s of [-1, 1]) {
+    made[s] = arm(R[s].sh, tgt[s] || R[s].hand, s, len(s), bow(s), state.view === 'side' ? -(state.dir || 1) : 0, p.elbow && tgt[s] && !(state.tw && state.u < 1) ? [R[s].sh[0] + s * p.elbow[0] * len(s), R[s].sh[1] + p.elbow[1] * len(s)] : null);
+    made[s].handShape = (p.finger && s === sMain) ? 'pointing_finger' : (s === sProp && (state.prop || state.grip || p.grip)) ? 'gripping_prop' : poseShape;
+  }
+  if (p.bothDir === 'aboveHead' && !(state.tw && state.u < 1)) for (const s of [-1, 1]) { const HR = 100 * env.headK, h = tgt[s], sh = R[s].sh, f = v => v.toFixed(1); made[s] = { d: `M${f(sh[0])},${f(sh[1])} C${f(cx + s * HR * 1.9)},${f(env.hy + HR * .7)} ${f(cx + s * HR * 1.75)},${f(env.hy - HR * 1.3)} ${f(h[0])},${f(h[1])}`, hand: h, fwd: [0, -1], ang: -Math.PI / 2, handShape: 'gripping_prop' }; }   // hang: each arm goes out and up round its own side of the head
+  if (p.bothDir === 'aboveSide' && !(state.tw && state.u < 1)) { const d = state.dir || 1, HR = 100 * env.headK, h = tgt[d], sh = R[d].sh, f = v => v.toFixed(1); made[d] = { d: `M${f(sh[0])},${f(sh[1])} C${f(cx + d * HR * 1.25)},${f(env.hy + HR * 1.2)} ${f(cx + d * HR * 1.8)},${f(env.hy + HR * .1)} ${f(h[0])},${f(h[1])}`, hand: h, fwd: [0, -1], ang: -Math.PI / 2, handShape: 'gripping_prop' }; }   // side hang: the near arm goes out and up round the head; the far arm passes behind the head
   const isOver = s => !!(p.over && tgt[s] && (p.bothDir === 'aboveSide' ? s === (state.dir || 1) : (p.both || p.bothDir || s === sMain || (s === sProp && state.prop && p.prop))));
   const orig = S.arms, origProps = S.props, V = state.view || 'front', D = state.dir || 1;
   // SIDE and BACK views (2026-11-10, CB: full silhouette from front, 3/4, side or back): gestures and held things show in every view.
@@ -194,9 +211,9 @@ export function applyPose(S, state, env) {
     }
     return o;
   };
-  if (V === 'side') { for (const s of [-1, 1]) if (sideMade[s] && isOver(s) && !hangs) over.push(draw(sideMade[s]), ...extras(sideMade[s], s)); }
+  if (V === 'side') { for (const s of [-1, 1]) if (sideMade[s] && isOver(s) && !hangs) over.push(draw({ ...sideMade[s], handShape: (p.finger && s === sMain) ? 'pointing_finger' : poseShape }, poseShape), ...extras(sideMade[s], s)); }
   else if (V === 'back') { if (state.prop && tgt[sProp] && !state.h3) over.push(propSvg(state.prop, 2 * cx - tgt[sProp][0], tgt[sProp][1], INK)); }
-  else for (const s of [-1, 1]) if (isOver(s)) over.push(draw(made[s]), ...extras(made[s], s));           // arms that must sit in front of the head
+  else for (const s of [-1, 1]) if (isOver(s)) over.push(draw(made[s], poseShape), ...extras(made[s], s));           // arms that must sit in front of the head
   // GRIPS (2026-11-12, grips.mjs): the object is drawn first, then the fist closes ROUND it (finger creases + thumb), Rick's layering.
   let farArm = 0; const under = V === 'side' && sideMade[D] && !isOver(D) ? extras(sideMade[D], D).filter(Boolean) : [], G0 = state.grip || p.grip, gripDraw = env.grip;   // env.grip = grips.mjs grip() from the puppet package (puppets.mjs passes it)
   if (G0 && !gripDraw && !warned.has('grip')) { warned.add('grip'); console.warn('poses.mjs: grips.mjs missing from the puppet package, grip poses show bare hands'); }

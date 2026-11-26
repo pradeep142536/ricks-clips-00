@@ -41,7 +41,7 @@ function tones(col, y0, y1, lite = .2, dark = .82) {   // CB 2026-11-12 02:50: s
   return { id, def: `<defs><linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="0" y1="${f(y0)}" x2="0" y2="${f(y1)}"><stop offset="0" stop-color="${lt}"/><stop offset=".42" stop-color="${col}"/><stop offset="1" stop-color="${lo}"/></linearGradient></defs>`, lt, dk };
 }
 const BLUR = () => { const id = 'hb' + (UID++); return { id, def: `<defs><filter id="${id}" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="6"/></filter></defs>` }; };
-const OUT = 9.5, IN = 7.5;   // CB 2026-11-12 02:50: "all have little thicker outer hair line" (head ink is about 7.8 in head space)
+const OUT = 11.2, IN = 7.2;   // V4.0: thicker outer silhouette ink (1.4x) vs crisp thin inner detail ink
 
 // ---------------- the cap: outer edge (volume + texture) and inner edge (hairline) per view ----------------
 function volAt(st, a) {   // a in radians, y-down; top = -90 deg
@@ -68,10 +68,12 @@ function curlRing(st, a0, a1, shape) {
   return cs;
 }
 
-// front hairline (right -> left). st.fr = y at x = 60, 30, 0, -30, -60; st.sideIn = x of the hairline at the temples; st.sideLow = y where the side hair ends
+// front hairline (right -> left). V4.0: lift low bangs higher (-6%..-10%) so eyebrows never hide beneath fringe/hats
 function frontInner(st, shape) {
-  const d = st.drop ?? 12, tR = edge(rad(d), -1, shape), tL = edge(rad(180 - d), -1, shape), si = st.sideIn ?? 84, sl = st.sideLow ?? tR[1] - 4, fr = st.fr || [-50, -58, -62, -58, -50];
-  return [tR, [si + 2, sl], [si - 4, Math.min(sl - 28, -18)], [60, fr[0]], [30, fr[1]], [0, fr[2]], [-30, fr[3]], [-60, fr[4]], [-(si - 4), Math.min(sl - 28, -18)], [-(si + 2), sl], tL];
+  const d = st.drop ?? 12, tR = edge(rad(d), -1, shape), tL = edge(rad(180 - d), -1, shape), si = st.sideIn ?? 84, sl = st.sideLow ?? tR[1] - 4;
+  const rawFr = st.fr || [-54, -62, -66, -62, -54];
+  const fr = rawFr.map(y => st._underHat ? Math.min(y - 24, -88) : Math.min(y - 16, -78));
+  return [tR, [si + 2, sl], [si - 4, Math.min(sl - 28, -22)], [60, fr[0]], [30, fr[1]], [0, fr[2]], [-30, fr[3]], [-60, fr[4]], [-(si - 4), Math.min(sl - 28, -22)], [-(si + 2), sl], tL];
 }
 // side hairline (facing +x): nape on the head edge, behind the ear, up to the temple, the forehead hairline at the front
 function sideInner(st, shape) {
@@ -107,6 +109,7 @@ function streak(st, A, inset, w, col, shape) { const [p0, pm, p1] = arcAt(st, A[
 function shading(st, view, cap, T, shape) {
   const o = [], bl = BLUR(), deep = shade(T.col, .6, 1), hi = tint(T.col, .42), hi2 = tint(T.col, .3), ref = tint(T.col, .72);
   o.push(bl.def, `<path d="${open(cap.inner)}" fill="none" stroke="${deep}" stroke-width="26" stroke-opacity=".55" filter="url(#${bl.id})"/>`);   // soft dark band inside the hairline
+  o.push(`<path d="${open(cap.outer)}" fill="none" stroke="${shade(T.col, .52, 1)}" stroke-width="18" stroke-opacity=".34" transform="translate(-8,-6)"/>`);   // V4.0 crisp 2-tone cel-shadow strip along edge
   if (st.buzz) { for (let k = 4; k < cap.outer.length - 4; k += 3) { const [x, y] = cap.outer[k], q = .84 + .08 * ((k * 7) % 3); o.push(`<circle cx="${f(x * q)}" cy="${f(y * q)}" r="2" fill="${T.dk}" opacity=".7"/>`); } }
   if (st.rows) {   // cornrows: braided rows flat on the scalp, from the hairline back over the crown
     const n = 7; for (let k = 0; k < n; k++) { const u = (k + .5) / n, x0 = view === 'side' ? 60 - u * 20 : -80 + u * 160, y0 = view === 'side' ? -70 + u * 70 : -70 - Math.sin(u * Math.PI) * 8, x1 = view === 'side' ? -90 + u * 20 : (x0) * .3, y1 = view === 'side' ? -20 + u * 60 : view === 'back' ? 60 : -112;
@@ -480,7 +483,7 @@ export const HATS = {
 export function hairLayers(key, H, opts = {}) {
   const base = HAIR_STYLES[key]; if (!base) throw new Error('unknown hair ' + key);
   const st = { ...base, ...(opts.over || {}) }, shape = opts.shape || 'rick', view = H.view === '34' ? 'front' : (H.view || 'front'), dir = H.dir || 1;
-  if (opts.underHat) { st.top = Math.min(st.top, 6); st.side = Math.min(st.side + 2, 14); if (st.edge && st.edge.type !== 'curly') st.edge = { type: 'smooth' }; }
+  if (opts.underHat) { st._underHat = true; st.top = Math.min(st.top, 6); st.side = Math.min(st.side + 2, 14); if (st.edge && st.edge.type !== 'curly') st.edge = { type: 'smooth' }; }
   const col = opts.col || st.col, T = { col, lt: tint(col, .24), dk: shade(col, .7, 1) };
   const back = [], front = [];
   // long hair
@@ -503,10 +506,10 @@ export function hairLayers(key, H, opts = {}) {
     if (st.shaved && view !== 'back') front.push(`<g clip-path="url(#${cid})">${L(view === 'side' ? 'M-70,-70 Q-10,-110 50,-84' : 'M-80,-62 Q0,-92 80,-62', 3, T.lt, .7)}</g>`);
   }
   if (st.extra && !(opts.underHat && ['cowlick', 'quiff', 'crest', 'topBun', 'hive', 'shimada', 'twinBuns', 'chonmage'].includes(st.extra))) { const ex = EXTRA(st.extra, view, T, st); back.push(...ex.back); front.push(...ex.front); }
-  // anchors for pieces and hats (front coords)
+  // anchors for pieces and hats (V4.0 raised brimY = -84 so even worried/shocked eyebrows are never covered)
   const anchorSt = st, onHair = (aDeg, push = 0) => { const a = rad(aDeg); return edge(a, (anchorSt.bald ? 0 : volAt(anchorSt, a)) + push, shape); };
-  const crownY = onHair(-90)[1], brimY = opts.brimY ?? -48;
-  const widthAt = y => { let w = 0; for (let k = 0; k <= 90; k++) { const a = rad(180 + k * 2), p = onHair(a * 180 / Math.PI); if (Math.abs(p[1] - y) < 14) w = Math.max(w, Math.abs(p[0])); } return w || 96; };
+  const crownY = onHair(-90)[1], brimY = opts.brimY ?? -84;
+  const widthAt = y => { let w = 0; for (let k = 0; k <= 90; k++) { const a = rad(180 + k * 2), p = onHair(a * 180 / Math.PI); if (Math.abs(p[1] - y) < 20) w = Math.max(w, Math.abs(p[0])); } return Math.max(82, w || 96); };
   const PP = { view, dir, onHair, crownY, brimY, widthAt, col, v34: H.view === '34' };
   for (const pc of opts.pieces || []) front.push(...(typeof pc === 'function' ? pc(PP) : PIECES[pc](PP)));
   if (opts.hat) { const hf = typeof opts.hat === 'function' ? opts.hat : HATS[opts.hat], parts = hf(PP, H);

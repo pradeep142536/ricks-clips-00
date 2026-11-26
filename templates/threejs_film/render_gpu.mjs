@@ -35,9 +35,10 @@ for (const s of src) { const sd = path.join(s, 'sheets'); if (fs.existsSync(s) &
 const SHEETS = fs.existsSync(path.join(CACHE, 'sheets')) ? fs.readdirSync(path.join(CACHE, 'sheets')).sort() : [];
 for (const need of ['char2d', 'memes', 'memes2', 'bodies']) if (!fs.existsSync(path.join(CACHE, need + '.mjs'))) { console.error(`puppet package is missing ${need}.mjs (looked in ${src.join(', ')})`); process.exit(1); }
 
-// ---- tiny static server: /kit = this folder, /ep = the episode, /puppets = the cache
-const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.wav': 'audio/wav', '.mp3': 'audio/mpeg', '.svg': 'image/svg+xml', '.css': 'text/css' };
-const ROOTS = { kit: KIT, ep: EP, puppets: CACHE };
+// ---- tiny static server: /kit = this folder, /ep = the episode, /puppets = the cache, /assets = shared 3D asset library
+const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.wav': 'audio/wav', '.mp3': 'audio/mpeg', '.svg': 'image/svg+xml', '.css': 'text/css', '.glb': 'model/gltf-binary', '.gltf': 'model/gltf+json', '.bin': 'application/octet-stream' };
+const ASSETS = [path.resolve(KIT, '..', '..', 'assets'), path.resolve(EP, '..', '..', 'assets')].find(p => fs.existsSync(p)) || path.resolve(KIT, '..', '..', 'assets');
+const ROOTS = { kit: KIT, ep: EP, puppets: CACHE, assets: ASSETS };
 // GPU: the three small changes film.js needs (see GPU_RENDER.md). The look pass keeps its picture in a half-float buffer; ONE not-a-number pixel from any set shader was smeared by the bloom blur and the
 // soft-focus loop into a big BLACK RECTANGLE (the failed --gpu try of 2026-11-13). Software WebGL never makes such pixels, the graphics card does. Reading the buffer through clamp() stops the spread.
 const FILM_PATCHES = has('--no-patch') ? [] : [
@@ -50,16 +51,22 @@ const FILM_PATCHES = has('--no-patch') ? [] : [
 const POW_GUARD = String.raw`(() => { const P = '#define pow(a, b) pow(__GUARD__, b)\n'; for (const C of [self.WebGL2RenderingContext, self.WebGLRenderingContext]) { if (!C) continue; const ss = C.prototype.shaderSource;
   C.prototype.shaderSource = function (sh, src) { src = String(src); const m = /^\s*#version[^\n]*\n/.exec(src); return ss.call(this, sh, m ? m[0] + P + src.slice(m[0].length) : P + src); }; } })()`;
 const server = http.createServer((q, r) => {
-  const u = decodeURIComponent(q.url.split('?')[0]), m = /^\/(kit|ep|puppets)\/(.*)$/.exec(u), f = m && path.normalize(path.join(ROOTS[m[1]], m[2]));
+  const u = decodeURIComponent(q.url.split('?')[0]), m = /^\/(kit|ep|puppets|assets)\/(.*)$/.exec(u), f = m && path.normalize(path.join(ROOTS[m[1]], m[2]));
   if (!f || !f.startsWith(ROOTS[m[1]]) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { r.writeHead(404); return r.end('not found'); }
-  if (m[1] === 'kit' && m[2] === 'film.js') { let s = fs.readFileSync(f, 'utf8'); for (const [a, b] of FILM_PATCHES) { if (!s.includes(a)) console.warn('render_gpu: film.js patch did not find its place: ' + a.slice(0, 60)); s = s.replace(a, b); } r.writeHead(200, { 'content-type': 'text/javascript', 'cache-control': 'no-store' }); return r.end(s + ' ;window.__R = () => R;'); }   // GPU: film.js is served with the small changes of FILM_PATCHES; the file on disk is never touched
+  if (m[1] === 'kit' && m[2] === 'film.js') { let s = fs.readFileSync(f, 'utf8'); for (const [a, b] of FILM_PATCHES) { if (!s.includes(b)) { if (!s.includes(a)) console.warn('render_gpu: film.js patch did not find its place: ' + a.slice(0, 60)); else s = s.replace(a, b); } } r.writeHead(200, { 'content-type': 'text/javascript', 'cache-control': 'no-store' }); return r.end(s + ' ;window.__R = () => R;'); }   // GPU: film.js is served with the small changes of FILM_PATCHES; the file on disk is never touched
   r.writeHead(200, { 'content-type': MIME[path.extname(f)] || 'application/octet-stream', 'cache-control': 'no-store' }); fs.createReadStream(f).pipe(r);
 });
 const port = await new Promise(ok => server.listen(has('--serve') ? +val('--serve', 8765) : 0, '127.0.0.1', () => ok(server.address().port)));
 const BASE = `http://127.0.0.1:${port}`;
 if (has('--serve')) { console.log(`Open ${BASE}/kit/film_page.html?film=/ep/${path.basename(FILM)}   (space = pause, arrows = step, &captions=0 hides captions). Ctrl+C to stop.`); await new Promise(() => {}); }
 
-let chromium; try { ({ chromium } = await import('playwright')); } catch { ({ chromium } = require(process.env.PLAYWRIGHT_DIR || '/opt/node-tools/node_modules/playwright')); }
+const pwFallback = [
+  process.env.PLAYWRIGHT_DIR,
+  '/opt/node-tools/node_modules/playwright',
+  path.resolve(KIT, '..', '..', 'github_render_repo', 'templates', 'threejs_film', 'node_modules', 'playwright'),
+  path.resolve(KIT, '..', '..', 'node_modules', 'playwright')
+].filter(Boolean).find(p => fs.existsSync(p));
+let chromium; try { ({ chromium } = await import('playwright')); } catch { ({ chromium } = require(pwFallback || '/opt/node-tools/node_modules/playwright')); }
 const [FW, FH] = film.size || [1080, 1920], scale = +val('--scale', has('--storyboard') ? 0.4 : 0.5), W = Math.round(FW * scale / 2) * 2, H = Math.round(FH * scale / 2) * 2;
 // GPU: the default launch is the old headless shell, which draws WebGL with SwiftShader (the CPU). The full Chromium in the new headless mode can use the graphics card through ANGLE on Direct3D 11.
 const SOFT = has('--software'), GRAB = val('--grab', SOFT ? 'screenshot' : 'canvas');
@@ -189,5 +196,27 @@ if (has('--export-lock')) {
     coords: 'plan coordinates: metres, Z up, Y away from the opening camera. The .glb files are Y up (three.js); the Blender glTF importer turns them back into plan coordinates. Frame numbers start at 0.',
     places, cards, card_info, sha1: { 'camera_baked.json': sha('camera_baked.json'), 'performance_baked.json': sha('performance_baked.json') } }, null, 1));
   console.log('lock ->', LOCK);
+}
+if (has('--export-cards')) {
+  const CD = val('--cards-out') ? path.resolve(val('--cards-out')) : path.join(OUT, 'cards_seq'), cpx = +val('--card-px', 2);
+  fs.rmSync(CD, { recursive: true, force: true }); fs.mkdirSync(CD, { recursive: true });
+  for (const who of info.cast) {
+    const d = path.join(CD, who); fs.mkdirSync(d, { recursive: true });
+    const idx = await page.evaluate(([w, p]) => window.cardIndex(w, p), [who, cpx]);
+    const cacheImgs = {};
+    for (const im of idx.images) {
+      const sp = path.join(d, im.file);
+      fs.writeFileSync(sp, Buffer.from(await page.evaluate(([w, n, p]) => window.cardPNG(w, n, p), [who, im.img, cpx]), 'base64'));
+      cacheImgs[im.img] = sp;
+    }
+    for (const r of idx.runs) {
+      const srcImg = cacheImgs[r.img];
+      for (let f = r.f0; f <= r.f1; f++) {
+        fs.copyFileSync(srcImg, path.join(d, `f_${String(f).padStart(5, '0')}.png`));
+      }
+    }
+    fs.writeFileSync(path.join(d, 'index.json'), JSON.stringify(idx));
+    console.log(`cards_seq ${who} -> ${idx.images.length} unique drawings, ${info.frames} seq frames -> ${d}`);
+  }
 }
 await browser.close(); server.close();

@@ -41,11 +41,12 @@ for (const s of src) { const sd = path.join(s, 'sheets'); if (fs.existsSync(s) &
 const SHEETS = fs.existsSync(path.join(CACHE, 'sheets')) ? fs.readdirSync(path.join(CACHE, 'sheets')).sort() : [];
 for (const need of ['char2d', 'memes', 'memes2', 'bodies']) if (!fs.existsSync(path.join(CACHE, need + '.mjs'))) { console.error(`puppet package is missing ${need}.mjs (looked in ${src.join(', ')})`); process.exit(1); }
 
-// ---- tiny static server: /kit = this folder, /ep = the episode, /puppets = the cache
-const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.wav': 'audio/wav', '.mp3': 'audio/mpeg', '.svg': 'image/svg+xml', '.css': 'text/css' };
-const ROOTS = { kit: KIT, ep: EP, puppets: CACHE };
+// ---- tiny static server: /kit = this folder, /ep = the episode, /puppets = the cache, /assets = shared 3D asset library
+const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.wav': 'audio/wav', '.mp3': 'audio/mpeg', '.svg': 'image/svg+xml', '.css': 'text/css', '.glb': 'model/gltf-binary', '.gltf': 'model/gltf+json', '.bin': 'application/octet-stream' };
+const ASSETS = [path.resolve(KIT, '..', '..', 'assets'), path.resolve(EP, '..', '..', 'assets')].find(p => fs.existsSync(p)) || path.resolve(KIT, '..', '..', 'assets');
+const ROOTS = { kit: KIT, ep: EP, puppets: CACHE, assets: ASSETS };
 const server = http.createServer((q, r) => {
-  const u = decodeURIComponent(q.url.split('?')[0]), m = /^\/(kit|ep|puppets)\/(.*)$/.exec(u), f = m && path.normalize(path.join(ROOTS[m[1]], m[2]));
+  const u = decodeURIComponent(q.url.split('?')[0]), m = /^\/(kit|ep|puppets|assets)\/(.*)$/.exec(u), f = m && path.normalize(path.join(ROOTS[m[1]], m[2]));
   if (!f || !f.startsWith(ROOTS[m[1]]) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { r.writeHead(404); return r.end('not found'); }
   r.writeHead(200, { 'content-type': MIME[path.extname(f)] || 'application/octet-stream', 'cache-control': 'no-store' }); fs.createReadStream(f).pipe(r);
 });
@@ -53,28 +54,29 @@ const port = await new Promise(ok => server.listen(has('--serve') ? +val('--serv
 const BASE = `http://127.0.0.1:${port}`;
 if (has('--serve')) { console.log(`Open ${BASE}/kit/film_page.html?film=/ep/${path.basename(FILM)}   (space = pause, arrows = step, &captions=0 hides captions). Ctrl+C to stop.`); await new Promise(() => {}); }
 
-let chromium; try { ({ chromium } = await import('playwright')); } catch { ({ chromium } = require(process.env.PLAYWRIGHT_DIR || '/opt/node-tools/node_modules/playwright')); }
+const pwFallback = [
+  process.env.PLAYWRIGHT_DIR,
+  '/opt/node-tools/node_modules/playwright',
+  path.resolve(KIT, '..', '..', 'github_render_repo', 'templates', 'threejs_film', 'node_modules', 'playwright'),
+  path.resolve(KIT, '..', '..', 'node_modules', 'playwright')
+].filter(Boolean).find(p => fs.existsSync(p));
+let chromium; try { ({ chromium } = await import('playwright')); } catch { ({ chromium } = require(pwFallback || '/opt/node-tools/node_modules/playwright')); }
 const [FW, FH] = film.size || [1080, 1920], scale = +val('--scale', has('--storyboard') ? 0.4 : 0.5), W = Math.round(FW * scale / 2) * 2, H = Math.round(FH * scale / 2) * 2;
+const gpuArgs = has('--software')
+  ? ['--enable-unsafe-swiftshader', '--disable-gpu-vsync', '--no-sandbox']
+  : process.platform === 'linux'
+    ? ['--no-sandbox', '--headless=new', '--use-gl=angle', '--use-angle=vulkan', '--enable-features=Vulkan', '--disable-vulkan-surface', '--ignore-gpu-blocklist', '--disable-gpu-vsync', '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--disable-features=CalculateNativeWinOcclusion']
+    : ['--no-sandbox', '--headless=new', '--ignore-gpu-blocklist', '--enable-gpu-rasterization', '--disable-gpu-vsync', '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--disable-features=CalculateNativeWinOcclusion'];
 const browser = await chromium.launch({
   headless: true,
-  ignoreDefaultArgs: ['--use-angle=swiftshader-webgl', '--disable-gpu'],
-  args: [
-    '--no-sandbox',
-    '--headless=new',
-    '--use-gl=angle',
-    '--use-angle=vulkan',
-    '--enable-features=Vulkan',
-    '--disable-vulkan-surface',
-    '--ignore-gpu-blocklist',
-    '--disable-gpu-vsync',
-    '--disable-background-timer-throttling',
-    '--disable-renderer-backgrounding',
-    '--disable-features=CalculateNativeWinOcclusion'
-  ]
+  ignoreDefaultArgs: has('--software') ? [] : ['--use-angle=swiftshader-webgl', '--disable-gpu', '--enable-unsafe-swiftshader'],
+  args: gpuArgs
 }), page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 1 });
 page.on('console', m => { if ((m.type() === 'warning' || m.type() === 'error') && !/GL Driver Message/.test(m.text())) console.log('[page]', m.text()); }); page.on('pageerror', e => console.log('[page error]', e.message));
 await page.goto(`${BASE}/kit/film_page.html`);
 const info = await page.evaluate(c => window.setup(c), { film: '/ep/' + path.basename(FILM), W, H, captions: !has('--no-captions'), sheets: SHEETS, epSets: fs.existsSync(path.join(EP, 'sets')) ? fs.readdirSync(path.join(EP, 'sets')) : [] });
+const glRenderer = await page.evaluate(() => { const c = document.querySelector('#stage canvas'), gl = c && (c.getContext('webgl2') || c.getContext('webgl')), e = gl && gl.getExtension('WEBGL_debug_renderer_info'); return gl ? (e ? gl.getParameter(e.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER)) : 'unknown'; });
+console.log('WebGL renderer:', glRenderer);
 const stage = page.locator('#stage');
 page.setDefaultTimeout(0);
 const shot = async (f, file) => { await page.evaluate(f => window.renderFrame(f), f); await page.screenshot({ path: file, timeout: 0 }); };
@@ -99,6 +101,13 @@ if (has('--visibility')) {
   const vis = []; for (let f = 0; f < info.frames; f++) vis.push(await page.evaluate(f => window.visibility(f), f));
   fs.writeFileSync(path.join(OUT, 'plan', 'visibility.json'), JSON.stringify({ note: 'projection only, no occlusion test: x, y = fractions of the frame (0,0 top-left), h = height fraction', frames: vis }));
   console.log('visibility ->', path.join(OUT, 'plan', 'visibility.json'));
+}
+if (has('--check-clearance')) {
+  const hits = await page.evaluate(() => window.checkClearanceAll ? window.checkClearanceAll() : []);
+  fs.writeFileSync(path.join(OUT, 'plan', 'clearance.json'), JSON.stringify(hits, null, 2));
+  console.log(`clearance: ${hits.length} collision(s) ->`, path.join(OUT, 'plan', 'clearance.json'));
+  const szWarns = await page.evaluate(() => window.checkSafeZoneAll ? window.checkSafeZoneAll() : []);
+  if (szWarns.length) console.log(`safe-zone-9x16: ${szWarns.length} warning(s) on sign/label placement (outside central 80%)`);
 }
 
 if (has('--storyboard')) {
@@ -125,7 +134,8 @@ if (has('--animatic')) {
   const [fStart, fEnd] = val('--range') ? val('--range').split('-').map(Number) : [0, info.frames - 1];
   const t0 = Date.now(); let n = 0;
   for (let f = fStart; f <= fEnd; f += step) { await shot(f, path.join(tmp, `f_${String(n++).padStart(5, '0')}.png`)); if (n % 60 === 0) console.log(`  ${f}/${fEnd}  ${((Date.now() - t0) / n).toFixed(0)} ms/frame`); }
-  const voice = !has('--no-audio') && ['voice/voice.wav', 'voice/voice.mp3'].map(v => path.join(EP, v)).find(fs.existsSync);
+  const explicitAudio = val('--audio');
+  const voice = !has('--no-audio') && (explicitAudio ? (fs.existsSync(path.resolve(EP, explicitAudio)) ? path.resolve(EP, explicitAudio) : explicitAudio) : ['sound/final_audio.wav', 'voice/voice.wav', 'voice/voice.mp3'].map(v => path.join(EP, v)).find(fs.existsSync));
   const mp4 = val('--out') ? path.resolve(val('--out')) : path.join(OUT, 'animatic.mp4');
   fs.mkdirSync(path.dirname(mp4), { recursive: true });
   const vf = scale < 1 ? ['-vf', `scale=${FW}:${FH}:flags=lanczos`] : [];
@@ -178,5 +188,27 @@ if (has('--export-lock')) {
     coords: 'plan coordinates: metres, Z up, Y away from the opening camera. The .glb files are Y up (three.js); the Blender glTF importer turns them back into plan coordinates. Frame numbers start at 0.',
     places, cards, card_info, sha1: { 'camera_baked.json': sha('camera_baked.json'), 'performance_baked.json': sha('performance_baked.json') } }, null, 1));
   console.log('lock ->', LOCK);
+}
+if (has('--export-cards')) {
+  const CD = val('--cards-out') ? path.resolve(val('--cards-out')) : path.join(OUT, 'cards_seq'), cpx = +val('--card-px', 2);
+  fs.rmSync(CD, { recursive: true, force: true }); fs.mkdirSync(CD, { recursive: true });
+  for (const who of info.cast) {
+    const d = path.join(CD, who); fs.mkdirSync(d, { recursive: true });
+    const idx = await page.evaluate(([w, p]) => window.cardIndex(w, p), [who, cpx]);
+    const cacheImgs = {};
+    for (const im of idx.images) {
+      const sp = path.join(d, im.file);
+      fs.writeFileSync(sp, Buffer.from(await page.evaluate(([w, n, p]) => window.cardPNG(w, n, p), [who, im.img, cpx]), 'base64'));
+      cacheImgs[im.img] = sp;
+    }
+    for (const r of idx.runs) {
+      const srcImg = cacheImgs[r.img];
+      for (let f = r.f0; f <= r.f1; f++) {
+        fs.copyFileSync(srcImg, path.join(d, `f_${String(f).padStart(5, '0')}.png`));
+      }
+    }
+    fs.writeFileSync(path.join(d, 'index.json'), JSON.stringify(idx));
+    console.log(`cards_seq ${who} -> ${idx.images.length} unique drawings, ${info.frames} seq frames -> ${d}`);
+  }
 }
 await browser.close(); server.close();

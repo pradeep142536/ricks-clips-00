@@ -10,14 +10,34 @@ import { initPuppets, svgFor, stateKey, metrics, CARD, moveHands, poseHands } fr
 import { lieOf } from './poses.mjs';
 import { lieLayout, placeLying } from './lie_cam.mjs';
 import { kit3dFlags, makeKit3d } from './look3d.mjs';
+import { createAssetHelper, addInkOutlines, alignForwardToVelocity, isInSafeZone9x16 } from './glb_loader.mjs';
+import { createHelpers } from './prop_helpers.js';
+import { createParticleSystem } from './particles3d.mjs';
 
 const B2T = p => new THREE.Vector3(p[0], p[2], -p[1]);          // plan is metres, Z up, Y forward (Blender) -> three is Y up, -Z forward
-const LIGHTS = {                                                 // preview light only; the real look is the Blender pass
-  night:    { top: '#0b1026', hor: '#27345c', sun: '#9fb6ff', si: 1.1, amb: '#3a4a7a', ai: 1.0, dir: [-4, 9, -3], tint: '#cfd8ff' },
+const LIGHTS = {                                                 // V3.0+V4.5 bright saturated lighting (ban muddy pitch-black scenes; V4.5 adds daylight_crisp + golden_hour_sunset with FogExp2 + ACESFilmic)
+  night:    { top: '#131d47', hor: '#354980', sun: '#b8ccff', si: 1.45, amb: '#4e64a8', ai: 1.25, ground: '#2a3254', rim: '#8fb4ff', rimI: 0.75, dir: [-4, 9, -3], tint: '#dce6ff' },
   morning:  { top: '#6fa8dc', hor: '#fbe3c4', sun: '#fff0d6', si: 2.2, amb: '#b8cbe6', ai: 1.3, dir: [-6, 8, 5], tint: '#fff6ea' },
   day:      { top: '#3e7fd2', hor: '#b8d0ec', sun: '#ffffff', si: 2.6, amb: '#b9c8de', ai: 1.3, dir: [-3, 10, 4], tint: '#ffffff' },
   golden:   { top: '#8a6f8a', hor: '#ffc47c', sun: '#ffb36b', si: 2.4, amb: '#8f86b8', ai: 1.1, dir: [-9, 4, 2], tint: '#ffe6c8' },
-  interior: { top: '#2a2420', hor: '#5a4a3c', sun: '#ffd9a0', si: 1.8, amb: '#6a5a4c', ai: 1.2, dir: [-3, 8, 4], tint: '#ffeedd' },
+  sunset:   { top: '#2b1b4a', hor: '#ff9e66', sun: '#ffb076', si: 2.2, amb: '#9e84a8', ai: 1.35, dir: [-8, 4.5, 3], tint: '#ffe6d0' },
+  interior: { top: '#3c342e', hor: '#7a6958', sun: '#ffe6bd', si: 2.1, amb: '#b8a48e', ai: 1.55, dir: [-3, 8, 4], tint: '#fff6ea' },
+  daylight_crisp: {
+    top: '#2c6cd6', hor: '#cfe6ff', sun: '#fff7e6', si: 2.8,
+    amb: '#bcd8ff', ai: 1.45, ground: '#6a7a5c',
+    rim: '#ffecc8', rimI: 0.65, dir: [-5, 11, 5], tint: '#fffaf0',
+    fogExp2: true, fogColor: '#cfe6ff', fogDensity: 0.0085,
+    toneMapping: 'ACESFilmic', exposure: 1.06,
+    card_warmth: 0.08, card_rim: '#fff4d8', card_rim_amt: 0.22,
+  },
+  golden_hour_sunset: {
+    top: '#4e487a', hor: '#ffba68', sun: '#ff9e44', si: 3.1,
+    amb: '#e6a87c', ai: 1.35, ground: '#4e3f34',
+    rim: '#ffd27a', rimI: 0.95, dir: [-12, 3.2, -4], tint: '#ffe3bc',
+    fogExp2: true, fogColor: '#f4b572', fogDensity: 0.0155,
+    toneMapping: 'ACESFilmic', exposure: 1.12,
+    card_warmth: 0.20, card_rim: '#ffd080', card_rim_amt: 0.34,
+  },
 };
 let R = null;
 
@@ -37,10 +57,10 @@ function cardScale(who, f) {
 }
 const tweened = (who, f) => R.h3o || R.hat ? h3State(who, f, tweenedB(who, f)) : tweenedB(who, f);   // kit 2026-11-13: generic held 3D (held3d entries with "grip") and hand_at with "hand"; a film without them gets tweenedB as before
 function tweenedB(who, f) {
-  const st = tweened0(who, f); if (!/^m:/.test(st.pose || '')) return st;
+  const st = tweened0(who, f); if (!/^(m:|gait:)/.test(st.pose || '')) return st;
   const MC = (R.moveCh ||= {})[who] ||= (() => { const out = []; let prev; for (const r of R.perf[who]) { if (r.state.pose !== prev) { out.push(r.f0); prev = r.state.pose; } } return out; })();
   let f0 = 0; for (const x of MC) { if (x <= f) f0 = x; else break; }
-  const T = R.film.tween || {}, out = { ...st, tw: undefined, u: undefined, idle: undefined, mt: T.ones ? (f - f0) / R.fps : Math.round((f - f0) / R.fps * 15) / 15 };   // kit_patch: "ones" = a new pose every frame (STUDIO_MOTION rule 1)
+  const T = R.film.tween || {}, out = { ...st, tw: undefined, u: undefined, idle: undefined, mt: st.mt ?? (T.ones ? (f - f0) / R.fps : Math.round((f - f0) / R.fps * 15) / 15) };   // kit_patch: "ones" = a new pose every frame (STUDIO_MOTION rule 1)
   // kit_patch HANDS END ON THINGS: film.json "hand_at": [{ who, f0, f1, at: [x, y, z] plan metres }] -> st.tgt = that point on this frame's card, in move-rig px
   const ha = (R.film.hand_at || []).find(h => h.who === who && f >= fr(h.f0) && f <= fr(h.f1)); if (ha) out.tgt = handTarget(who, f, out.pos, ha.at);
   // kit_patch HEAD WOBBLE: a 5 f head-size pop (peak +7 %) on every face change (CB_RULES s5)
@@ -280,25 +300,262 @@ window.held3dAll = f => {   // every generic held prop on frame f in plan metres
 };
 window.moveHand = (who, f, i = 1) => { const c = R.cards[who]; if (!c) return null; const st = tweened(who, f), h = moveHands(c.entry, st); if (!h) return null; const p = h.hands[i] || h.hands[0]; return { u: (p[0] - CARD.CX) * c.k, v: (CARD.GY - p[1]) * c.k, ang: h.ang, mirror: h.mirror }; };
 const NOPOP = fc => { const n = /^k:/.test(fc || '') ? fc.slice(2) : null; return !!(n && R.film.faces_ep && R.film.faces_ep[n] && R.film.faces_ep[n].nopop); };   // kit_patch: a blink face (faces_ep nopop) is not a face change: no head pop
+const VIEW_THRESH = [28, 68, 125], VIEW_NAMES = ['front', '34', 'side', 'back'];
+function hashStr(s) { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return Math.abs(h); }
+function charDistAt(who, f) {
+  const runs = R.perf[who]; if (!runs || !runs.length) return 0;
+  const cache = (R.walkDist ||= {});
+  if (!cache[who]) {
+    const arr = new Float64Array(Math.max(1, R.end));
+    let prev = perfAt(runs, 0).pos || [0, 0, 0], acc = 0;
+    for (let i = 1; i < R.end; i++) {
+      const p = perfAt(runs, i).pos || prev, st = perfAt(runs, i);
+      const d = st.visible === false ? 0 : Math.hypot(p[0] - prev[0], p[1] - prev[1]);
+      if (d < 1.2) acc += d;   // ignore scene cuts / teleports
+      arr[i] = acc; prev = p;
+    }
+    cache[who] = arr;
+  }
+  return cache[who][Math.max(0, Math.min(R.end - 1, f))] || 0;
+}
+function charVelAt(who, f) {
+  const runs = R.perf[who]; if (!runs || !runs.length) return { vx: 0, vy: 0, speed: 0 };
+  const fA = Math.max(0, f - 1), fB = Math.min(Math.max(0, R.end - 1), f + 1), dt = Math.max(1, fB - fA) / (R.fps || 30);
+  const pA = perfAt(runs, fA).pos || [0, 0, 0], pB = perfAt(runs, fB).pos || [0, 0, 0];
+  const vx = (pB[0] - pA[0]) / dt, vy = (pB[1] - pA[1]) / dt;
+  return { vx, vy, speed: Math.hypot(vx, vy) };
+}
+function activeWordAt(f) {
+  const ws = R.wordWins; if (!ws || !ws.length) return null;
+  let lo = 0, hi = ws.length - 1;
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1, w = ws[mid];
+    if (f < w.f0) hi = mid - 1;
+    else if (f > w.f1) lo = mid + 1;
+    else return w;
+  }
+  return null;
+}
+function resolveAutoView(who, f, st) {
+  if (st.lock_view || st.auto_view === false || lieOf(st)) return st;
+  const vel = charVelAt(who, f), moving = vel.speed > 0.14;
+  let fx = null, fy = null;
+  if (Array.isArray(st.facing)) { fx = st.facing[0]; fy = st.facing[1]; }
+  else if (Array.isArray(st.look)) { fx = st.look[0] - st.pos[0]; fy = st.look[1] - st.pos[1]; }
+  else if (typeof st.facing === 'string' && R.cards[st.facing]) {
+    const tp = perfAt(R.perf[st.facing], f).pos;
+    if (tp) { fx = tp[0] - st.pos[0]; fy = tp[1] - st.pos[1]; }
+  } else if (typeof st.yaw === 'number') { fx = Math.cos(st.yaw * Math.PI / 180); fy = Math.sin(st.yaw * Math.PI / 180); }
+  else if (moving) { fx = vel.vx; fy = vel.vy; }
+  if (fx == null || Math.hypot(fx, fy) < 1e-4) return st;
+  const c = R.cam[f]; if (!c || !c.pos) return st;
+  const cx = c.pos[0] - st.pos[0], cy = c.pos[1] - st.pos[1], cl = Math.hypot(cx, cy);
+  if (cl < 1e-4) return st;
+  const fl = Math.hypot(fx, fy), ux = fx / fl, uy = fy / fl, vx = cx / cl, vy = cy / cl;
+  const deg = Math.acos(Math.max(-1, Math.min(1, ux * vx + uy * vy))) * 180 / Math.PI;
+  const mem = (R.viewMem ||= {}), prev = mem[who] || st.view || 'front', pi = Math.max(0, VIEW_NAMES.indexOf(prev));
+  let idx = VIEW_THRESH.findIndex(t => deg < t); if (idx < 0) idx = 3;
+  if (idx !== pi) {
+    const edge = idx > pi ? VIEW_THRESH[pi] : VIEW_THRESH[pi - 1];
+    if (Math.abs(deg - edge) < 6) idx = pi;
+  }
+  const view = VIEW_NAMES[idx]; mem[who] = view;
+  const aim = c.aim || [0, 0, 0], fwX = aim[0] - c.pos[0], fwY = aim[1] - c.pos[1], fLen = Math.hypot(fwX, fwY) || 1;
+  const camRightX = fwY / fLen, camRightY = -fwX / fLen;
+  const dir = (view === '34' || view === 'side') ? ((ux * camRightX + uy * camRightY) >= 0 ? 1 : -1) : (st.dir || 1);
+  return { ...st, view, dir };
+}
+const EXPR_HEAD_TILT = { smug: -10, skeptical: 10, sneaky: 11, angry: -9, worried: 12, shocked: -9, laugh: -13, jawdrop: 8, surprised: -8, deadpan: 0, scheming: 9, terrified: -6, confused: 12, proud: -10, idea: -8 };
+const POSE_HEAD_TILT = { shrug: 11, hands_on_hips: -9, point_forward: -8, arms_raised_shock: -11, hold_prop: 8, thumbs_up: -8, steepled_hands: 6 };
+// V4.0: 5-shape syllable viseme mapper driven by words.json + quantized secondary spring-lag
+function resolveVisemeMouth(who, f, st) {
+  if (st.mouth) return st.mouth;
+  const active = st.speaking || st.auto_lipsync || (R.film && (R.film.speaker === who || R.film.auto_lipsync));
+  if (!active || !R.words || !R.words.length) return null;
+  const fps = R.fps || 30, t = f / fps;
+  let w = null;
+  for (let i = 0; i < R.words.length; i++) {
+    const wi = R.words[i];
+    if (wi.s - 0.02 <= t && t <= wi.e + 0.02) { w = wi; break; }
+  }
+  if (!w) return 'closed';
+  const txt = (w._k || String(w.w || '').toLowerCase()).replace(/[^a-z]/g, '');
+  if (!txt) return 'closed';
+  const u = Math.max(0, Math.min(0.999, (t - w.s) / Math.max(0.06, w.e - w.s)));
+  const ch = txt[Math.min(txt.length - 1, Math.floor(u * txt.length))];
+  if (/[mbp]/.test(ch)) return 'M/B_pressed';
+  if (/[fv]/.test(ch)) return 'F/V_teeth';
+  if (/[aou]/.test(ch)) return 'A/O_wide';
+  if (/[eiy]/.test(ch)) return 'E/I_smile';
+  return (Math.floor(u * Math.max(2, txt.length)) % 2 === 0) ? 'E/I_smile' : 'A/O_wide';
+}
+function resolveSecondaryLag(who, f, st, vel) {
+  const fps = R.fps || 30, v = vel || charVelAt(who, f), vp = charVelAt(who, Math.max(0, f - 2));
+  const ax = v.vx - vp.vx, ay = v.vy - vp.vy, dir = st.dir || 1;
+  const gaitBob = st._gait && st._gait !== 'idle_alive' ? Math.sin((st._walkPhase || 0) * Math.PI * 2) : 0;
+  const q = x => Math.round(Math.max(-14, Math.min(14, x)) * 2) / 2;
+  const lx = q((-v.vx * 1.4 - ax * 2.2) * dir), ly = q(-ay * 1.8 - gaitBob * 3.2);
+  return {
+    _hatLag: [q(lx * 0.85), q(ly * 1.1)],
+    _hairLag: [q(lx * 1.15), q(ly * 0.9)],
+    _tieLag: [q(lx * 1.3), q(ly * 0.75)],
+    _clothLag: [q(lx * 0.9), q(ly * 0.6)],
+  };
+}
+function resolveEyeLook(who, f, st) {
+  const la = st.lookAt ?? st.look_at;
+  if (la == null) return { lookX: null, lookY: null };
+  if (typeof la === 'string') {
+    if (la === 'left') return { lookX: -5.5, lookY: 0 };
+    if (la === 'right') return { lookX: 5.5, lookY: 0 };
+    if (la === 'up') return { lookX: 0, lookY: -4.5 };
+    if (la === 'down') return { lookX: 0, lookY: 4.5 };
+    if (la === 'camera') {
+      const turn = (st.view === 'side' ? 1 : st.view === '34' ? 0.55 : 0) * (st.dir || 1);
+      return { lookX: Math.round(-turn * 3.5 * 2) / 2, lookY: 0 };
+    }
+  }
+  const tp = Array.isArray(la) ? la : (typeof la === 'string' && R.perf[la] ? perfAt(R.perf[la], f).pos : null);
+  const c = R.cam[f];
+  if (tp && c && c.pos && st.pos) {
+    const dx = tp[0] - st.pos[0], dy = tp[1] - st.pos[1], dz = (tp[2] ?? 1.2) - ((st.pos[2] || 0) + 1.25);
+    const fx = (c.aim?.[0] ?? 0) - c.pos[0], fy = (c.aim?.[1] ?? 0) - c.pos[1], fl = Math.hypot(fx, fy) || 1;
+    const rx = fy / fl, ry = -fx / fl, lat = dx * rx + dy * ry;
+    const len = Math.hypot(dx, dy, dz) || 1;
+    return {
+      lookX: Math.round(Math.max(-6, Math.min(6, (lat / len) * 10)) * 2) / 2,
+      lookY: Math.round(Math.max(-4.5, Math.min(4.5, -(dz / len) * 8)) * 2) / 2,
+    };
+  }
+  return { lookX: null, lookY: null };
+}
+function jawdropClampFace(who, f, face) {
+  if (face !== 'jawdrop') return face;
+  const maxF = Math.max(1, Math.round(0.6 * (R.fps || 30)));
+  const JC = (R.jawStart ||= {})[who] ||= (() => {
+    const arr = [], runs = R.perf[who] || []; let prev = null;
+    for (const r of runs) {
+      const fc = r.state && r.state.face;
+      if (fc === 'jawdrop' && prev !== 'jawdrop') arr.push(r.f0);
+      prev = fc;
+    }
+    return arr;
+  })();
+  let f0 = -1; for (const x of JC) { if (x <= f) f0 = x; else break; }
+  return (f0 >= 0 && (f - f0) >= maxF) ? 'k:shocked' : face;
+}
+function applyKineticState(who, f, st) {
+  if (!st || R.film.kinetic === false) return st;
+  let out = resolveAutoView(who, f, st);
+  const fps = R.fps || 30;
+  const clampedFace = jawdropClampFace(who, f, out.face || 'standard');
+  if (clampedFace !== out.face) out = { ...out, face: clampedFace };
+
+  // V3.5 Articulated Gaits: walk, sneak, run, idle_alive
+  const vel = charVelAt(who, f), moving = vel.speed > 0.14 || !!out.walk;
+  const rawGait = out.gait || (/^(walk|sneak|run|idle_alive)$/.test(out.pose || '') ? out.pose : null) || (typeof out.walk === 'string' ? out.walk : null);
+  const walkCyclePose = !out.pose || /^(stand|walk[01]?|sneak|run)$/.test(out.pose || '');
+  const gait = rawGait || ((moving && !lieOf(out) && !out.lock_pose && walkCyclePose) ? (vel.speed > 4.2 ? 'run' : 'walk') : null);
+  const idleCompatible = !out.pose || out.pose === 'stand' || out.pose === 'idle_alive';
+  if (gait && !lieOf(out) && !out.lock_pose && (gait === 'idle_alive' ? idleCompatible : (rawGait || walkCyclePose))) {
+    if (gait === 'idle_alive') {
+      const wd = activeWordAt(f);
+      const isSpk = !!out.mouth || !!out.speaking || R.film.speaker === who || /talk|open|happy|angry|smug|sneaky|laugh/.test(out.face || '');
+      const u = wd ? Math.sin(Math.PI * Math.max(0, Math.min(1, (f - wd.f0 + 0.5) / Math.max(1, wd.f1 - wd.f0 + 1)))) : 0;
+      const pulse = (wd && isSpk) ? Math.round(u * (wd.emp || 1) * 4) / 4 : 0;
+      out = {
+        ...out,
+        pose: 'gait:idle_alive',
+        _gait: 'idle_alive',
+        _talkPulse: pulse,
+        mt: Math.round((f / fps) * 12) / 12,
+      };
+    } else {
+      const h = R.cards[who]?.entry.height || 1.7;
+      const strideLen = out.stride_m ?? (h * (gait === 'run' ? 0.96 : gait === 'sneak' ? 0.56 : 0.72));
+      const dist = charDistAt(who, f);
+      const rate = gait === 'run' ? 2.8 : gait === 'sneak' ? 0.95 : 1.45;
+      const walkPhase = dist > 0.01 ? dist / strideLen : (f / fps) * rate;
+      const period = gait === 'run' ? 0.36 : gait === 'sneak' ? 1.12 : 0.78;
+      out = {
+        ...out,
+        pose: 'gait:' + gait,
+        _gait: gait,
+        _walkPhase: Math.round(walkPhase * 24) / 24,
+        _walkView: out.view || 'side',
+        _walkDir: out.dir || 1,
+        mt: Math.round(walkPhase * period * 24) / 24,
+      };
+    }
+  }
+
+  // Natural blinking every 2.5-4.0s when not baked/talking/screaming
+  if (!out.blink && !out.mouth && !lieOf(out) && !/jawdrop|scream|laugh|happy|sleepy|crying|furious|shocked|terrified/.test(out.face || '')) {
+    const baseS = 2.6 + (hashStr(who + 'blink') % 15) * 0.1;   // 2.6s..4.0s per character
+    const periodF = Math.max(60, Math.round(baseS * fps));
+    const phaseF = (f + (hashStr(who) % Math.max(10, Math.round(periodF * 0.7)))) % periodF;
+    if (phaseF < 4) out = { ...out, blink: (phaseF === 0 || phaseF === 3) ? 'half' : 'closed' };
+  }
+
+  // V4.0: 5-shape syllable viseme lip-sync driven by words.json
+  const visMouth = resolveVisemeMouth(who, f, out);
+  if (visMouth && !out.mouth) out = { ...out, mouth: visMouth };
+
+  // Eye tracking pupils via film.json lookAt ('left'|'right'|'up'|'down'|'camera'|[x,y,z]|actor)
+  const gaze = resolveEyeLook(who, f, out);
+  if (gaze.lookX != null || gaze.lookY != null) {
+    out = { ...out, ...(gaze.lookX != null ? { lookX: gaze.lookX } : {}), ...(gaze.lookY != null ? { lookY: gaze.lookY } : {}) };
+  }
+
+  // Expressive head tilt (+-8..15 deg) unless act sets an explicit tilt
+  const rawFace = String(out.face || '').replace(/^k:/, '');
+  const explicitTilt = out.headTilt ?? out.head_tilt;
+  if (explicitTilt != null) {
+    out = { ...out, headTilt: +explicitTilt };
+  } else {
+    const autoTilt = EXPR_HEAD_TILT[rawFace] ?? POSE_HEAD_TILT[out.pose] ?? null;
+    if (autoTilt != null) out = { ...out, headTilt: autoTilt * (out.dir || 1) };
+  }
+
+  // V4.0: animated comic emotion VFX clock + quantized secondary spring-lag
+  if (/(angry|worried|nervous|confused|idea|shocked|terrified|rage|fury)/.test(rawFace)) {
+    const fxPeriod = Math.max(12, Math.round(fps * 0.8));
+    out = { ...out, _fxPhase: Math.round(((f % fxPeriod) / fxPeriod) * 8) / 8 };
+  }
+  const secLag = resolveSecondaryLag(who, f, out, vel);
+  if (secLag._hatLag[0] || secLag._hatLag[1] || secLag._tieLag[0] || secLag._tieLag[1]) {
+    out = { ...out, ...secLag };
+  }
+
+  if (!lieOf(out) && !/^(m:|gait:)?(walk|run|sneak|idle_alive)/.test(out.pose || '') && out.idle == null) {
+    const cyc = fps * ((R.film.tween && R.film.tween.idle_s) || 2.6);
+    out = { ...out, idle: Math.round(8 * Math.sin(f / cyc * 2 * Math.PI + hashStr(who))) / 8 * 0.75 };
+  }
+  return out;
+}
 function tweened0(who, f) {
-  const runs = R.perf[who], st0 = perfAt(runs, f), T = R.film.tween; if (!T || !T.frames) return st0;
+  const runs = R.perf[who], st0 = perfAt(runs, f), T = R.film.tween; if (!T || !T.frames) return applyKineticState(who, f, st0);
   const st = T.idle && !/^walk/.test(st0.pose || '') ? { ...st0, idle: Math.round(8 * Math.sin(f / (R.fps * (T.idle_s || 2.6)) * 2 * Math.PI + who.length)) / 8 * T.idle } : st0;   // optional slow sway (sample C): head and body breathe on a ~2.6 s cycle
   const C = (R.poseCh ||= {})[who] ||= (() => { const out = []; let prev = null; for (const r of runs) { const s = r.state, k = [s.pose, s.prop, s.hand, s.dir].join('|'); if (prev && k !== prev.k) out.push({ f0: r.f0, from: { pose: prev.s.pose, prop: prev.s.prop, hand: prev.s.hand } }); if (!prev || k !== prev.k) prev = { k, s }; } return out; })();
   // face: a change between two calm kit faces ("k:...") or from the standard face is eased over T.face_frames (brows slide, eyes and mouth swap half-way)
   const FC = (R.faceCh ||= {})[who] ||= (() => { const out = []; let prev = null; for (const r of runs) { const fc = r.state.face || 'standard'; if (prev !== null && fc !== prev && !(NOPOP(fc) || NOPOP(prev))) out.push({ f0: r.f0, from: prev }); prev = fc; } return out; })();
   let fl = -1; for (let i = 0; i < FC.length && FC[i].f0 <= f; i++) fl = i;
   let face = {}; if (fl >= 0 && T.face_frames && f - FC[fl].f0 < T.face_frames && /^k:/.test(st.face || '')) face = { fw: { face: FC[fl].from }, fu: Math.round(EASE.inout((f - FC[fl].f0 + 1) / (T.face_frames + 1)) * 10) / 10 };
-  let lo = -1; for (let i = 0; i < C.length && C[i].f0 <= f; i++) lo = i; if (lo < 0) return { ...st, ...face };
-  const walk = /^walk/.test(st.pose || ''), N = walk ? (T.walk_frames ?? T.frames) : T.frames, d = f - C[lo].f0; if (d >= N) return { ...st, ...face };
+  let lo = -1; for (let i = 0; i < C.length && C[i].f0 <= f; i++) lo = i; if (lo < 0) return applyKineticState(who, f, { ...st, ...face });
+  const walk = /^walk/.test(st.pose || ''), N = walk ? (T.walk_frames ?? T.frames) : T.frames, d = f - C[lo].f0; if (d >= N) return applyKineticState(who, f, { ...st, ...face });
   const u = (EASE[walk ? 'inout' : T.ease || 'out'] || EASE.out)((d + 1) / (N + 1));
-  return { ...st, ...face, tw: C[lo].from, u: Math.round(u * 20) / 20 };
+  return applyKineticState(who, f, { ...st, ...face, tw: C[lo].from, u: Math.round(u * 20) / 20 });
 }
 function perfAt(runs, f) { let lo = 0, hi = runs.length - 1; while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (runs[mid].f0 <= f) lo = mid; else hi = mid - 1; } return runs[lo].state; }
 const getJSON = async u => { const r = await fetch(u); if (!r.ok) throw new Error('cannot load ' + u); return r.json(); };
 
 window.setup = async (cfg) => {
   const dir = cfg.film.replace(/[^/]*$/, ''), film = await getJSON(cfg.film);
-  const [camB, perf] = await Promise.all([getJSON(dir + 'out/plan/camera_baked.json'), getJSON(dir + 'out/plan/performance_baked.json')]);
+  const [camB, perf, manifest] = await Promise.all([
+    getJSON(dir + 'out/plan/camera_baked.json'),
+    getJSON(dir + 'out/plan/performance_baked.json'),
+    getJSON(dir + 'asset_manifest.json').catch(() => null)
+  ]);
   const words = await getJSON(dir + (film.words || 'voice/words.json')).catch(() => []);
   words.forEach(w => w._k = w.w.replace(/^[ .,?!"';:-]+|[ .,?!"';:-]+$/g, '').toLowerCase());
   const pk = cfg.puppets || '/puppets/', imp = n => import(pk + n + '.mjs');
@@ -311,21 +568,48 @@ window.setup = async (cfg) => {
   }
   memes3 = await imp('memes3').catch(() => null);
   const grips = await imp('grips').catch(() => (console.warn('film.js: grips.mjs missing from the puppet package (hands closed round held things)'), null));
-  let motion = null;
-  { const used = new Set(); for (const runs of Object.values(perf)) for (const r of (Array.isArray(runs) ? runs : [])) if (/^m:/.test((r.state || {}).pose || '')) used.add(r.state.pose);
-    if (used.size) { const lib = await import(pk + 'motion/library.mjs').catch(e => (console.warn('film.js: motion library missing: ' + e.message), null));
-      if (lib) { motion = { LIB: lib.LIB, mods: {}, cloth: await import(pk + 'motion/cloth_live.mjs').catch(() => null) /* live long cloth + capes, 2026-11-12 */ }; const want = new Set();
-        for (const p of used) { const id = /^m:([^@+]+)/.exec(p)[1], e = lib.LIB.find(x => x.id === id), mn = (e ? e.module : id.slice(0, id.lastIndexOf('/'))).split('#')[0]; want.add(mn); want.add(mn + '_front'); }
-        for (const mn of want) { const m = await import(pk + 'motion/moves/' + mn + '.mjs').catch(() => null); if (m) motion.mods[mn] = m; else if (!/_front$/.test(mn)) console.warn('film.js: move module not found: ' + mn); } } } }
+  let motion = null, hasMotionWalk = false;
+  { const used = new Set(['m:walk/A', 'm:run/A']); for (const runs of Object.values(perf)) for (const r of (Array.isArray(runs) ? runs : [])) if (/^m:/.test((r.state || {}).pose || '')) used.add(r.state.pose);
+    const lib = await import(pk + 'motion/library.mjs').catch(() => null);
+    if (lib) {
+      motion = { LIB: lib.LIB, mods: {}, cloth: await import(pk + 'motion/cloth_live.mjs').catch(() => null) /* live long cloth + capes, 2026-11-12 */ };
+      const want = new Set(['walk', 'walk_front', 'run', 'run_front']);
+      for (const p of used) { const id = /^m:([^@+]+)/.exec(p)[1], e = lib.LIB.find(x => x.id === id), mn = (e ? e.module : id.slice(0, id.lastIndexOf('/'))).split('#')[0]; want.add(mn); want.add(mn + '_front'); }
+      for (const mn of want) { const m = await import(pk + 'motion/moves/' + mn + '.mjs').catch(() => null); if (m) motion.mods[mn] = m; else if (!/_front$/.test(mn)) console.warn('film.js: move module not found: ' + mn); }
+      hasMotionWalk = !!(motion.mods.walk && motion.mods.run);
+    } }
   initPuppets({ char2d, memes, memes2, memes3, bodies, cast, castkit, castIndex, motion, grips, epFaces: film.faces_ep || null, held3d: (film.held3d || []).map(h => h.obj), faceShadow: film.face_shadow });   // kit_patch: episode faces; face_shadow false = no drawn face shadow on any card (CB 2026-11-15)
 
   const W = cfg.W || 540, H = cfg.H || 960, stage = document.getElementById('stage'); stage.innerHTML = ''; stage.style.width = W + 'px'; stage.style.height = H + 'px';
   const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true }); renderer.setPixelRatio(1); renderer.setSize(W, H);
-  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; renderer.toneMapping = THREE.NeutralToneMapping ?? THREE.ACESFilmicToneMapping;
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.toneMapping = film.tone_mapping === 'aces' ? THREE.ACESFilmicToneMapping : (THREE.NeutralToneMapping ?? THREE.ACESFilmicToneMapping);
+  renderer.toneMappingExposure = film.exposure ?? 1.0;
   const over = document.createElement('canvas'); over.width = W; over.height = H; stage.append(renderer.domElement, over);
   const cam = new THREE.PerspectiveCamera(60, W / H, .05, 600);
-  R = { cfg, dir, film, cam: camB.frames, stationRows: camB.stations || null, perf, words, fps: film.fps || camB.fps || 30, W, H, renderer, over, camera: cam, places: {}, cards: {}, tex: new Map(), place: null, frame: -1 };
+  R = { cfg, dir, film, manifest, cam: camB.frames, stationRows: camB.stations || null, perf, words, fps: film.fps || camB.fps || 30, W, H, renderer, over, camera: cam, places: {}, cards: {}, tex: new Map(), place: null, frame: -1, hasMotionWalk };
   R.end = R.cam.length;
+  R.wordWins = words.map((w, idx) => {
+    const f0 = Math.round((w.s || 0) * R.fps), f1 = Math.max(f0 + 1, Math.round((w.e || w.s || 0) * R.fps));
+    const emp = (/[!?.,]$/.test(w.w || '') || (w._k || '').length >= 6) ? 1.35 : 1.0;
+    return { idx, f0, f1, w: w._k || '', raw: w.w || '', emp };
+  });
+  R.popCh = {};
+  for (const [who, runs] of Object.entries(perf)) {
+    if (!Array.isArray(runs)) continue;
+    const pops = []; let prevF = null, prevP = null;
+    for (const r of runs) {
+      const s = r.state || {}, fc = s.face || 'standard', ps = s.pose || 'stand';
+      const normP = /^walk[01]$/.test(ps) ? 'walk_cyc' : ps;
+      const faceChanged = prevF !== null && fc !== prevF && !(NOPOP(fc) || NOPOP(prevF));
+      const poseChanged = prevP !== null && normP !== prevP;
+      if ((faceChanged || poseChanged) && (!pops.length || r.f0 - pops[pops.length - 1].f0 >= 4)) {
+        pops.push({ f0: r.f0, amp: 1.0 });
+      }
+      prevF = fc; prevP = normP;
+    }
+    R.popCh[who] = pops;
+  }
   R.h3g = (film.held3d || []).filter(h => h.grip); R.hat = (film.hand_at || []).filter(h => h.hand === 'R' || h.hand === 'L'); if (!R.hat.length) R.hat = null; if (R.h3g.length) await h3gBuild(); else R.h3g = null;   // kit 2026-11-13: generic held 3D props (held3d entries with "grip"), built once
 
   // one scene per place, built once by its set module (episode sets win over kit sets)
@@ -334,9 +618,12 @@ window.setup = async (cfg) => {
     const own = cfg.epSets ? cfg.epSets.includes(set + '.js') : (await fetch(dir + 'sets/' + set + '.js', { method: 'HEAD' })).ok;      // the episode's own sets/ folder wins over the kit's
     const mod = await import((own ? dir : './') + 'sets/' + set + '.js');
     const k3 = makeKit3d(THREE, scene, L, kit3dFlags(film, pl), toonMat);   // kit 2026-11-15 (look3d.mjs, PBR_FEATURES.md): opt-in real metal, relief, sky, trees; film.json "kit3d" switches them on, off = the old toon picture
-    const ctx = { THREE, B2T, film, place: pl, light: L, toon: toonMat, pbr: k3.pbr, relief: k3.relief, sky: k3.sky, trees: k3.trees, fx: k3.fx /* FX BOLT HOOK 2026-11-15: ctx.fx.bolt (fx_bolt.mjs) */ };
+    const assets = createAssetHelper(manifest, B2T, { outline: film.ink_outlines !== false });
+    const helpers = createHelpers(THREE);
+    const particles = createParticleSystem(THREE, scene, L);
+    const ctx = { THREE, B2T, film, place: pl, light: L, toon: toonMat, pbr: k3.pbr, relief: k3.relief, sky: k3.sky, trees: k3.trees, fx: k3.fx, particles, assets, helpers, outline: addInkOutlines, alignForward: alignForwardToVelocity /* V3.0+V4.5 helpers */ };
     baseLight(scene, L); const built = (await mod.build(THREE, scene, film, ctx)) || {};
-    R.places[name] = { scene, L, set, update: k3.finish(renderer, built.update), anchors: built.anchors || {} };
+    R.places[name] = { scene, L, set, assets, particles, update: k3.finish(renderer, built.update), anchors: built.anchors || {} };
     // lamps bloom (Rick: every lamp, headlight and lens glows): a soft additive halo on each lit lens or globe, depth-tested so things in front hide it
     scene.updateMatrixWorld(true); const lamps = []; scene.traverse(o => { if (o.isMesh && o.userData.role === 'lamp' && /lens|globe/.test(o.name) && !/halo/.test(o.name)) lamps.push(o); });
     for (const o of lamps) { o.geometry.computeBoundingSphere(); const r = o.geometry.boundingSphere.radius, sp = glowSprite('#' + o.material.color.getHexString(), .6); sp.scale.setScalar(r * 9); sp.position.set(0, 0, o.geometry.type === 'CircleGeometry' ? r * 1.2 : 0); o.add(sp); }
@@ -366,10 +653,15 @@ function baseLight(scene, L) {
   const top = new THREE.Color(L.top), hor = new THREE.Color(L.hor), pos = sky.geometry.attributes.position, col = [];
   for (let i = 0; i < pos.count; i++) { const t = Math.max(0, Math.min(1, pos.getY(i) / 400 * 2.2)), c = hor.clone().lerp(top, Math.pow(t, .7)); col.push(c.r, c.g, c.b); }
   sky.geometry.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); sky.userData.noExport = true; scene.add(sky);
-  scene.fog = new THREE.Fog(L.hor, 30, 260);                                          // fog = horizon colour, so far things sink into the sky
-  scene.add(new THREE.HemisphereLight(L.amb, '#6b6258', L.ai));
+  scene.fog = (L.fogExp2 || L.fogDensity)
+    ? new THREE.FogExp2(L.fogColor || L.hor, L.fogDensity ?? 0.012)
+    : new THREE.Fog(L.hor, 30, 260);                                          // V4.5 atmospheric haze or horizon distance fog
+  scene.add(new THREE.HemisphereLight(L.amb, L.ground || '#5a5260', Math.max(0.45, L.ai ?? 1.0)));
   const sun = new THREE.DirectionalLight(L.sun, L.si); sun.position.set(...L.dir).multiplyScalar(3); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
-  Object.assign(sun.shadow.camera, { left: -14, right: 14, top: 14, bottom: -14, near: .5, far: 90 }); sun.shadow.bias = -.0008; sun.shadow.radius = 3; scene.add(sun);
+  Object.assign(sun.shadow.camera, { left: -22, right: 22, top: 22, bottom: -22, near: .5, far: 110 }); sun.shadow.bias = -.0008; sun.shadow.radius = 3; scene.add(sun);
+  const rim = new THREE.DirectionalLight(L.rim || L.amb, L.rimI ?? 0.45);
+  rim.position.set(-(L.dir?.[0] ?? -4), Math.max(4, (L.dir?.[1] ?? 9) * 0.8), -(L.dir?.[2] ?? -3)).multiplyScalar(3);
+  rim.castShadow = false; scene.add(rim);
 }
 
 async function texture(key, svg, scale) {
@@ -377,7 +669,7 @@ async function texture(key, svg, scale) {
   const img = new Image(); img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg); await img.decode();
   const c = document.createElement('canvas'); c.width = Math.round(CARD.W * scale); c.height = Math.round(CARD.H * scale); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
-  R.tex.set(id, t); if (R.tex.size > 60) { const [old, ot] = R.tex.entries().next().value; ot.dispose(); R.tex.delete(old); }   // holds are dead still, so a film needs few drawings; cap the rest
+  R.tex.set(id, t); if (R.tex.size > 240) { const [old, ot] = R.tex.entries().next().value; ot.dispose(); R.tex.delete(old); }   // holds are dead still, so a film needs few drawings; cap the rest
   return t;
 }
 
@@ -421,22 +713,147 @@ window.heldGLTF = async () => {
     if (E.fists[0]) { const g = E.fists[0].g.clone(true); g.position.set(0, 0, 0); g.quaternion.identity(); g.scale.set(1, 1, 1); g.visible = true; out[E.key + ':fist'] = await new GLTFExporter().parseAsync(g, { binary: false, onlyVisible: false, trs: true }); } }   // kit 2026-11-13: generic held props and the 3D fist
   return out;
 };
+function cardKinetic(who, f, t, st, lie) {
+  if (lie || R.film.kinetic === false) return { sx: 1, sy: 1, hopY: 0, shakeX: 0, rotZ: 0 };
+  const phase = (hashStr(who) % 97) * 0.13, br = Math.sin(t * Math.PI * 2 / 2.6 + phase);
+  let sx = 1 - 0.0015 * br, sy = 1 + 0.003 * br, hopY = 0, shakeX = 0, rotZ = 0.0015 * Math.sin(t * 1.4 + phase);
+  const pops = R.popCh && R.popCh[who], popDurF = Math.max(3, Math.round(0.15 * (R.fps || 30)));
+  if (pops && (R.film.tween || {}).pop !== 0) {
+    for (let i = pops.length - 1; i >= 0; i--) {
+      const d = f - pops[i].f0;
+      if (d >= 0 && d < popDurF) {
+        // V3.5 0.15s cartoon squash-and-stretch pop: scaleY 1.12 -> 1.0, scaleX 0.90 -> 1.0
+        const u = d / Math.max(1, popDurF - 1), w = Math.pow(1 - u, 1.45), a = pops[i].amp ?? 1;
+        sx *= 1 - 0.10 * w * a;
+        sy *= 1 + 0.12 * w * a;
+        break;
+      }
+      if (d > popDurF) break;
+    }
+  }
+  const wd = activeWordAt(f);
+  if (wd) {
+    const u = Math.sin(Math.PI * Math.max(0, Math.min(1, (f - wd.f0 + 0.5) / Math.max(1, wd.f1 - wd.f0 + 1))));
+    const speaking = /talk|open|shout|scream|angry|happy|smirk|smug|laugh|sneaky|wail|hysterical|surprised|jawdrop|p:/.test(st.face || '') || !!st.speaking || R.film.speaker === who;
+    const amp = speaking ? wd.emp : (wd.emp > 1.1 ? 0.3 : 0);
+    if (amp > 0) {
+      sx *= 1 - 0.003 * amp * u;
+      sy *= 1 + 0.006 * amp * u;
+      rotZ += ((wd.idx % 2) ? 1 : -1) * 0.005 * amp * u;
+    }
+  }
+  const isArticulatedMove = /^(m:(walk|run)|gait:(walk|run|sneak))/.test(st.pose || '');
+  if (!isArticulatedMove && (st.ride || st.in_vehicle)) {
+    hopY += Math.abs(Math.sin(t * Math.PI * 6.0 + phase)) * 0.006;
+    rotZ += Math.sin(t * Math.PI * 4.5 + phase) * 0.005;
+  }
+  if (st.rage || st.shake || /rage|fury/.test(st.face || '')) {
+    const shk = Math.sin(f * 2.35 + phase);
+    shakeX += shk * 0.014;
+    rotZ += shk * 0.022;
+  }
+  return { sx, sy, hopY, shakeX, rotZ };
+}
+window.walkTelemetry = (who, f0 = 0, f1 = R.end - 1) => {
+  const rows = [];
+  for (let f = Math.max(0, f0); f <= Math.min(R.end - 1, f1); f++) {
+    const st = tweened(who, f), vel = charVelAt(who, f), dist = charDistAt(who, f);
+    if (vel.speed > 0.14 || /^(m:(walk|run)|gait:(walk|sneak|run|idle_alive))/.test(st.pose || '')) {
+      rows.push({ f, speed: +vel.speed.toFixed(3), dist: +dist.toFixed(3), gait: st._gait || null, walkPhase: st._walkPhase ?? null, pose: st.pose, view: st.view, dir: st.dir, footY: +(st.pos?.[2] || 0).toFixed(4) });
+    }
+  }
+  return rows;
+};
+function resolveAttachedPos(st, f, t, pl) {
+  const att = st && st.attach;
+  if (!att || !pl) return null;
+  const spec = typeof att === 'string' ? { obj: att } : att;
+  const off = spec.offset || [0, 0, 0];
+  const key = spec.anchor || spec.obj;
+  const anc = key && pl.anchors ? pl.anchors[key] : null;
+  if (anc) {
+    const raw = typeof anc === 'function' ? anc(f, t, R) : anc;
+    const base = Array.isArray(raw) ? raw : raw?.pos;
+    if (base) {
+      const yaw = raw?.yaw || 0, cy = Math.cos(yaw), sy = Math.sin(yaw);
+      const px = base[0] + off[0] * cy - off[1] * sy;
+      const py = base[1] + off[0] * sy + off[1] * cy;
+      const pz = (base[2] || 0) + (off[2] || 0);
+      return { pos: [px, py, pz], objName: spec.obj || key, hideBlob: spec.show_shadow !== true, roll: raw?.roll || 0 };
+    }
+  }
+  const obj3 = spec.obj && pl.scene ? pl.scene.getObjectByName(spec.obj) : null;
+  if (obj3) {
+    obj3.updateWorldMatrix(true, false);
+    const w = B2T(off).applyMatrix4(obj3.matrixWorld);
+    return { pos: [w.x, -w.z, w.y], objName: spec.obj, hideBlob: spec.show_shadow !== true, roll: 0 };
+  }
+  return null;
+}
+window.checkClearanceAll = (step = 5) => {
+  const activeHits = new Map();
+  for (let f = 0; f < R.end; f += Math.max(1, step)) {
+    const c = R.cam[f], pl = R.places[c.place] || Object.values(R.places)[0], t = f / R.fps;
+    if (pl.update) pl.update(f, t, R);
+    pl.scene.updateMatrixWorld(true);
+    const visActors = [];
+    for (const [who, card] of Object.entries(R.cards)) {
+      const st = tweened(who, f), show = st.visible && (!st.place || st.place === c.place);
+      if (!show) continue;
+      const att = resolveAttachedPos(st, f, t, pl);
+      const effPos = att ? att.pos : st.pos;
+      visActors.push({ who, st, card, pos: effPos });
+      if (pl.assets) {
+        const hits = pl.assets.checkActorClearance(who, effPos, card.entry.height || 1.7, card.entry.clearance_radius || 0.25);
+        for (const h of hits) {
+          if (att && att.objName && h.solid.includes(att.objName)) continue;
+          const k = `${c.place}|${h.actor}|${h.solid}`;
+          const prev = activeHits.get(k);
+          if (!prev) activeHits.set(k, { place: c.place, actor: h.actor, solid: h.solid, f0: f, f1: f, min_clearance_m: h.clearance_m, required_m: h.required_m, max_overlap_m: h.overlap_m });
+          else { prev.f1 = f; prev.min_clearance_m = Math.min(prev.min_clearance_m, h.clearance_m); prev.max_overlap_m = Math.max(prev.max_overlap_m, h.overlap_m); }
+        }
+      }
+    }
+    for (let i = 0; i < visActors.length; i++) {
+      for (let j = i + 1; j < visActors.length; j++) {
+        const A = visActors[i], B = visActors[j], pa = A.pos, pb = B.pos;
+        if (Math.abs((pa[2] || 0) - (pb[2] || 0)) >= 1.2) continue;
+        const d = Math.hypot(pa[0] - pb[0], pa[1] - pb[1]), minSep = 0.42;
+        if (d < minSep) {
+          const k = `${c.place}|${A.who}|actor:${B.who}`;
+          const prev = activeHits.get(k);
+          if (!prev) activeHits.set(k, { place: c.place, actor: A.who, solid: `actor:${B.who}`, f0: f, f1: f, min_clearance_m: +d.toFixed(3), required_m: minSep, max_overlap_m: +(minSep - d).toFixed(3) });
+          else { prev.f1 = f; prev.min_clearance_m = Math.min(prev.min_clearance_m, +d.toFixed(3)); prev.max_overlap_m = Math.max(prev.max_overlap_m, +(minSep - d).toFixed(3)); }
+        }
+      }
+    }
+  }
+  return Array.from(activeHits.values());
+};
 window.renderFrame = async (f, opt = {}) => {
   f = Math.max(0, Math.min(R.end - 1, f)); const c = R.cam[f], pl = R.places[c.place] || Object.values(R.places)[0], t = f / R.fps;
   setCamera(c);
+  if (pl.update) pl.update(f, t, R);
+  if (pl.particles) pl.particles.update(f, t, R);
   R.renderer.domElement.style.visibility = opt.overlayOnly ? 'hidden' : 'visible';
-  if (opt.overlayOnly) { document.documentElement.style.background = document.body.style.background = 'transparent'; R.placeNow = pl; if (pl.update) pl.update(f, t, R); pl.scene.updateMatrixWorld(true); overlay(f, opt.captions ?? R.cfg.captions ?? true); R.frame = -1; return true; }   // the drawn layer alone (effects, glints, transitions, captions) on a clear ground: laid over the Blender picture
+  if (opt.overlayOnly) { document.documentElement.style.background = document.body.style.background = 'transparent'; R.placeNow = pl; pl.scene.updateMatrixWorld(true); overlay(f, opt.captions ?? R.cfg.captions ?? true); R.frame = -1; return true; }   // the drawn layer alone (effects, glints, transitions, captions) on a clear ground: laid over the Blender picture
   for (const [who, card] of Object.entries(R.cards)) {
-    const st = tweened(who, f), show = st.visible && (!st.place || st.place === c.place);
+    const st0 = tweened(who, f), show = st0.visible && (!st0.place || st0.place === c.place);
     if (card.mesh.parent !== pl.scene) { pl.scene.add(card.mesh); pl.scene.add(card.blob); }
-    card.mesh.visible = card.blob.visible = show; if (!show) continue;
-    const pos = B2T(st.pos); card.mesh.position.copy(pos); card.mesh.scale.set(CARD.W * card.k, CARD.H * card.k, 1);
+    card.mesh.visible = show; card.blob.visible = show; if (!show) continue;
+    const att = resolveAttachedPos(st0, f, t, pl);
+    const st = att ? { ...st0, pos: att.pos, in_vehicle: st0.in_vehicle ?? true } : st0;
+    if (att && att.hideBlob) card.blob.visible = false;
+    const lie = lieOf(st), kin = cardKinetic(who, f, t, st, lie);
+    const pos = B2T(st.pos); card.mesh.position.copy(pos); card.mesh.position.y += kin.hopY; card.mesh.position.x += kin.shakeX || 0;
+    card.mesh.scale.set(CARD.W * card.k * kin.sx, CARD.H * card.k * kin.sy, 1);
     { const cs = cardScale(who, f); if (cs[0] !== 1 || cs[1] !== 1) { card.mesh.scale.x *= cs[0]; card.mesh.scale.y *= cs[1]; } }   // kit_patch (animator fix 6): acted size changes (cat puff, squash/stretch), about the feet
-    card.blob.rotation.set(-Math.PI / 2, 0, 0); card.blob.scale.set(card.m.headPx * card.k * .42, card.m.headPx * card.k * .2, 1);   // lying may slide / turn them: reset each frame
+    const bSc = Math.max(0.75, 1 - kin.hopY * 2.5);
+    card.blob.rotation.set(-Math.PI / 2, 0, 0); card.blob.scale.set(card.m.headPx * card.k * .42 * bSc, card.m.headPx * card.k * .2 * bSc, 1);   // lying may slide / turn them: reset each frame
     card.blob.position.set(pos.x, pos.y + .012, pos.z);   // 2026-11-13 lead fix: these three statements had been swallowed by the comment above, so every foot blob sat at the world origin
     card.mesh.rotation.order = 'YXZ'; card.mesh.rotation.y = Math.atan2(R.camera.position.x - pos.x, R.camera.position.z - pos.z);                       // face the lens
     { const hm = (card.entry.height || 1.7) * .55, hd = Math.hypot(R.camera.position.x - pos.x, R.camera.position.z - pos.z); card.mesh.rotation.x = -Math.atan2(R.camera.position.y - (pos.y + hm), hd); }
-    { const lie = lieOf(st), D2 = Math.PI / 180; card.mesh.rotation.z = 0;   // LYING (2026-11-12, poses.mjs lieOf): the whole card turns flat, never squashed
+    { const D2 = Math.PI / 180; card.mesh.rotation.z = kin.rotZ + (att?.roll || 0);   // LYING (2026-11-12, poses.mjs lieOf): the whole card turns flat, never squashed
       if (lie === 'flat') { card.mesh.rotation.x = -Math.PI / 2; card.mesh.rotation.z = (st.lie_yaw || 0) * D2; card.mesh.position.y += .015; }   // camera above: on the floor, face up
       else if (lie) {   // PERSPECTIVE (CB 2026-11-12 13:39Z): the body lies along a real line on the floor (act key lie_yaw, degrees; 0 = head toward plan -X); lie_cam.mjs picks side / top / feet / head drawing from the camera and turns the card along that line
         const h = card.entry.height || 1.7, len = h * .95, rt = new THREE.Vector3().setFromMatrixColumn(R.camera.matrixWorld, 0); rt.y = 0; rt.normalize();
@@ -449,19 +866,30 @@ window.renderFrame = async (f, opt = {}) => {
     const dist = R.camera.position.distanceTo(pos), px = CARD.H * card.k / dist * (R.H / (2 * Math.tan(c.fov_v * Math.PI / 360)));
     const scale = [.25, .5, 1, 2].find(s => s * CARD.H >= px * 1.2) || 2;                                               // drawing resolution follows the card's size on screen, so close-ups stay sharp
     const key = stateKey(who, st), tex = await texture(key, svgFor(card.entry, st), scale);
-    const tn = cardTint(who, f); let tx = tex; if (tn && tn.a > 0) tx = tintedTexture(key + '@' + scale + '|' + tn.hex + tn.a, tex, card, tn);
+    const tn = cardTint(who, f, st); let tx = tex; if (tn && tn.a > 0) tx = tintedTexture(key + '@' + scale + '|' + tn.hex + tn.a, tex, card, tn);
     { const sh = pl.L.card_shade; if (sh && st.view !== 'back') {   // card_shade (optional, via light_over): white faces WITH a shadow side and light picked up ONLY from a real light source (CB 2026-11-10). lights: [{pos, color, range}] = the set's practical lights; far: {pos, color} = the moon or key, used when no practical is in range
         let best = null, bd = 1e9; for (const l of sh.lights || []) { if (l.when && (f < l.when[0] || f > l.when[1])) continue; const an = l.anchor && pl.anchors[l.anchor], lpos = an ? (typeof an === 'function' ? an(f) : an) : l.pos; if (!lpos) continue; const lp = B2T(lpos), dd = lp.distanceTo(pos) / (l.prio ?? 1); if (dd < (l.range ?? 4.5) && dd < bd) { bd = dd; best = { l, lp, k: Math.max(.45, 1 - dd / (l.range ?? 4.5)) }; } }
         if (!best && sh.far) best = { l: sh.far, lp: B2T(sh.far.pos), k: sh.far.k ?? .6 };
         if (best) { R.camera.updateMatrixWorld(); const inv = R.camera.matrixWorldInverse.copy(R.camera.matrixWorld).invert(), ls = best.lp.clone().applyMatrix4(inv).x >= pos.clone().applyMatrix4(inv).x ? 1 : -1, kq = Math.round(best.k * 4) / 4;
-          tx = shadedTexture(key + '@' + scale + '|' + (tn && tn.a > 0 ? tn.hex + tn.a : '') + '|sh' + ls + best.l.color + kq, tx, card, { ...sh, side: -ls, rim: best.l.color, rim_amount: (sh.rim_amount ?? 1) * kq }); } } }
-    { const cs = pl.L.costume_shade || R.film.costume_shade; if (cs && cs.amount > 0) { const sd = (st.view === '34' || st.view === 'side') ? -(st.dir || 1) : 1; tx = costumeShadedTexture(key + '@' + scale + '|cs' + sd + cs.amount + (cs.smooth > 0 ? 's' + cs.smooth : '') + (cs.keep_drawn_light ? 'k' : '') + (tx === tex ? '' : '|' + tx.uuid), tx, sd, cs, card, tex); } }   // CB 2026-11-12 rule: costume, headwear and cloth accessories get a darker side, the same side as the face's soft shadow   /* lighting-director 2026-11-13: ported from cart-army kit_patch (CB-APPROVED 02:12 "exept for the face") */
+          tx = shadedTexture(key + '@' + scale + '|' + (tn && tn.a > 0 ? tn.hex + tn.a : '') + '|sh' + ls + best.l.color + kq, tx, card, { ...sh, side: -ls, rim: best.l.color, rim_amount: (sh.rim_amount ?? 1) * kq }); } }
+      else if (pl.L.card_rim && st.view !== 'back') {
+        R.camera.updateMatrixWorld(); const inv = R.camera.matrixWorldInverse.copy(R.camera.matrixWorld).invert();
+        const sunW = B2T([pl.L.dir?.[0] ?? -10, -(pl.L.dir?.[2] ?? 4), pl.L.dir?.[1] ?? 5]).multiplyScalar(20);
+        const ls = sunW.clone().applyMatrix4(inv).x >= pos.clone().applyMatrix4(inv).x ? 1 : -1;
+        tx = shadedTexture(key + '@' + scale + '|' + (tn && tn.a > 0 ? tn.hex + tn.a : '') + '|rim' + ls + pl.L.card_rim + (pl.L.card_rim_amt ?? .28), tx, card, { style: 'rick', amount: 0.28, rim: pl.L.card_rim, rim_amount: pl.L.card_rim_amt ?? 0.28, side: -ls });
+      }
+    }
+    { const rawCs = pl.L.costume_shade || R.film.costume_shade; const cs = rawCs ? { keep_drawn_light: true, ...rawCs } : null; if (cs && cs.amount > 0) { const sd = (st.view === '34' || st.view === 'side') ? -(st.dir || 1) : 1; tx = costumeShadedTexture(key + '@' + scale + '|cs' + sd + cs.amount + (cs.smooth > 0 ? 's' + cs.smooth : '') + (cs.keep_drawn_light ? 'k' : '') + (tx === tex ? '' : '|' + tx.uuid), tx, sd, cs, card, tex); } }   // CB 2026-11-12 rule: costume, headwear and cloth accessories get a darker side, the same side as the face's soft shadow   /* lighting-director 2026-11-13: ported from cart-army kit_patch (CB-APPROVED 02:12 "exept for the face") */
     if (card.mesh.material.map !== tx) { card.mesh.material.map = tx; card.mesh.customDepthMaterial.map = tx; card.mesh.material.needsUpdate = true; card.mesh.customDepthMaterial.needsUpdate = true; }
-    card.mesh.material.color.set(pl.L.tint).multiplyScalar(pl.L.card_gain ?? 1); card.mesh.material.fog = pl.L.card_fog ?? true;   // card_gain / card_fog (optional, via light_over): lift the cards toward clean white (CB 2026-11-10: faces must not read grey)
+    const emit = pl.L.card_emit ?? R.film.card_emit ?? 1.0, emitGain = emit >= 1 ? (1 + (emit - 1) * 0.15) : emit;
+    const warmth = pl.L.card_warmth ?? 0;
+    const baseBlend = warmth > 0 ? Math.max(0.25, 1 - warmth * 1.4) : Math.min(1, Math.max(0, emit) * 0.65);
+    const tintCol = new THREE.Color(pl.L.tint || '#ffffff').lerp(new THREE.Color('#ffffff'), baseBlend);
+    card.mesh.material.color.copy(tintCol).multiplyScalar(Math.max(0.92, (pl.L.card_gain ?? 1) * emitGain));
+    card.mesh.material.fog = pl.L.card_fog ?? false;   // self-lit cards stay bright and legible from every turn and at night
                                                                                // scene tint: cards are mostly self-lit, tinted by the place
   }
   await held3dUpdate(f, t, pl);   // kit_patch: the 3D held lighter, grip anchor locked on the fist
-  if (pl.update) pl.update(f, t, R);
   R.placeNow = pl; const lit = applyHighlights(f, pl);
   renderLook(pl, f, t); R.frame = f;
   for (const [mt, col, em] of lit) { mt.color.copy(col); if (em) mt.emissive.copy(em); }
@@ -489,8 +917,8 @@ const hlAmp = (h, k) => Math.min(1, k / .12, (1 - k) / .3) * (h.amp ?? 1) * (.82
 function hlMeshes(h, pl) {
   const key = '_hl_' + pl.set; if (h[key]) return h[key]; const out = [], names = [].concat(h.on || []);
   for (const nm of names) { const rx = /^\/.*\/$/.test(nm) ? new RegExp(nm.slice(1, -1)) : null;
-    if (rx) pl.scene.traverse(o => { if (o.isMesh && !o.isInstancedMesh && rx.test(o.name)) out.push(o); });
-    else { const o = pl.scene.getObjectByName(nm); if (o) o.traverse(m => { if (m.isMesh && !m.isInstancedMesh) out.push(m); }); } }
+    if (rx) pl.scene.traverse(o => { if (o.isMesh && !o.isInstancedMesh && !o.userData.isInkOutline && rx.test(o.name)) out.push(o); });
+    else { const o = pl.scene.getObjectByName(nm); if (o) o.traverse(m => { if (m.isMesh && !m.isInstancedMesh && !m.userData.isInkOutline) out.push(m); }); } }
   for (const m of out) if (!m.userData.ownMat) { m.material = m.material.clone(); m.userData.ownMat = true; }       // sets share one material per colour: a lit thing gets its own
   return h[key] = out;
 }
@@ -520,8 +948,14 @@ function applyHighlights(f, pl) {
   return lit;
 }
 // a face that changes colour (Rick: "his face goes purple"): only the bare head of the card is tinted, the hat, hair and clothes keep their colours
-function cardTint(who, f) { for (const h of R.hl || []) { if (![].concat(h.on || []).includes(who)) continue; const k = (f - h.f) / h.n; if (k < 0 || k >= 1) continue;
-  return { hex: hlColor(h.color, Math.round(k * 6) / 6).getHexString(), a: Math.round(Math.min(1, k / .15, (1 - k) / .25) * 5) / 5 * (h.card ?? .8) }; } return null; }
+function cardTint(who, f, st) {
+  for (const h of R.hl || []) { if (![].concat(h.on || []).includes(who)) continue; const k = (f - h.f) / h.n; if (k < 0 || k >= 1) continue;
+    return { hex: hlColor(h.color, Math.round(k * 6) / 6).getHexString(), a: Math.round(Math.min(1, k / .15, (1 - k) / .25) * 5) / 5 * (h.card ?? .8) }; }
+  if (st && (st.rage || /rage|fury/.test(st.face || ''))) return { hex: 'e63b2e', a: 0.45 };
+  if (st && /^(k:)?angry$/.test(st.face || '')) return { hex: 'ef4444', a: 0.22 };
+  if (st && /^(k:)?terrified$/.test(st.face || '')) return { hex: 'b8d0ff', a: 0.20 };
+  return null;
+}
 // card_shade = { side: 1 | -1 (which side of the head is in shadow, +1 = screen right), shadow: '#hex', amount: 0..1, rim: '#hex', rim_amount: 0..1 }
 // Only the near-white skin pixels of the head change: the lit side stays pure white, the far side gets a soft coloured shadow, and its very edge picks up the scene's light.
 function shadedTexture(id, tex, card, sh) {
@@ -548,7 +982,7 @@ function shadedTexture(id, tex, card, sh) {
       let s = RICK ? ss(.35, 1.0, u + v * .25) * A : ss(-.02, .5, u + v * .2) * A;
       const hs = RICK && top[x] >= 0 ? (1 - ss(Rr * .14, Rr * .32, y - top[x])) * .3 * (sh.hat_shadow ?? 0)   /* CB 2026-11-12 11:55Z: no brim shadow on faces, default 0 */ : 0;   // the hat or hair brim casts a short soft shadow on the forehead (Rick's police cap: ~30 % darker, same hue)
       for (let k = 0; k < 3; k++) { let p = d[i + k] / 255; p = p * (1 - s + s * S[k]) * (1 - hs); p = p + (Rm[k] - p) * rim; d[i + k] = Math.round(255 * Math.min(1, p)); } } }
-  g.putImageData(im, 0, 0); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; R.tex.set(id, t); if (R.tex.size > 60) { const [old, ot] = R.tex.entries().next().value; ot.dispose(); R.tex.delete(old); } return t;
+  g.putImageData(im, 0, 0); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; R.tex.set(id, t); if (R.tex.size > 240) { const [old, ot] = R.tex.entries().next().value; ot.dispose(); R.tex.delete(old); } return t;
 }
 // COSTUME SHADOW SIDE (CB 2026-11-12 18:57Z: "for the costume head or cloth accessoires etc. also have darker shadow where the lights falls. at the side. this is a rule").
 // Per row of the card: the coloured (not skin, not ink) pixels get a soft ramp, darker toward the side away from the light (side +1 = screen right), the same side as the
@@ -572,7 +1006,7 @@ function costumeShadedTexture(id, tex, side, cs, card, base) {   /* fireworks ki
     if (xl < 0 || xr - xl < 6) continue; const w = xr - xl;
     for (let x = (cs.smooth > 0 ? 0 : xl); x <= (cs.smooth > 0 ? W - 1 : xr); x++) { const i = (y * W + x) * 4; if (d[i + 3] < 40 || ink(i) || skin(i)) continue; let u = Math.min(1, Math.max(0, (x - xl) / w)); if (side < 0) u = 1 - u; let t = (u - st0) / (1 - st0); if (t <= 0) continue; t = Math.min(1, t); t = t * t * (3 - 2 * t); const k = 1 - A * t;
       d[i] = Math.round(d[i] * k * (1 - cool * t * .5)); d[i + 1] = Math.round(d[i + 1] * k * (1 - cool * t * .25)); d[i + 2] = Math.round(d[i + 2] * Math.min(1, k * (1 + cool * t * .2))); } }
-  g.putImageData(im, 0, 0); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; R.tex.set(id, t); if (R.tex.size > 60) { const [old, ot] = R.tex.entries().next().value; ot.dispose(); R.tex.delete(old); } return t;
+  g.putImageData(im, 0, 0); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; R.tex.set(id, t); if (R.tex.size > 240) { const [old, ot] = R.tex.entries().next().value; ot.dispose(); R.tex.delete(old); } return t;
 }
 function tintedTexture(id, tex, card, tint) {
   const hit = R.tex.get(id); if (hit) return hit; const src = tex.image, c = document.createElement('canvas'); c.width = src.width; c.height = src.height; const g = c.getContext('2d'); g.drawImage(src, 0, 0);
@@ -606,10 +1040,9 @@ function drawFx(g, kind, x, y, k, W, seed, tintCol) {
   } else if (/dust|puff|steam|whistle|smoke/.test(kind)) {            // soft steam, no outline; "x2" / "x4" in the name = that many bursts one after the other (counted toots)
     const m = /x(\d)/.exec(kind), n = m ? +m[1] : /counted/.test(kind) ? 3 : 1, span = 1 / (1 + .55 * (n - 1)), ear = /ear/.test(kind);
     for (let j = 0; j < n; j++) { const kj = (k - j * .55 * span) / span; if (kj < 0 || kj >= 1) continue; if (ear) { for (const sx of [-1, 1]) { g.save(); g.translate(sx * 70 * u, 0); g.rotate(sx * .5); puffs(6, '#ffffff', kj, 0); puffs(4, '#ffffff', Math.min(.999, kj * 1.3), 0); g.restore(); } } else puffs(6, /dust/.test(kind) ? '#e6cfae' : '#ffffff', kj, (j - (n - 1) / 2) * 26 * u); }
-  } else if (/glint|coin|glow|shine/.test(kind)) {                    // lens glint: a small bloom and ONE thin horizontal streak (anamorphic), never a cross: a cross reads as a cartoon star
+  } else if (/glint|coin|glow|shine/.test(kind)) {                    // soft spherical micro-glow (Cinema Standard V2.0: harsh horizontal glare streaks banned)
     g.globalCompositeOperation = 'lighter'; const a = Math.sin(Math.PI * Math.min(1, k * 1.25)), col = tintCol || '#fff2cc';
-    bloom(0, 0, 52 * u, col, a * .8); bloom(0, 0, 13 * u, '#ffffff', a);
-    for (const [lw, lh, al, c2] of [[250, 1.6, .75, '#ffffff'], [150, 5, .22, col]]) { const gr = g.createLinearGradient(-lw * u * a, 0, lw * u * a, 0); gr.addColorStop(0, rgba(c2, 0)); gr.addColorStop(.5, rgba(c2, al * a)); gr.addColorStop(1, rgba(c2, 0)); g.fillStyle = gr; g.fillRect(-lw * u * a, -lh * u * a, lw * 2 * u * a, lh * 2 * u * a); }
+    bloom(0, 0, 26 * u, col, a * .45); bloom(0, 0, 9 * u, '#ffffff', a * .52);
   } else if (/spark/.test(kind)) {                                    // grinding metal: many fine sparks
     g.globalCompositeOperation = 'lighter'; bloom(0, 0, 30 * u, '#ffd27a', (1 - k) * .7); sparks(26, 380);
   } else if (/scream|sound|ring|toot/.test(kind)) {                   // sound: thin ripples in the air
@@ -618,7 +1051,7 @@ function drawFx(g, kind, x, y, k, W, seed, tintCol) {
     for (let i = 0; i < 5; i++) { const a = -Math.PI * (.15 + .7 * rnd(i)), v = (50 + 90 * rnd(i + 2)) * u, px = Math.cos(a) * v * out, py = Math.sin(a) * v * out + 160 * u * k * k; g.fillStyle = rgba(/ink/.test(kind) ? '#b3261e' : '#bfe6ff', (1 - k * k) * .9); g.beginPath(); g.ellipse(px, py, 3.2 * u, 5.5 * u, a + Math.PI / 2, 0, 7); g.fill(); }
   } else if (/paper|letter/.test(kind)) {                             // sheets of paper tumbling up, lit from one side
     for (let i = 0; i < 7; i++) { const px = (rnd(i) - .5) * 260 * u * out, py = -(60 + 260 * rnd(i + 4)) * u * out, sq = Math.abs(Math.cos(k * 9 * (rnd(i) - .5) + i)); g.save(); g.translate(px, py); g.rotate((rnd(i + 8) - .5) * 3 + k * 4 * (rnd(i) - .5)); g.globalAlpha = 1 - k * k; g.fillStyle = sq > .5 ? '#fbf6e8' : '#d8d0bd'; g.fillRect(-15 * u, -21 * u * sq, 30 * u, 42 * u * sq); g.restore(); }
-  } else { g.globalCompositeOperation = 'lighter'; bloom(0, 0, (30 + 60 * k) * u, '#fff2cc', (1 - k) * .7); }
+  } else { /* global dot ban: never draw fallback yellow bokeh circles */ }
   g.restore(); g.globalAlpha = 1;
 }
 
@@ -666,7 +1099,7 @@ function overlay(f, captions) {
   for (const m of R.moods) { const k = (f - m.f) / (R.fps * .5); if (k >= 0 && k < 1) { g.fillStyle = /red/.test(m.look) ? '#ff3b30' : /warm|gold/.test(m.look) ? '#ffb347' : /spot|dark/.test(m.look) ? '#000000' : /cold|blue/.test(m.look) ? '#3b82f6' : '#ffffff'; const col = g.fillStyle, gr = g.createRadialGradient(W / 2, H * .45, H * .18, W / 2, H * .45, H * .75); gr.addColorStop(0, col + '00'); gr.addColorStop(1, col + 'ff'); g.fillStyle = gr; g.globalAlpha = .34 * (1 - k) * (1 - k); g.fillRect(0, 0, W, H); g.globalAlpha = 1; } }
   // PLACEHOLDER fx: an expanding ring at the named thing, so effects are timed and placed before they are designed.
   drawHighlights(g, f, W, H);
-  for (const e of R.fx) { const k = (f - e.f) / (R.fps * (e.s ?? .8)); if (k >= 0 && k < 1) { const p3 = Array.isArray(e.pos) ? B2T(e.pos) : propPos(e.on, f), p = p3 && project(p3); if (p) drawFx(g, e.kind || '', p[0] * W, p[1] * H, k, W * (e.size ?? 1.25) * Math.max(.3, Math.min(1.5, 3 / R.camera.position.distanceTo(p3))), e.f); } }   // an effect is a thing in the world: it is smaller when the camera is far
+  for (const e of R.fx) { const k = (f - e.f) / (R.fps * (e.s ?? .8)), kind = e.kind || e.type || ''; if (k >= 0 && k < 1 && !/dust|bokeh|mote/.test(kind)) { const p3 = Array.isArray(e.pos) ? B2T(e.pos) : propPos(e.on, f), p = p3 && project(p3); if (p) drawFx(g, kind, p[0] * W, p[1] * H, k, W * (e.size ?? 1.25) * Math.max(.3, Math.min(1.5, 3 / R.camera.position.distanceTo(p3))), e.f); } }   // an effect is a thing in the world: it is smaller when the camera is far
   // DRAWN TRANSITIONS (2026-11-10, CB: transitions through a form or an object, like Rick's): film.json "transitions": [{ at, kind, frames, from, to }].
   //   "wheel": the picture closes into a spoked wheel that grows out of the thing named in "from", and opens again as a round hole on the thing named in "to".
   //   "steam": drawn steam puffs boil up over the frame and clear again. The middle frame (at) is fully covered: put the hidden jump or the cut there.
@@ -681,7 +1114,7 @@ function overlay(f, captions) {
   if (!R.capChunks) { R.capChunks = []; const ws = R.words; for (let j = 0; j < ws.length; j++) { const a = ws[j], b = ws[j + 1], ta = a.w.trim(); if (b && ta.length <= 3 && !/[.,?!;:]$/.test(ta) && (ta + ' ' + b.w.trim()).length <= 10 && b.s - a.e < .25) { R.capChunks.push({ s: a.s, e: b.e, w: ta + ' ' + b.w.trim() }); j++; } else R.capChunks.push({ s: a.s, e: a.e, w: ta }); } }
   const C = R.capChunks; let c = null, i = -1; for (let j = 0; j < C.length; j++) if (C[j].s - .1 <= t) { c = C[j]; i = j; }
   if (!c) return; const nx = C[i + 1]; if (t > (nx ? nx.s - .1 : c.e + .35) || t > c.e + .6) return;
-  const size = H * .039 * (R.film.caption_rick_scale ?? 1), txt = c.w.replace(/["\u201c\u201d]/g, ''), y = H * .715;
+  const size = H * .039 * (R.film.caption_rick_scale ?? 1), txt = c.w.replace(/["\u201c\u201d]/g, ''), y = H * (R.film.caption_y ?? .715);
   g.font = `700 ${size}px Arial, "Helvetica Neue", Helvetica, "Liberation Sans", sans-serif`; g.textAlign = 'center'; g.textBaseline = 'alphabetic'; g.lineJoin = 'round';
   g.save(); g.shadowColor = 'rgba(0,0,0,.7)'; g.shadowBlur = size * .12; g.shadowOffsetX = size * .05; g.shadowOffsetY = size * .07;
   g.lineWidth = size * .13; g.strokeStyle = '#000'; g.strokeText(txt, W / 2, y); g.restore();
@@ -713,6 +1146,23 @@ window.stations = () => {
     }
   }
   return out;
+};
+
+window.checkSafeZoneAll = (step = 10) => {
+  const warnings = [];
+  for (let f = 0; f < R.end; f += Math.max(1, step)) {
+    const c = R.cam[f], pl = R.places[c.place] || Object.values(R.places)[0];
+    setCamera(c); if (pl.update) pl.update(f, f / R.fps, R);
+    for (const [name, pr] of Object.entries(R.film.props || {})) {
+      if (pr.place && pr.place !== c.place) continue;
+      const p3 = propPos(name, f); if (!p3) continue;
+      const z = isInSafeZone9x16(p3, R.camera, 0.80);
+      if (z.x != null && !z.ok && /sign|board|button|card|newspaper|screen|ticket/i.test(name)) {
+        warnings.push({ f, place: c.place, prop: name, x: z.x, y: z.y });
+      }
+    }
+  }
+  return warnings;
 };
 
 // Projection only (no occlusion test): tells the checks whether a thing is INSIDE the frame and how big, not whether a prop hides it.
@@ -838,7 +1288,7 @@ if (q.get('film')) (async () => {
 // film.json "post": false switches it off; "post": { dof, bloom, dust, vignette } (numbers, 0 = off) sets the film's strength;
 // places.<name>.post (same keys, plus dust_color) overrides per place. Camera focus = the camera's aim point (c.focus in m overrides).
 // ============================================================================================================
-const LOOK = { dof: 1, bloom: 1, dust: 1, vignette: 1 };
+const LOOK = { dof: 1, bloom: 1, dust: 0, vignette: 1 };
 function lookCfg(pl) { const fp = R.film.post; if (fp === false) return null; const P = { ...LOOK, ...(typeof fp === 'object' ? fp : {}) }; const name = Object.keys(R.places).find(k => R.places[k] === pl); const pp = name && R.film.places[name] && R.film.places[name].post; if (pp === false) return null; return { ...P, ...(pp || {}) }; }
 function initLook() {
   const W = R.W, H = R.H, mk = (w, h, o = {}) => new THREE.WebGLRenderTarget(w, h, { type: THREE.HalfFloatType, ...o });
@@ -847,54 +1297,54 @@ function initLook() {
     black: new THREE.MeshBasicMaterial({ color: 0x000000 }), cam: new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1), quad: new THREE.Scene() };
   const vs = 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0., 1.); }';
   L.brightMat = new THREE.ShaderMaterial({ uniforms: { tC: { value: null } }, vertexShader: vs, depthTest: false, depthWrite: false,
-    fragmentShader: `uniform sampler2D tC; varying vec2 vUv; void main(){ vec3 c = texture2D(tC, vUv).rgb; float l = dot(c, vec3(.2126,.7152,.0722)); gl_FragColor = vec4(c * smoothstep(.95, 2.2, l), 1.); }` });
+    fragmentShader: `uniform sampler2D tC; varying vec2 vUv; void main(){ vec3 c = texture2D(tC, vUv).rgb; float l = dot(c, vec3(.2126,.7152,.0722)); gl_FragColor = vec4(c * smoothstep(1.12, 2.6, l), 1.); }` });
   L.blurMat = new THREE.ShaderMaterial({ uniforms: { tC: { value: null }, dir: { value: new THREE.Vector2() } }, vertexShader: vs, depthTest: false, depthWrite: false,
     fragmentShader: `uniform sampler2D tC; uniform vec2 dir; varying vec2 vUv; void main(){ vec3 s = vec3(0.); float ws = 0.; for (int i = -12; i <= 12; i++) { float x = float(i), w = exp(-x * x / 50.); s += texture2D(tC, vUv + dir * x).rgb * w; ws += w; } gl_FragColor = vec4(s / ws, 1.); }` });
-  L.finalMat = new THREE.ShaderMaterial({ uniforms: { tC: { value: null }, tD: { value: null }, tM: { value: null }, tB: { value: null }, near: { value: .05 }, far: { value: 600 }, focus: { value: 5 }, res: { value: new THREE.Vector2(W, H) }, dof: { value: 1 }, bloom: { value: 1 }, vig: { value: 1 } },
+  L.finalMat = new THREE.ShaderMaterial({ uniforms: { tC: { value: null }, tD: { value: null }, tM: { value: null }, tB: { value: null }, near: { value: .05 }, far: { value: 600 }, focus: { value: 5 }, res: { value: new THREE.Vector2(W, H) }, dof: { value: 1 }, bloom: { value: 1 }, vig: { value: 1 }, whip: { value: 0 }, whipDir: { value: new THREE.Vector2(1, 0) }, aces: { value: 0 } },
     vertexShader: vs, depthTest: false, depthWrite: false, toneMapped: false,
-    fragmentShader: `uniform sampler2D tC, tD, tM, tB; uniform float near, far, focus, dof, bloom, vig; uniform vec2 res; varying vec2 vUv;
+    fragmentShader: `uniform sampler2D tC, tD, tM, tB; uniform float near, far, focus, dof, bloom, vig, whip, aces; uniform vec2 res, whipDir; varying vec2 vUv;
       float dist(vec2 uv){ float z = texture2D(tD, uv).x; return (near * far) / ((far - near) * z - far) * -1.; }
       float fc = 1e9;
       float coc(float d){ return smoothstep(.1, 1., abs(1. - fc / d)) * res.y * .0068 * dof; }       // pixels; the far set and anything close to the lens go soft
       vec3 neutral(vec3 c){ float s = .76, x = min(c.r, min(c.g, c.b)), off = x < .08 ? x - 6.25 * x * x : .04; c -= off; float p = max(c.r, max(c.g, c.b)); if (p < s) return c; float d = 1. - s, np = 1. - d * d / (p + d - s); c *= np / p; float g = 1. - 1. / (.15 * (p - np) + 1.); return mix(c, vec3(np), g); }
+      vec3 acesFilm(vec3 x){ return clamp((x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14), 0., 1.); }
       vec3 srgb(vec3 c){ c = clamp(c, 0., 1.); return mix(c * 12.92, 1.055 * pow(c, vec3(1. / 2.4)) - .055, step(.0031308, c)); }
       void main(){
         fc = focus; for (int i = 0; i < 5; i++) { vec2 p = vec2(.5, .47) + .06 * vec2(i == 1 ? -1. : i == 2 ? 1. : 0., i == 3 ? -1. : i == 4 ? 1. : 0.); fc = min(fc, dist(p)); }   // focus: the aim point, or the subject in the middle of the frame when it is nearer
-        vec3 sharp = texture2D(tC, vUv).rgb; float m = texture2D(tM, vUv).r, d0 = dist(vUv);
+        vec3 sharp = clamp(texture2D(tC, vUv).rgb, 0., 1e4); float m = texture2D(tM, vUv).r, d0 = dist(vUv);
         float r0 = coc(d0);
         vec3 acc = sharp; float wsum = 1.;
         if (r0 > .6) { for (int i = 1; i < 48; i++) { float fi = float(i), a = fi * 2.39996, rr = sqrt(fi / 48.) * r0; vec2 o = vec2(cos(a), sin(a)) * rr / res, uv = vUv + o;
             if (texture2D(tM, uv).r > .4) continue;                                   // never smear a character into the background
             float ds = dist(uv), rs = coc(ds); float w = ds < d0 - .05 ? smoothstep(rr - 1., rr + 1., rs) : 1.;   // a nearer sample only counts if it is itself blurred that wide
-            acc += texture2D(tC, uv).rgb * w; wsum += w; } }
+            acc += clamp(texture2D(tC, uv).rgb, 0., 1e4) * w; wsum += w; } }
         vec3 bg = acc / wsum, col = mix(bg, sharp, smoothstep(.15, .85, m));          // characters: always the sharp picture
-        col += texture2D(tB, vUv).rgb * .65 * bloom * (1. - .6 * m);
-        vec3 tm = mix(neutral(col), col, step(.5, m));                                // cards are drawn colour (toneMapped false): keep them, tone-map the set
+        if (whip > .02) {
+          vec3 wAcc = vec3(0.); float wTot = 0.;
+          for (int k = -4; k <= 4; k++) {
+            float fk = float(k), wt = exp(-fk * fk * 0.14);
+            vec2 uvk = clamp(vUv + whipDir * (fk / 4.) * whip * 0.042, 0.001, 0.999);
+            wAcc += clamp(texture2D(tC, uvk).rgb, 0., 1e4) * wt; wTot += wt;
+          }
+          col = mix(col, wAcc / wTot, clamp(whip * 0.85, 0., 0.85));
+        }
+        col += texture2D(tB, vUv).rgb * .34 * bloom * (1. - .75 * m);
+        vec3 mapped = aces > 0.5 ? acesFilm(col) : neutral(col);
+        vec3 tm = mix(mapped, col, step(.5, m));                                // cards are drawn colour (toneMapped false): keep them, tone-map the set
         vec2 q = (vUv - .5) * vec2(res.x / res.y, 1.) * 1.55; tm *= 1. - .3 * vig * smoothstep(.35, 1.05, length(q));
         gl_FragColor = vec4(srgb(tm), 1.); }` });
   L.q = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), L.finalMat); L.q.frustumCulled = false; L.quad.add(L.q);
   for (const c of Object.values(R.cards)) c.mesh.layers.enable(1);
 }
 function dustFor(pl, cfg) {
-  if (pl.dust !== undefined) return pl.dust; const night = /0b1026|27345c/.test(pl.L.top + pl.L.hor) || (pl.L.si ?? 2) < 1.2;
-  const n = Math.round((night ? 260 : 520) * (cfg.dust ?? 1)); if (!n) return (pl.dust = null);
-  const g = new THREE.BufferGeometry(), p0 = new Float32Array(n * 3), v = new Float32Array(n * 4);
-  for (let i = 0; i < n; i++) { p0.set([Math.random() * 14, Math.random() * 7, Math.random() * 14], i * 3); v.set([(Math.random() - .5) * .06, .015 + Math.random() * .05, (Math.random() - .5) * .06, Math.random()], i * 4); }
-  g.setAttribute('position', new THREE.BufferAttribute(p0, 3)); g.setAttribute('vel', new THREE.BufferAttribute(v, 4));
-  const col = new THREE.Color(cfg.dust_color || (night ? '#bcd2ff' : '#ffd79a'));
-  const mat = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false,
-    uniforms: { t: { value: 0 }, cam: { value: new THREE.Vector3() }, col: { value: col }, H: { value: R.H }, focus: { value: 5 }, amt: { value: night ? .9 : 1.4 } },
-    vertexShader: `attribute vec4 vel; uniform float t, H, focus; uniform vec3 cam; varying float a;
-      void main(){ vec3 box = vec3(14., 7., 14.), hb = box * .5; vec3 p = position + vel.xyz * t + vec3(sin(t * .7 + vel.w * 40.) * .05, 0., cos(t * .5 + vel.w * 30.) * .05);
-        p = cam + mod(p - cam + hb, box) - hb; vec4 mv = modelViewMatrix * vec4(p, 1.); float d = -mv.z;
-        float defocus = abs(1. - focus / max(d, .1)); gl_PointSize = H * (.008 + .02 * clamp(defocus, 0., 1.)) / max(d, .3) * 3.2;
-        a = smoothstep(.4, 1.2, d) * (1. - smoothstep(6., 9., d)) * (.55 + .45 * sin(t * 1.3 + vel.w * 60.)) / (1. + 2. * defocus);
-        gl_Position = projectionMatrix * mv; }`,
-    fragmentShader: `uniform vec3 col; uniform float amt; varying float a; void main(){ vec2 q = gl_PointCoord - .5; float r = length(q); if (r > .5) discard; gl_FragColor = vec4(col * amt * a * pow(1. - r * 2., 1.6), 1.); }` });
-  const pts = new THREE.Points(g, mat); pts.frustumCulled = false; pts.userData.noExport = true; pts.name = 'look_dust'; pl.scene.add(pts); return (pl.dust = pts);
+  return (pl.dust = null); // permanent global ban on floating bokeh/dust particles
 }
 function renderLook(pl, f, t) {
-  const cfg = lookCfg(pl), rd = R.renderer; if (!cfg) { rd.render(pl.scene, R.camera); return; }
+  const cfg = lookCfg(pl), rd = R.renderer;
+  const useAces = pl.L.toneMapping === 'ACESFilmic' || R.film.tone_mapping === 'aces';
+  rd.toneMapping = useAces ? THREE.ACESFilmicToneMapping : (THREE.NeutralToneMapping ?? THREE.ACESFilmicToneMapping);
+  rd.toneMappingExposure = pl.L.exposure ?? R.film.exposure ?? 1.0;
+  if (!cfg) { rd.render(pl.scene, R.camera); return; }
   if (!R.look) initLook(); const L = R.look, c = R.cam[f] || {}, cam = R.camera;
   const focus = c.focus ?? (c.pos && c.aim ? B2T(c.pos).distanceTo(B2T(c.aim)) : 5);
   const dust = dustFor(pl, cfg); if (dust) { dust.material.uniforms.t.value = t; dust.material.uniforms.cam.value.copy(cam.position); dust.material.uniforms.focus.value = focus; }
@@ -920,5 +1370,9 @@ function renderLook(pl, f, t) {
   for (const [src, dst, dx, dy] of [[L.bright, L.bright2, 1.5 / bw, 0], [L.bright2, L.bright, 0, 1.5 / bh], [L.bright, L.bright2, 3.5 / bw, 0], [L.bright2, L.bright, 0, 3.5 / bh]]) { L.blurMat.uniforms.tC.value = src.texture; L.blurMat.uniforms.dir.value.set(dx, dy); rd.setRenderTarget(dst); rd.render(L.quad, L.cam); }
   const u = L.finalMat.uniforms; Object.assign(u.tC, { value: L.scene.texture }); u.tD.value = L.scene.depthTexture; u.tM.value = L.mask.texture; u.tB.value = L.bright.texture;
   u.near.value = cam.near; u.far.value = cam.far; u.focus.value = focus; u.dof.value = c.dof ?? cfg.dof; u.bloom.value = cfg.bloom; u.vig.value = cfg.vignette;
+  u.whip.value = c.whip ?? 0;
+  const wd = Array.isArray(c.whip_dir) ? c.whip_dir : [1, 0];
+  u.whipDir.value.set(wd[0] ?? 1, wd[1] ?? 0);
+  u.aces.value = useAces ? 1.0 : 0.0;
   L.q.material = L.finalMat; rd.setRenderTarget(null); rd.render(L.quad, L.cam);
 }

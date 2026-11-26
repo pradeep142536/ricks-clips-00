@@ -155,38 +155,151 @@ export const FACES = {
   open:      { eyes: 'oval',  brows: [[2, 0, 3], [5, -1, 5]],     mouth: 'lens' },
   smirk:     { eyes: 'lid',   brows: [[-1, 2, 1], [7, -3, 6]],    mouth: 'smirk' },
   happy:     { eyes: 'happy', brows: [[5, -2, 5], [7, -2, 6]],    mouth: 'grin' },
-  angry:     { eyes: 'lid',   brows: [[-3, 7, 0], [-2, 6, 1]],    mouth: 'flat', lidTilt: 3 },
+  angry:     { eyes: 'angry', bCol: true, brows: [[-6, 12, -2, 1.25], [-6, 12, -2, 1.25]], mouth: 'teeth', teethW: 24, teethH: 9, fx: ['vein'] },
   sad:       { eyes: 'oval',  brows: [[2, -6, 2], [3, -7, 2]],    mouth: 'frown' },
   surprised: { eyes: 'wide',  brows: [[10, -2, 6], [12, -2, 7]],  mouth: 'o' },
   talk:      { eyes: 'lid',   brows: [[1, 0, 2], [5, -1, 5]],     mouth: 'talk' },
 };
+const OVER_FX = new Set(['sweat', 'sweats', 'vein', 'redMarks', 'steam', 'sparkles', 'shockLines', 'stars', 'zzz', 'exclaim', 'question', 'heart', 'lightbulb']);
+
+export const V4_BUILDS = {
+  slim:   { wK: 0.78, hK: 1.04, legWK: 0.88, headK: 0.96, topShift: -12 },
+  stocky: { wK: 1.34, hK: 0.92, legWK: 1.18, headK: 1.06, topShift: 18 },
+  tall:   { wK: 0.90, hK: 1.14, legWK: 0.96, headK: 0.94, topShift: -72 },
+  short:  { wK: 1.08, hK: 0.82, legWK: 0.98, headK: 1.08, topShift: 92 },
+};
+export const V4_PALETTES = {
+  detective:  { coat: '#6e5842', shirt: '#f4efe6', tie: '#8e2d2d', trim: '#d8b25a', pants: '#343640', shoes: '#2c1e16' },
+  pilot:      { coat: '#6a4024', shirt: '#efe9dd', tie: '#4b2d18', trim: '#e0b13a', pants: '#3a3d46', shoes: '#2e1d14' },
+  mobster:    { coat: '#2d3142', shirt: '#f7f5f0', tie: '#b8322c', trim: '#e2b13c', pants: '#1f222e', shoes: '#1d1b20' },
+  journalist: { coat: '#4c7093', shirt: '#f5f1e6', tie: '#d8662c', trim: '#d9c48a', pants: '#333b4a', shoes: '#4d3222' },
+  officer:    { coat: '#22314d', shirt: '#f4f5f8', tie: '#181e2c', trim: '#e0b13a', pants: '#182236', shoes: '#18181f' },
+  judge:      { coat: '#24222c', shirt: '#f6f4f0', tie: '#f6f4f0', trim: '#d8a520', pants: '#1c1a22', shoes: '#1b181f' },
+  executive:  { coat: '#3c4f6e', shirt: '#ffffff', tie: '#c23b2f', trim: '#e2b13c', pants: '#242a38', shoes: '#261b18' },
+  mechanic:   { coat: '#386b5e', shirt: '#d9ccb8', tie: '#8a4a24', trim: '#c9a04a', pants: '#2c3d3b', shoes: '#3e291c' },
+};
+export const VISEME_MAP = {
+  closed: 'closed', rest: 'closed',
+  'A/O_wide': 'vAO', AO: 'vAO', o: 'vAO',
+  'E/I_smile': 'vEI', EI: 'vEI', ai: 'vEI',
+  'M/B_pressed': 'vMB', MB: 'vMB', mbp: 'vMB',
+  'F/V_teeth': 'vFV', FV: 'vFV', fv: 'vFV',
+};
+export function inferHandShape(st = {}, isProp = false) {
+  if (st.handShape) return st.handShape;
+  if (isProp || st.prop || st.grip || /^(grip_|hold_)/.test(st.pose || '')) return 'gripping_prop';
+  const ps = String(st.pose || ''), fc = String(st.face || '').replace(/^k:/, '');
+  if (/point|finger_up/.test(ps)) return 'pointing_finger';
+  if (/thumbs_up|cheer/.test(ps) || fc === 'proud') return 'thumbs_up';
+  if (/hands_hips|hands_on_hips|kneel_hammer|run/.test(ps) || /angry|furious/.test(fc)) return 'clenched_fist';
+  return 'open_palm';
+}
+export function drawHand(hx, hy, shape = 'open_palm', dir = 1, ang = Math.PI / 2, r = 24, opts = {}) {
+  const _f = v => (+v).toFixed(1), k = r / 24, sg = dir < 0 ? -1 : 1, fill = opts.col || INK, cr = '#7b6b74';
+  const rotDeg = ((ang * 180 / Math.PI) - 90);
+  if (shape === 'pointing_finger') {
+    return `<g transform="translate(${_f(hx)},${_f(hy)}) rotate(${_f(rotDeg)}) scale(${_f(k * sg)},${_f(k)})">`
+      + `<ellipse cx="0" cy="-2" rx="19" ry="17" fill="${fill}" stroke="${INK}" stroke-width="4.5"/>`
+      + `<path d="M-8,-4 L-11,36 Q-5,44 2,36 L3,-2 Z" fill="${fill}" stroke="${INK}" stroke-width="4.5" stroke-linejoin="round"/>`
+      + `<ellipse cx="10" cy="-9" rx="7" ry="12" transform="rotate(28 10 -9)" fill="${fill}" stroke="${INK}" stroke-width="4"/>`
+      + `<path d="M-3,12 Q3,14 8,10 M2,-4 Q8,-2 13,-4" fill="none" stroke="${cr}" stroke-width="2.6" stroke-linecap="round"/>`
+      + `<path d="M-11,-11 Q-5,-15 2,-13" fill="none" stroke="#ffffff" stroke-opacity=".35" stroke-width="3" stroke-linecap="round"/></g>`;
+  }
+  if (shape === 'thumbs_up') {
+    return `<g transform="translate(${_f(hx)},${_f(hy)}) scale(${_f(k * sg)},${_f(k)})">`
+      + `<rect x="-17" y="-12" width="32" height="34" rx="12" fill="${fill}" stroke="${INK}" stroke-width="4.5"/>`
+      + `<path d="M-6,-10 C-9,-38 6,-44 10,-28 L9,-6 Z" fill="${fill}" stroke="${INK}" stroke-width="4.5" stroke-linejoin="round"/>`
+      + `<path d="M-12,-1 L10,-1 M-12,9 L10,9" fill="none" stroke="${cr}" stroke-width="2.6" stroke-linecap="round"/>`
+      + `<path d="M-3,-28 Q1,-34 4,-26" fill="none" stroke="#ffffff" stroke-opacity=".35" stroke-width="2.6" stroke-linecap="round"/></g>`;
+  }
+  if (shape === 'clenched_fist') {
+    return `<g transform="translate(${_f(hx)},${_f(hy)}) rotate(${_f(rotDeg * .35)}) scale(${_f(k * sg)},${_f(k)})">`
+      + `<rect x="-20" y="-17" width="40" height="35" rx="14" fill="${fill}" stroke="${INK}" stroke-width="4.5"/>`
+      + `<path d="M-15,-4 Q0,-9 15,-4 M-11,-16 L-11,-5 M0,-17 L0,-6 M11,-16 L11,-5" fill="none" stroke="${cr}" stroke-width="2.5" stroke-linecap="round"/>`
+      + `<ellipse cx="11" cy="6" rx="11" ry="7" transform="rotate(-18 11 6)" fill="${fill}" stroke="${INK}" stroke-width="3.6"/>`
+      + `<path d="M-12,-12 Q-4,-15 5,-13" fill="none" stroke="#ffffff" stroke-opacity=".32" stroke-width="3" stroke-linecap="round"/></g>`;
+  }
+  if (shape === 'gripping_prop') {
+    return `<g transform="translate(${_f(hx)},${_f(hy)}) rotate(${_f(rotDeg * .4)}) scale(${_f(k * sg)},${_f(k)})">`
+      + `<ellipse cx="0" cy="0" rx="22" ry="20" fill="${fill}" stroke="${INK}" stroke-width="4.5"/>`
+      + `<path d="M-11,-9 L11,-9 M-12,0 L12,0 M-11,9 L11,9" fill="none" stroke="${cr}" stroke-width="2.6" stroke-linecap="round"/>`
+      + `<ellipse cx="-10" cy="-12" rx="10" ry="7" transform="rotate(24 -10 -12)" fill="${fill}" stroke="${INK}" stroke-width="3.6"/>`
+      + `<path d="M-8,-14 Q0,-17 8,-14" fill="none" stroke="#ffffff" stroke-opacity=".32" stroke-width="2.6" stroke-linecap="round"/></g>`;
+  }
+  // open_palm: 3 expressive curved finger lobes + distinct thumb
+  return `<g transform="translate(${_f(hx)},${_f(hy)}) rotate(${_f(rotDeg)}) scale(${_f(k * sg)},${_f(k)})">`
+    + `<ellipse cx="0" cy="-4" rx="17" ry="16" fill="${fill}" stroke="${INK}" stroke-width="4.2"/>`
+    + `<ellipse cx="-11" cy="15" rx="6" ry="12" transform="rotate(14 -11 15)" fill="${fill}" stroke="${INK}" stroke-width="3.8"/>`
+    + `<ellipse cx="0" cy="18" rx="6.2" ry="14" fill="${fill}" stroke="${INK}" stroke-width="3.8"/>`
+    + `<ellipse cx="11" cy="14" rx="5.8" ry="12" transform="rotate(-15 11 14)" fill="${fill}" stroke="${INK}" stroke-width="3.8"/>`
+    + `<ellipse cx="-17" cy="-6" rx="11" ry="6.2" transform="rotate(-32 -17 -6)" fill="${fill}" stroke="${INK}" stroke-width="3.8"/>`
+    + `<path d="M-6,-2 Q0,2 6,-2" fill="none" stroke="${cr}" stroke-width="2.2" stroke-linecap="round"/>`
+    + `<path d="M-9,-14 Q0,-18 9,-14" fill="none" stroke="#ffffff" stroke-opacity=".32" stroke-width="2.8" stroke-linecap="round"/></g>`;
+}
+export function drawFoot(A, toe, style = 'loafers', legW = 19, far = false) {
+  const _f = v => (+v).toFixed(1), dx = toe[0] - A[0], dy = toe[1] - A[1], len = Math.max(24, Math.hypot(dx, dy));
+  const ang = Math.atan2(dy, dx) * 180 / Math.PI, sd = dx >= 0 ? 1 : -1;
+  if (style === 'none') return `<path d="M${_f(A[0])},${_f(A[1])} L${_f(toe[0])},${_f(toe[1])}" fill="none" stroke="${far ? shade(INK, .8) : INK}" stroke-width="${legW}" stroke-linecap="round"/>`;
+  const sc = (c) => far ? shade(c, .82) : c;
+  if (style === 'boots') {
+    const col = sc('#4b3123'), sole = sc('#1f1a1c');
+    return `<g transform="translate(${_f(A[0])},${_f(A[1])}) rotate(${_f(ang)}) scale(1,${sd})">`
+      + `<path d="M-10,-22 L10,-22 L12,-2 L${_f(len + 6)},-2 Q${_f(len + 14)},8 ${_f(len + 6)},14 L-12,14 Q-16,6 -10,-22 Z" fill="${col}" stroke="${INK}" stroke-width="5.5" stroke-linejoin="round"/>`
+      + `<path d="M-12,7 L${_f(len + 10)},7 L${_f(len + 8)},14 L-12,14 Z" fill="${sole}" stroke="${INK}" stroke-width="3.5"/>`
+      + `<path d="M-3,-16 L7,-16 M-3,-9 L7,-9 M14,-2 L${_f(len - 4)},1" fill="none" stroke="#e8d8c0" stroke-opacity=".75" stroke-width="2.5" stroke-linecap="round"/></g>`;
+  }
+  if (style === 'sneakers') {
+    const col = sc('#345da8'), trim = far ? '#cfd4de' : '#f7f5f0';
+    return `<g transform="translate(${_f(A[0])},${_f(A[1])}) rotate(${_f(ang)}) scale(1,${sd})">`
+      + `<path d="M-11,-10 L10,-10 Q${_f(len * .5)},-6 ${_f(len + 5)},-1 Q${_f(len + 12)},6 ${_f(len + 6)},12 L-12,12 Q-16,4 -11,-10 Z" fill="${col}" stroke="${INK}" stroke-width="5" stroke-linejoin="round"/>`
+      + `<path d="M-12,5 L${_f(len + 8)},5 L${_f(len + 6)},12 L-12,12 Z" fill="${trim}" stroke="${INK}" stroke-width="3.2"/>`
+      + `<path d="M${_f(len - 8)},-2 Q${_f(len + 10)},0 ${_f(len + 7)},10 L${_f(len - 10)},10 Z" fill="${trim}" stroke="${INK}" stroke-width="3"/>`
+      + `<path d="M4,-5 L14,4 M12,-4 L22,4" fill="none" stroke="${trim}" stroke-width="3" stroke-linecap="round"/></g>`;
+  }
+  // loafers (sleek rounded comic dress shoe)
+  const col = sc('#2b2126');
+  return `<g transform="translate(${_f(A[0])},${_f(A[1])}) rotate(${_f(ang)}) scale(1,${sd})">`
+    + `<path d="M-11,-9 L8,-9 Q${_f(len * .55)},-6 ${_f(len + 6)},1 Q${_f(len + 12)},8 ${_f(len + 4)},12 L-12,12 Q-16,5 -11,-9 Z" fill="${col}" stroke="${INK}" stroke-width="5" stroke-linejoin="round"/>`
+    + `<rect x="-12" y="7" width="16" height="5" fill="#181216"/>`
+    + `<path d="M12,-4 Q${_f(len * .65)},-3 ${_f(len)},2" fill="none" stroke="#ffffff" stroke-opacity=".34" stroke-width="3" stroke-linecap="round"/></g>`;
+}
+export function faceOverFx(face, fx, ey, turn = 0, view = 'front', head = null) {
+  if (view === 'back') return [];
+  const F = typeof face === 'string' ? { ...FACES[face] } : { ...FACES[(face && face.expr) || 'standard'], ...(face || {}) };
+  const at = Math.abs(turn), dir = Math.sign(turn) || 1;
+  if (F.side == null && turn) F.side = dir;
+  const dx = 28 * (1 - .22 * at), hc = head || { cx: fx - turn * 50, hy: ey + 14 }, o = [];
+  for (const f of F.fx || []) if (OVER_FX.has(f) && EXT.fx[f]) o.push(...EXT.fx[f]({ ...hc, fx, ey, dx, turn, F }));
+  return o;
+}
 export function faceKit(face, fx, ey, turn = 0, mouthY, view = 'front', head = null) {
   if (view === 'back') return [];
   const F = typeof face === 'string' ? { ...FACES[face] } : { ...FACES[(face && face.expr) || 'standard'], ...(face || {}) };
   const o = [], at = Math.abs(turn), dir = Math.sign(turn) || 1;
   if (F.side == null && turn) F.side = dir;   // acting habits (tongue corner, side glance) default to the facing side
   const dx = 28 * (1 - .22 * at);                                   // eyes close up when the head turns
-  const look = turn * 3.5;                                         // pupils slide toward the facing side
+  const look = Math.max(-7, Math.min(7, turn * 3.5 + (F.lookX ?? 0)));   // pupils slide toward facing + explicit lookAt override
+  const lookY = Math.max(-5.5, Math.min(5.5, F.lookY ?? 0));             // vertical eye tracking (up/down)
   for (const [i, s] of [[0, -1], [1, 1]]) {
     const far = s * turn > 0, k = far ? 1 - .3 * at : 1;          // far eye narrower (CB 2026-11-11: physical geometry - the eye toward the head's edge is the far one)
     const ex = fx + s * dx * (far ? 1 - .15 * at : 1);
     const et = Array.isArray(F.eyes) ? F.eyes[i] : F.eyes;
     if (et === 'lid') {
-      const ly = ey - 3, lw = 14 * k, pr = 7.6 * k, py = ly + 1, lt = F.lidTilt || 0;
+      const ly = ey - 3 + lookY * 0.45, lw = 14 * k, pr = 7.6 * k, py = ly + 1, lt = F.lidTilt || 0;
       o.push(`<path d="M${ex + look - pr},${py} A${pr},${10.5} 0 0,0 ${ex + look + pr},${py} Z" fill="${INK}"/>`);
       o.push(brush(ex - s * lw, ly + lt, ex, ly - 1.2 + lt * .4, ex + s * lw, ly, 4.6, { tip: .45 }));   // lid sits right on the pupil
     } else if (et === 'happy') {
       o.push(brush(ex - 10 * k, ey + 4, ex, ey - 13, ex + 10 * k, ey + 4, 5.5, { tip: .5 }));
     } else if (et === 'wide') {
-      o.push(`<ellipse cx="${ex}" cy="${ey}" rx="${12 * k}" ry="13" fill="#ffffff" stroke="${INK}" stroke-width="4.3"/><circle cx="${ex + look}" cy="${ey + 1}" r="4.6" fill="${INK}"/>`);
-    } else if (EXT.eye[et]) o.push(...EXT.eye[et]({ ex, ey, s, k, look, F }));
-    else o.push(`<ellipse cx="${ex + look * .6}" cy="${ey}" rx="${7.8 * k}" ry="11"/>`.replace('/>', ` fill="${INK}"/>`));
+      o.push(`<ellipse cx="${ex}" cy="${ey}" rx="${12 * k}" ry="13" fill="#ffffff" stroke="${INK}" stroke-width="4.3"/><circle cx="${ex + look}" cy="${ey + 1 + lookY * .8}" r="4.6" fill="${INK}"/>`);
+    } else if (EXT.eye[et]) o.push(...EXT.eye[et]({ ex, ey, s, k, look, lookY, F }));
+    else o.push(`<ellipse cx="${ex + look * .6}" cy="${ey + lookY * .75}" rx="${7.8 * k}" ry="11"/>`.replace('/>', ` fill="${INK}"/>`));
     const bi = turn && F.brows && F.brows.length === 2 && dir > 0 ? 1 - i : i;   // CB 2026-11-11: turned head - the bigger brow sits on the near side (centre of the face), the far one is the smaller
     if (F.brows && F.brows[bi]) { const [raise, tilt, arch, bw = 1] = F.brows[bi], by = ey - 21 - raise, L = 13 * k * (bw > 1 ? 1.12 : 1);
     const xi = ex - s * L, xo = ex + s * L, yi = by + tilt, yo = by - tilt * .4;
     o.push(brush(xi, yi, ex + s * 2, (yi + yo) / 2 - arch, xo, yo, 7.2 * bw, { bias: .4, tip: .3 })); }
   }
-  const mx = fx + turn * 7, my = ey + (mouthY ?? 41), m = F.mouth, sq = 1 - .25 * at;
+  const mx = fx + turn * 7, my = ey + (mouthY ?? 41), rawM = F.mouth, m = VISEME_MAP[rawM] || rawM, sq = 1 - .25 * at;
   if (m === 'lens') o.push(`<path d="M${mx - 8 * sq},${my + 1.5} Q${mx},${my - 4} ${mx + 8 * sq},${my + 1.5} Q${mx},${my + 4} ${mx - 8 * sq},${my + 1.5} Z" fill="${INK}" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/>`);
   else if (m === 'smirk') o.push(brush(mx - 9 * sq, my, mx + 1, my + 6, mx + 11 * sq, my - 5, 4.6, { bias: .6, tip: .4 }));
   else if (m === 'flat') o.push(brush(mx - 8 * sq, my + 1, mx, my - 1, mx + 8 * sq, my + 1, 4.4, { tip: .45 }));
@@ -199,14 +312,24 @@ export function faceKit(face, fx, ey, turn = 0, mouthY, view = 'front', head = n
     for (const t of [-8.5, 0, 8.5]) o.push(`<path d="M${mx + t * sq},${my - 1} L${mx + t * sq},${my + 5}" stroke="${INK}" stroke-width="1.8"/>`);
   } else if (EXT.mouth[m]) o.push(...EXT.mouth[m]({ mx, my, sq, F }));
   const hc = head || { cx: fx - turn * 50, hy: ey + 14 };
-  for (const f of F.fx || []) if (EXT.fx[f]) o.push(...EXT.fx[f]({ ...hc, fx, ey, dx, turn, F }));
+  const skipOver = !!(head && head.splitFx);
+  for (const f of F.fx || []) if ((!skipOver || !OVER_FX.has(f)) && EXT.fx[f]) o.push(...EXT.fx[f]({ ...hc, fx, ey, dx, turn, F }));
   return o;
 }
 
 // VIEWS: front | 34 (body front, face to the side) | side (body + face to the side) | back (no face)
 // dir = 1 faces screen-right, -1 faces screen-left
 export const VIEWS = { front: 0, '34': .55, side: 1, back: 0 };
-export function drawCharacter(S) {
+export function applyBuild(S) {
+  if (!S || S._buildApplied || !S.build || !V4_BUILDS[S.build]) return S;
+  const b = V4_BUILDS[S.build], bt = (S.bodyTop ?? 333) + (b.topShift || 0), bb = S.bodyBot ?? 640;
+  const h = Math.max(120, Math.round((bb - bt) * b.hK));
+  return { ...S, wTop: (S.wTop ?? 74) * b.wK, wBot: (S.wBot ?? 104) * b.wK, legW: (S.legW ?? 17) * b.legWK, headK: (S.headK ?? 1.5) * b.headK, bodyTop: Math.max(120, bb - h), bodyBot: bb, _buildApplied: true };
+}
+export function drawCharacter(S0) {
+  let S = applyBuild(S0);
+  if (S.palette && V4_PALETTES[S.palette]) { const pal = V4_PALETTES[S.palette]; S = { ...S, coat: S._explicitCoat || pal.coat, _pal: pal }; }
+  if (!S.coat) S = { ...S, coat: (S._pal && S._pal.coat) || '#6a5b50' };
   GID = 0; const defs = [], back = [], mid = [], front = [];
   const view = S.view || 'front', dir = S.dir || 1;
   const cx = S.x ?? 300, R = 100;                       // head is DRAWN at R=100, then scaled by K
@@ -216,8 +339,9 @@ export function drawCharacter(S) {
   const wT = (S.wTop ?? 74) * (side ? .78 : 1), wB = (S.wBot ?? 104) * (side ? .8 : 1);
   const headY = bodyTop - R * K * .78;                   // head overlaps the shoulders by .22 R
   const ground = S.ground ?? 900;
-  const LEG = (S.legW ?? 17) + 2, lc = INK;   // CB 2026-11-11: limb lines 2 px thicker   // CB 21:53: legs and arms ALWAYS the same colour (ink); S.legs ignored
-  // CB 2026-11-11: ink light = the side the face looks to (thin line there); the opposite side and the bottom edge get the heavy line, head and body. Front/back: light from screen-left.
+  const LEG = (S.legW ?? 17) + 2, lc = INK;
+  const shoeStyle = S.shoes === false ? 'none' : (S.shoes || 'loafers');
+  const hShape = S.handShape || inferHandShape(S);
   const INKL = (view === '34' || view === 'side') ? [dir * .95, -.3] : [-.95, -.3];
   const ctx = { view, dir, turn, defs, path, clothGrad, hairFill, smooth, shade, tint, THIN, brush };
 
@@ -261,7 +385,8 @@ const KNEE = (a, k, b, r = side ? 48 : 34) => { const f = v => v.toFixed(1), u =
     const leg = `M${hx0},${top} C${mx + knee},${top + (ay - top) * .3} ${ax + knee * .35},${top + (ay - top) * .72} ${ax},${ay}`;
     const fdir = side ? dir : view === '34' ? (sd === dir ? dir : sd * .6) : sd, fl = side ? 44 : view === '34' && sd === dir ? 40 : 28;
     const tx = view === '34' ? (sd === dir ? dir * 32 : sd * 18) : sd * T45;
-    const line = toe45 ? `${leg} L${ax + tx},${ay + T45}` : toeUp ? `${leg} L${ax + sd * T45},${ay - T45}` : `${leg} L${ax + fdir * fl},${ay}`;
+    const toePt = toe45 ? [ax + tx, ay + T45] : toeUp ? [ax + sd * T45, ay - T45] : [ax + fdir * fl, ay];
+    const line = shoeStyle === 'none' ? `${leg} L${toePt[0]},${toePt[1]}` : leg;
     const col = far ? shade(lc, .8) : lc;
     const L0 = ground - 7 - top, span = Math.hypot(ax - hx0, ay - top), cmp = 1 - span / L0, kneelP = !!S.kneelPose, chairP = !!S.chairPose;
     if (S.legPose && cmp > .18) {   // SITTING / KNEELING / CROUCHING (rule 22): thigh = outfit shape hip -> knee, thin ink leg knee -> ankle -> foot
@@ -291,16 +416,26 @@ const KNEE = (a, k, b, r = side ? 48 : 34) => { const f = v => v.toFixed(1), u =
       if (view === 'back' && !kneelP) { const fl0 = ground - 7 - LP[1]; A2 = [A2[0], fl0]; foot = [A2[0] + sd * T45, fl0 - T45]; }   // CB 2026-11-11 23:46: from behind the heel is to the lens, so the toe points UP 45 deg and out (same as the standing back view)
       knees.push({ K: [...K], A2: [...A2], hx0, sd, top });   // long outfits (S.skirt) drape over these knees
       if (view === 'back') { back.push(`<path d="${KNEE(S0, K, A2)} L${f(foot[0])},${f(foot[1])}" fill="none" stroke="${INK}" stroke-width="${LEG}" stroke-linecap="round" stroke-linejoin="round"/>`); continue; }   // from behind the thighs go away from the lens, hidden by the body: the legs come out from under it
-      if (S0) { thighs.push({ ink: `${KNEE(S0, K, A2)} L${f(foot[0])},${f(foot[1])}`, col, far }); continue; }   // front / 3/4 / back: ink leg from the lower body
+      if (S0) { thighs.push({ ink: `${KNEE(S0, K, A2)}${shoeStyle === 'none' ? ` L${f(foot[0])},${f(foot[1])}` : ''}`, A2, foot, shoeStyle, col, far }); continue; }   // front / 3/4 / back: ink leg from the lower body
       back.push(`<path d="M${f(H0[0])},${f(H0[1])} L${f(K[0])},${f(K[1])}" stroke="${INK}" stroke-width="${TW + 12}" stroke-linecap="round" fill="none"/>`);
-      const shin = `M${f(K[0])},${f(K[1])} L${f(A2[0])},${f(A2[1])} L${f(foot[0])},${f(foot[1])}`;
-      thighs.push({ H0, K, TW, shin, col, far, over });
+      const shin = `M${f(K[0])},${f(K[1])} L${f(A2[0])},${f(A2[1])}${shoeStyle === 'none' ? ` L${f(foot[0])},${f(foot[1])}` : ''}`;
+      thighs.push({ H0, K, TW, shin, A2, foot, shoeStyle, col, far, over });
       continue;
     }
     back.push(`<path d="${line}" fill="none" stroke="${INK}" stroke-width="${LEG}" stroke-linecap="round" stroke-linejoin="${toeUp ? "round" : "miter"}" stroke-miterlimit="4"/>`);
     back.push(`<path d="${line}" fill="none" stroke="${col}" stroke-width="${LEG - 7}" stroke-linecap="round" stroke-linejoin="${toeUp ? "round" : "miter"}" stroke-miterlimit="4"/>`);
+    if (shoeStyle !== 'none') back.push(drawFoot([ax, ay], toePt, shoeStyle, LEG, far));
   }
-  const armPath = (a) => `<path d="${a.d}" fill="none" stroke="${INK}" stroke-width="${LEG}" stroke-linecap="round" stroke-linejoin="round"/><circle cx="${a.hand[0]}" cy="${a.hand[1]}" r="${(S.handR ?? 15) + 11}" fill="${INK}"/>`;
+  const armPath = (a) => {
+    const m = /M\s*([-\d.]+)[ ,]+([-\d.]+)/.exec(a.d || ''), sx = m ? +m[1] : cx, sy = m ? +m[2] : bodyTop + 50;
+    const hx = a.hand[0], hy2 = a.hand[1], ang = a.ang ?? Math.atan2(hy2 - sy, hx - sx), rH = (S.handR ?? 15) + 10;
+    const cuff = (S.cuffs || S.rolledSleeves) ? (() => {
+      const ca = Math.cos(ang), sa = Math.sin(ang), qx = hx - ca * (rH * 0.90), qy = hy2 - sa * (rH * 0.90), nx = -sa, ny = ca;
+      const cc = (S._pal && S._pal.shirt) || '#f4efe6';
+      return `<line x1="${(qx - nx * 10).toFixed(1)}" y1="${(qy - ny * 10).toFixed(1)}" x2="${(qx + nx * 10).toFixed(1)}" y2="${(qy + ny * 10).toFixed(1)}" stroke="${INK}" stroke-width="11" stroke-linecap="round"/><line x1="${(qx - nx * 9).toFixed(1)}" y1="${(qy - ny * 9).toFixed(1)}" x2="${(qx + nx * 9).toFixed(1)}" y2="${(qy + ny * 9).toFixed(1)}" stroke="${cc}" stroke-width="6.5" stroke-linecap="round"/>`;
+    })() : '';
+    return `<path d="${a.d}" fill="none" stroke="${INK}" stroke-width="${LEG}" stroke-linecap="round" stroke-linejoin="round"/>${cuff}${drawHand(hx, hy2, a.handShape || hShape, Math.sign(hx - cx) || dir, ang, rH)}`;
+  };
   const arms = S.arms ? S.arms({ cx, view, dir, turn }) : {};
   if (arms.back) back.push(armPath(arms.back));
 
@@ -455,7 +590,39 @@ const KNEE = (a, k, b, r = side ? 48 : 34) => { const f = v => v.toFixed(1), u =
   det.push(`<path d="${smooth(B.slice(9, 14).map(([x, y]) => [x + 9, y]), false)}" fill="none" stroke="#ffffff" stroke-opacity=".32" stroke-width="7" stroke-linecap="round"/>`);
   const dcx = cx + (side ? dir * wT * .62 : turn * 34);
   const detFn = view === 'back' && S.backDetails ? S.backDetails : S.details;   // CB 2026-11-11: the back of the outfit is drawn as a back, not a copy of the front
-  if (detFn) det.push(...detFn({ ...ctx, cx: dcx, bodyTop, bodyBot, wT, wB, side }));
+  const customDet = detFn ? detFn({ ...ctx, cx: dcx, bodyTop, bodyBot, wT, wB, side }) : [];
+  if (customDet.length) {
+    det.push(...customDet.map(s => s.replace(/stroke-width="([\d.]+)"/g, (m, w) => `stroke-width="${Math.max(1.4, +w * 0.72).toFixed(2)}"`)));
+  } else if (!S.plain && view !== 'back') {
+    // V4.0 default high-detail layered outfit (collar, lapels, tie/bowtie, buttons, belt & brass buckle, pockets, optional scarf/badge)
+    const _f = v => (+v).toFixed(1), pal = S._pal || { coat: S.coat || '#6a5b50', shirt: '#f4efe6', tie: '#9e2e2e', trim: '#d8b25a', pants: '#2d313b' };
+    const BH = bodyBot - bodyTop, X = u => dcx + u * (side ? wT * .65 : wT), Y = v => bodyTop + v * BH, tLg = S.tieLag || [0, 0];
+    if (S.scarf) {
+      const scCol = typeof S.scarf === 'string' ? S.scarf : pal.tie;
+      det.push(`<path d="M${_f(X(-.85))},${_f(Y(.08))} Q${_f(dcx)},${_f(Y(.24))} ${_f(X(.85))},${_f(Y(.08))} L${_f(X(.88))},${_f(Y(.22))} Q${_f(dcx)},${_f(Y(.36))} ${_f(X(-.88))},${_f(Y(.22))} Z" fill="${scCol}" stroke="${INK}" stroke-width="2.8"/>`);
+      det.push(`<path d="M${_f(X(.05))},${_f(Y(.22))} L${_f(X(.42))},${_f(Y(.22))} L${_f(X(.48 + tLg[0] * .004))},${_f(Y(.66 + tLg[1] * .003))} L${_f(X(.12 + tLg[0] * .004))},${_f(Y(.68 + tLg[1] * .003))} Z" fill="${scCol}" stroke="${INK}" stroke-width="2.6"/>`);
+    } else {
+      det.push(`<polygon points="${_f(X(-.42))},${_f(Y(.08))} ${_f(X(.42))},${_f(Y(.08))} ${_f(dcx)},${_f(Y(.48))}" fill="${pal.shirt}" stroke="${INK}" stroke-width="2.6" stroke-linejoin="round"/>`);
+      if (S.bowtie) {
+        det.push(`<polygon points="${_f(dcx)},${_f(Y(.20))} ${_f(X(-.26))},${_f(Y(.13))} ${_f(X(-.26))},${_f(Y(.27))}" fill="${pal.tie}" stroke="${INK}" stroke-width="2.4" stroke-linejoin="round"/>`);
+        det.push(`<polygon points="${_f(dcx)},${_f(Y(.20))} ${_f(X(.26))},${_f(Y(.13))} ${_f(X(.26))},${_f(Y(.27))}" fill="${pal.tie}" stroke="${INK}" stroke-width="2.4" stroke-linejoin="round"/>`);
+        det.push(`<circle cx="${_f(dcx)}" cy="${_f(Y(.20))}" r="5.5" fill="${shade(pal.tie, .8)}" stroke="${INK}" stroke-width="2"/>`);
+      } else {
+        det.push(`<g transform="translate(${_f(tLg[0] * .65)},${_f(tLg[1] * .45)})"><polygon points="${_f(X(-.08))},${_f(Y(.18))} ${_f(X(.08))},${_f(Y(.18))} ${_f(X(.11))},${_f(Y(.42))} ${_f(dcx)},${_f(Y(.50))} ${_f(X(-.11))},${_f(Y(.42))}" fill="${pal.tie}" stroke="${INK}" stroke-width="2.4" stroke-linejoin="round"/></g>`);
+      }
+      det.push(`<polygon points="${_f(X(-.44))},${_f(Y(.06))} ${_f(X(-.76))},${_f(Y(.16))} ${_f(X(-.34))},${_f(Y(.42))} ${_f(dcx)},${_f(Y(.52))} ${_f(X(-.20))},${_f(Y(.28))}" fill="${tint(S.coat || pal.coat, .16)}" stroke="${INK}" stroke-width="2.8" stroke-linejoin="round"/>`);
+      det.push(`<polygon points="${_f(X(.44))},${_f(Y(.06))} ${_f(X(.76))},${_f(Y(.16))} ${_f(X(.34))},${_f(Y(.42))} ${_f(dcx)},${_f(Y(.52))} ${_f(X(.20))},${_f(Y(.28))}" fill="${tint(S.coat || pal.coat, .16)}" stroke="${INK}" stroke-width="2.8" stroke-linejoin="round"/>`);
+    }
+    det.push(`<path d="M${_f(dcx)},${_f(Y(.50))} L${_f(dcx)},${_f(Y(.82))}" stroke="${INK}" stroke-width="2.4" stroke-linecap="round"/>`);
+    for (const bv of [.58, .70]) det.push(`<circle cx="${_f(dcx + (side ? -dir * 5 : 8))}" cy="${_f(Y(bv))}" r="4.5" fill="${pal.trim}" stroke="${INK}" stroke-width="2"/>`);
+    det.push(`<rect x="${_f(X(-.48))}" y="${_f(Y(.32))}" width="${_f(wT * .32)}" height="${_f(BH * .13)}" rx="3" fill="${tint(S.coat || pal.coat, .1)}" stroke="${INK}" stroke-width="2.2"/>`);
+    if (S.badge) det.push(`<rect x="${_f(X(.26))}" y="${_f(Y(.30))}" width="22" height="12" rx="3" fill="${pal.trim}" stroke="${INK}" stroke-width="2"/>`);
+    det.push(`<rect x="${_f(cx - wB * 1.4)}" y="${_f(Y(.84))}" width="${_f(wB * 2.8)}" height="${_f(BH * .2)}" fill="${pal.pants}"/>`);
+    det.push(`<rect x="${_f(cx - wB * 1.4)}" y="${_f(Y(.78))}" width="${_f(wB * 2.8)}" height="${_f(BH * .07)}" fill="#3e271a" stroke="${INK}" stroke-width="2.4"/>`);
+    det.push(`<rect x="${_f(dcx - 11)}" y="${_f(Y(.77))}" width="22" height="${_f(BH * .085)}" rx="3" fill="${pal.trim}" stroke="${INK}" stroke-width="2.2"/>`);
+  }
+  // V4.0 crisp 2-tone cel-shadow strip along unlit inner body edge + top-left cel highlight rim
+  { const sdEdge = -INKL[0]; det.push(`<path d="${smooth(B.map(([x, y]) => [x + sdEdge * 18, y + 6]))}" fill="none" stroke="${shade(S.coat || '#6a5b50', .62, 1)}" stroke-opacity=".34" stroke-width="28"/>`); }
   if (SKb) {   // lower part of the long body: own colour, folds, pattern, dark hem band, belt at the waist
     const y0 = SKb.top ?? bodyBot - 90, colL = SKb.col ?? S.coat, hw = SKb.hemW ?? 30, f = v => v.toFixed(1), xs = B.map(p => p[0]), x0 = Math.min(...xs) - 10, x1 = Math.max(...xs) + 10;
     if (colL !== S.coat) det.push(`<rect x="${f(x0)}" y="${f(y0)}" width="${f(x1 - x0)}" height="${f(bBot - y0 + 20)}" fill="${clothGrad(defs, colL, x0, x1)}"/>`);
@@ -466,13 +633,14 @@ const KNEE = (a, k, b, r = side ? 48 : 34) => { const f = v => v.toFixed(1), u =
   }
   mid.push(`<g clip-path="url(#${bodyClip})">${det.join('')}</g>`);
   const thighFill = S.thighCol ?? S.coat;
-  mid.push(inkRing(B, LINE * 1.05, { seed: 2, wob: 0, nib: .15, thin: .55, thick: 1.2, light: INKL, per: 32, extra: [-INKL[0] * .3, .95, 1.0] }));   // CB 2026-11-11: cleaner body edge, a little thicker at the bottom left
-  for (const t of thighs.sort((a, b) => (a.far ? 0 : 1) - (b.far ? 0 : 1))) {   // thigh in the outfit colour over the body's bottom ink, so hip and thigh read as one shape; then the shin in ink
-    if (t.ink) { (S.skirt ? back : mid).push(`<path d="${t.ink}" fill="none" stroke="${INK}" stroke-width="${LEG}" stroke-linecap="round" stroke-linejoin="round"/>`); continue; }
-    const f = v => v.toFixed(1), d = `M${f(t.H0[0])},${f(t.H0[1] - 20)} L${f(t.K[0])},${f(t.K[1])}`, tg = S.skirt ? back : mid;   // long cloth: thigh and shin go behind it
-    if (t.over) tg.push(`<path d="M${f(t.H0[0])},${f(t.H0[1] + 10)} L${f(t.K[0])},${f(t.K[1])}" stroke="${INK}" stroke-width="${t.TW + 12}" stroke-linecap="round" fill="none"/>`);   // knees up in front of the body: the thigh keeps its outline over the coat
+  mid.push(inkRing(B, LINE * 1.4, { seed: 2, wob: 0, nib: .15, thin: .6, thick: 1.25, light: INKL, per: 32, extra: [-INKL[0] * .3, .95, 1.0] }));   // V4.0: 1.4x heavy outer contour ink
+  for (const t of thighs.sort((a, b) => (a.far ? 0 : 1) - (b.far ? 0 : 1))) {
+    if (t.ink) { (S.skirt ? back : mid).push(`<path d="${t.ink}" fill="none" stroke="${INK}" stroke-width="${LEG}" stroke-linecap="round" stroke-linejoin="round"/>`); if (t.shoeStyle && t.shoeStyle !== 'none') (S.skirt ? back : mid).push(drawFoot(t.A2, t.foot, t.shoeStyle, LEG, t.far)); continue; }
+    const f = v => v.toFixed(1), d = `M${f(t.H0[0])},${f(t.H0[1] - 20)} L${f(t.K[0])},${f(t.K[1])}`, tg = S.skirt ? back : mid;
+    if (t.over) tg.push(`<path d="M${f(t.H0[0])},${f(t.H0[1] + 10)} L${f(t.K[0])},${f(t.K[1])}" stroke="${INK}" stroke-width="${t.TW + 12}" stroke-linecap="round" fill="none"/>`);
     tg.push(`<path d="${d}" stroke="${t.far ? shade(thighFill, .86) : thighFill}" stroke-width="${t.TW}" stroke-linecap="round" fill="none"/>`);
     tg.push(`<path d="${t.shin}" fill="none" stroke="${INK}" stroke-width="${LEG}" stroke-linecap="round" stroke-linejoin="miter" stroke-miterlimit="4"/>`);
+    if (t.shoeStyle && t.shoeStyle !== 'none') tg.push(drawFoot(t.A2, t.foot, t.shoeStyle, LEG, t.far));
   }
   if (S.skirt && !SKb) back.push(...skirtSvg());   // CB 2026-11-12 01:58: keep the original body form; the long cloth hangs UNDER / BEHIND it (in front of the legs)
   else if (sideLap) mid.push(...skirtSvg(true));   // CB 2026-11-12 (Rick's cart film: general's robe, samurai coat): a long outfit hangs from the waist over the legs; legs only show below the hem
@@ -484,7 +652,8 @@ const KNEE = (a, k, b, r = side ? 48 : 34) => { const f = v => v.toFixed(1), u =
 
   // head
   const hy = headY, hstart = front.length, HP = headPts(cx, hy, R, S.head || 'rick', dir < 0), hd = smooth(HP);
-  if (S.hairBack) front.push(...S.hairBack({ ...ctx, cx, hy, R }));
+  const hl = S.hairLag || [0, 0], htL = S.hatLag || [0, 0];
+  if (S.hairBack) front.push(`<g transform="translate(${(+hl[0]).toFixed(1)},${(+hl[1]).toFixed(1)})">${S.hairBack({ ...ctx, cx, hy, R }).join('')}</g>`);
   const M = S.meme && view !== 'back' ? S.meme(cx, hy, { view, dir, turn }) : null;   // meme-level expression (memes.mjs)
   if (M && M.under) front.push(...M.under);
   front.push(path(hd, M && M.skin ? `url(#${M.skin})` : skinGrad(defs, cx, hy, R), 'none', 0));
@@ -498,10 +667,25 @@ const KNEE = (a, k, b, r = side ? 48 : 34) => { const f = v => v.toFixed(1), u =
   const fx = cx + turn * R * (side ? .4 : .5), ey = hy + (S.eyeY ?? -14);
   if (M) front.push(`<g transform="translate(${(turn * R * (M.turned ? 0 : side ? .34 : .42)).toFixed(1)},${S.memeDy || 0}) translate(${cx},0) scale(${M.turned ? 1 : (1 - .22 * at).toFixed(3)},1) translate(${-cx},0)">${M.over.join('')}</g>`);
  else { const FK = S.faceK ?? (side ? 1.2 : 1.3), fcy = ey + 18, fxs = side ? fx - dir * 8 : fx;   // CB 2026-11-11: eyes, brows and mouth bigger (x1.3 around the face centre)
-    front.push(`<g transform="translate(${fxs.toFixed(1)},${fcy.toFixed(1)}) scale(${FK}) translate(${(-fxs).toFixed(1)},${(-fcy).toFixed(1)})">${faceKit(S.face, fx, ey, turn, S.mouthY, view, { cx, hy }).join('')}</g>`); }   // views hook (2026-11-10): a drawn face slides to the facing side and narrows a little, like the rig's own face kit, so 3/4 and side read as turned
-  if (S.faceExtras) { const fe = S.faceExtras({ ...ctx, fx, ey, hy, R, cx }); front.push(M || !turn || !S.slideExtras ? fe.join('') : `<g transform="translate(${(turn * R * (side ? .34 : .42)).toFixed(1)},0) translate(${cx},0) scale(${(1 - .22 * at).toFixed(3)},1) translate(${-cx},0)">${fe.join('')}</g>`); }   // same slide as a drawn face, so muzzles, beards and glasses turn with the head
-  if (S.hat) front.push(...S.hat({ ...ctx, cx, fx, hy, R }));
-  front.splice(headInkAt, 0, inkRing(HP, LINE * 1.12 / K, { seed: 5, wob: 0, nib: .2, thin: .55, thick: 1.2, light: INKL, per: 32, extra: [-INKL[0] * .47, .9, .9] })   /* CB 2026-11-11 22:00: cleaner lines, no wobble */);   // CB 2026-11-11: thicker line under the face (chin)
+    front.push(`<g transform="translate(${fxs.toFixed(1)},${fcy.toFixed(1)}) scale(${FK}) translate(${(-fxs).toFixed(1)},${(-fcy).toFixed(1)})">${faceKit(S.face, fx, ey, turn, S.mouthY, view, { cx, hy, splitFx: true }).join('')}</g>`); }   // views hook (2026-11-10): a drawn face slides to the facing side and narrows a little, like the rig's own face kit, so 3/4 and side read as turned
+  if (S.faceExtras) { const fe = S.faceExtras({ ...ctx, fx, ey, hy, R, cx }); front.push(M || !turn || !S.slideExtras ? `<g transform="translate(${(+hl[0] * .6).toFixed(1)},${(+hl[1] * .6).toFixed(1)})">${fe.join('')}</g>` : `<g transform="translate(${(turn * R * (side ? .34 : .42) + (+hl[0] * .6)).toFixed(1)},${(+hl[1] * .6).toFixed(1)}) translate(${cx},0) scale(${(1 - .22 * at).toFixed(3)},1) translate(${-cx},0)">${fe.join('')}</g>`); }
+  // V4.0 direct facialHair & eyewear shorthands on S (when not using full face_gear)
+  if (view !== 'back' && (S.eyewear || S.facialHair)) {
+    const _f = v => (+v).toFixed(1), sqE = (1 - .22 * at), exL = fx - 32 * sqE, exR = fx + 32 * sqE, my0 = ey + (S.mouthY ?? 41) * 1.1;
+    const fCol = S.facialHairCol || '#4f3526', fh = S.facialHair, ew = S.eyewear;
+    if (fh === 'handlebar') front.push(`<path d="M${_f(fx)},${_f(my0 - 16)} Q${_f(fx - 26 * sqE)},${_f(my0 - 26)} ${_f(fx - 46 * sqE)},${_f(my0 - 8)} Q${_f(fx - 60 * sqE)},${_f(my0)} ${_f(fx - 64 * sqE)},${_f(my0 - 20)} Q${_f(fx - 72 * sqE)},${_f(my0 + 8)} ${_f(fx - 48 * sqE)},${_f(my0 + 10)} Q${_f(fx - 22 * sqE)},${_f(my0 + 10)} ${_f(fx)},${_f(my0 - 4)} Q${_f(fx + 22 * sqE)},${_f(my0 + 10)} ${_f(fx + 48 * sqE)},${_f(my0 + 10)} Q${_f(fx + 72 * sqE)},${_f(my0 + 8)} ${_f(fx + 64 * sqE)},${_f(my0 - 20)} Q${_f(fx + 60 * sqE)},${_f(my0)} ${_f(fx + 46 * sqE)},${_f(my0 - 8)} Q${_f(fx + 26 * sqE)},${_f(my0 - 26)} ${_f(fx)},${_f(my0 - 16)} Z" fill="${fCol}" stroke="${INK}" stroke-width="5"/>`);
+    else if (fh === 'chevron') front.push(`<path d="M${_f(fx - 36 * sqE)},${_f(my0 - 2)} Q${_f(fx)},${_f(my0 - 24)} ${_f(fx + 36 * sqE)},${_f(my0 - 2)} Q${_f(fx)},${_f(my0 - 6)} ${_f(fx - 36 * sqE)},${_f(my0 - 2)} Z" fill="${fCol}" stroke="${INK}" stroke-width="5"/>`);
+    else if (fh === 'pencil') front.push(`<path d="M${_f(fx - 32 * sqE)},${_f(my0 - 10)} Q${_f(fx - 14 * sqE)},${_f(my0 - 17)} ${_f(fx - 4 * sqE)},${_f(my0 - 12)} M${_f(fx + 4 * sqE)},${_f(my0 - 12)} Q${_f(fx + 14 * sqE)},${_f(my0 - 17)} ${_f(fx + 32 * sqE)},${_f(my0 - 10)}" fill="none" stroke="${fCol}" stroke-width="5.5" stroke-linecap="round"/>`);
+    else if (fh === 'walrus') front.push(`<path d="M${_f(fx)},${_f(my0 - 25)} Q${_f(fx - 30 * sqE)},${_f(my0 - 30)} ${_f(fx - 50 * sqE)},${_f(my0 - 4)} Q${_f(fx - 50 * sqE)},${_f(my0 + 16)} ${_f(fx - 32 * sqE)},${_f(my0 + 12)} Q${_f(fx - 16 * sqE)},${_f(my0 - 6)} ${_f(fx)},${_f(my0 - 9)} Q${_f(fx + 16 * sqE)},${_f(my0 - 6)} ${_f(fx + 32 * sqE)},${_f(my0 + 12)} Q${_f(fx + 50 * sqE)},${_f(my0 + 16)} ${_f(fx + 50 * sqE)},${_f(my0 - 4)} Q${_f(fx + 30 * sqE)},${_f(my0 - 30)} ${_f(fx)},${_f(my0 - 25)} Z" fill="${fCol}" stroke="${INK}" stroke-width="5.2" stroke-linejoin="round"/><path d="M${_f(fx - 26 * sqE)},${_f(my0 - 15)} L${_f(fx - 30 * sqE)},${_f(my0 + 4)} M${_f(fx + 26 * sqE)},${_f(my0 - 15)} L${_f(fx + 30 * sqE)},${_f(my0 + 4)}" stroke="${INK}" stroke-width="2.2" stroke-linecap="round"/>`);
+    else if (fh === 'goatee') front.push(`<path d="M${_f(cx - 26)},${_f(hy + 70)} Q${_f(cx)},${_f(hy + 62)} ${_f(cx + 26)},${_f(hy + 70)} Q${_f(cx + 22)},${_f(hy + 122)} ${_f(cx)},${_f(hy + 136)} Q${_f(cx - 22)},${_f(hy + 122)} ${_f(cx - 26)},${_f(hy + 70)} Z" fill="${fCol}" stroke="${INK}" stroke-width="6"/>`);
+    if (ew === 'round') front.push(`<circle cx="${_f(exL)}" cy="${_f(ey)}" r="${_f(28 * sqE)}" fill="#dff1fa" fill-opacity=".14" stroke="${INK}" stroke-width="5.5"/><circle cx="${_f(exR)}" cy="${_f(ey)}" r="${_f(28 * sqE)}" fill="#dff1fa" fill-opacity=".14" stroke="${INK}" stroke-width="5.5"/><path d="M${_f(exL + 28 * sqE)},${_f(ey - 2)} Q${_f(fx)},${_f(ey - 10)} ${_f(exR - 28 * sqE)},${_f(ey - 2)}" fill="none" stroke="${INK}" stroke-width="4.5"/>`);
+    else if (ew === 'square') front.push(`<rect x="${_f(exL - 28 * sqE)}" y="${_f(ey - 22)}" width="${_f(56 * sqE)}" height="42" rx="7" fill="#dff1fa" fill-opacity=".14" stroke="${INK}" stroke-width="5.5"/><rect x="${_f(exR - 28 * sqE)}" y="${_f(ey - 22)}" width="${_f(56 * sqE)}" height="42" rx="7" fill="#dff1fa" fill-opacity=".14" stroke="${INK}" stroke-width="5.5"/><path d="M${_f(exL + 28 * sqE)},${_f(ey - 3)} L${_f(exR - 28 * sqE)},${_f(ey - 3)}" stroke="${INK}" stroke-width="5"/>`);
+    else if (ew === 'monocle') front.push(`<circle cx="${_f(exR)}" cy="${_f(ey)}" r="${_f(28 * sqE)}" fill="#dff1fa" fill-opacity=".14" stroke="#d8a520" stroke-width="5.5"/><path d="M${_f(exR + 22 * sqE)},${_f(ey + 18)} Q${_f(exR + 34)},${_f(ey + 80)} ${_f(cx + 38)},${_f(hy + 108)}" fill="none" stroke="#d8a520" stroke-width="3"/>`);
+    else if (ew === 'shades') front.push(`<rect x="${_f(exL - 30 * sqE)}" y="${_f(ey - 22)}" width="${_f(60 * sqE)}" height="38" rx="8" fill="#1e1b24" stroke="${INK}" stroke-width="5.5"/><rect x="${_f(exR - 30 * sqE)}" y="${_f(ey - 22)}" width="${_f(60 * sqE)}" height="38" rx="8" fill="#1e1b24" stroke="${INK}" stroke-width="5.5"/><path d="M${_f(exL + 30 * sqE)},${_f(ey - 6)} L${_f(exR - 30 * sqE)},${_f(ey - 6)}" stroke="${INK}" stroke-width="5"/>`);
+  }
+  if (S.hat) front.push(`<g transform="translate(${(+htL[0]).toFixed(1)},${(+htL[1]).toFixed(1)}) rotate(${((htL[2] || 0)).toFixed(1)},${cx},${hy - 60})">${S.hat({ ...ctx, cx, fx, hy, R }).join('')}</g>`);
+  if (!M) { const overFx = faceOverFx(S.face, fx, ey, turn, view, { cx, hy }); if (overFx.length) { const FK = S.faceK ?? (side ? 1.2 : 1.3), fcy = ey + 18, fxs = side ? fx - dir * 8 : fx; front.push(`<g transform="translate(${fxs.toFixed(1)},${fcy.toFixed(1)}) scale(${FK}) translate(${(-fxs).toFixed(1)},${(-fcy).toFixed(1)})">${overFx.join('')}</g>`); } }
+  front.splice(headInkAt, 0, inkRing(HP, LINE * 1.38 / K, { seed: 5, wob: 0, nib: .2, thin: .6, thick: 1.25, light: INKL, per: 32, extra: [-INKL[0] * .47, .9, .9] }));   // V4.0: 1.38x bold outer head ink contour
   const headParts = front.splice(hstart).join('').replace(/stroke-width="([\d.]+)"/g, (m, w) => `stroke-width="${(+w / Math.sqrt(K)).toFixed(2)}"`);
   const lieArt = S.liePose && S.liePose.art, headG = h => lieArt === 'feet' ? back.unshift(`<g transform="translate(0,${(R * K * 1.15).toFixed(1)})">${h}</g>`) : lieArt === 'head' ? front.push(`<g transform="translate(0,${(R * K * 1.25).toFixed(1)})">${h}</g>`) : front.push(h);   // lying seen from the feet: the head is farthest, behind the belly, only its top half shows; from the head end it is nearest and covers the chest
   // CB 2026-11-15 "x1.1 is good, please make as standard": the whole head group (outline, face, hair, hat) is 1.1x wider than tall; S.headW overrides per character
@@ -529,17 +713,18 @@ const drop = (x, y, sz, col = BLUE) => `<path d="M${x},${y - sz * 1.5} Q${x + sz
 const star4 = (x, y, r, col = '#ffe066') => `<path d="M${x},${y - r} Q${x + r * .18},${y - r * .18} ${x + r},${y} Q${x + r * .18},${y + r * .18} ${x},${y + r} Q${x - r * .18},${y + r * .18} ${x - r},${y} Q${x - r * .18},${y - r * .18} ${x},${y - r} Z" fill="${col}" stroke="${INK}" stroke-width="2.6"/>`;
 export const EXT = {
   eye: {
-    lidHalf: ({ ex, ey, s, k, look }) => { const ly = ey + 1, pr = 7.2 * k; return [`<path d="M${ex + look - pr},${ly} A${pr},${7} 0 0,0 ${ex + look + pr},${ly} Z" fill="${INK}"/>`, brush(ex - 15 * k, ly, ex, ly - 1.5, ex + 15 * k, ly - .5, 4.8, { tip: .45 })]; },
-    angry: ({ ex, ey, s, k, look }) => {   // pupil cut by a lid that slants down to the nose
+    lidHalf: ({ ex, ey, s, k, look, lookY = 0 }) => { const ly = ey + 1 + lookY * 0.45, pr = 7.2 * k; return [`<path d="M${ex + look - pr},${ly} A${pr},${7} 0 0,0 ${ex + look + pr},${ly} Z" fill="${INK}"/>`, brush(ex - 15 * k, ly, ex, ly - 1.5, ex + 15 * k, ly - .5, 4.8, { tip: .45 })]; },
+    angry: ({ ex, ey, s, k, look, lookY = 0 }) => {   // pupil cut by a lid that slants down to the nose
       const ly = ey - 2, yIn = ly + 7, yOut = ly - 5, xIn = ex - s * 15 * k, xOut = ex + s * 15 * k;
       const lineY = x => yIn + (yOut - yIn) * (x - xIn) / (xOut - xIn), pts = [];
-      for (let a = 0; a <= Math.PI * 2 + 1e-6; a += Math.PI / 36) { const x = ex + look + Math.cos(a) * 8.6 * k, y = ey + 2 + Math.sin(a) * 11.5; pts.push([x, Math.max(y, lineY(x))]); }
+      for (let a = 0; a <= Math.PI * 2 + 1e-6; a += Math.PI / 36) { const x = ex + look + Math.cos(a) * 8.6 * k, y = ey + 2 + lookY * 0.45 + Math.sin(a) * 11.5; pts.push([x, Math.max(y, lineY(x))]); }
       return [`<path d="M${pts.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join('L')}Z" fill="${INK}"/>`, brush(xIn, yIn, ex, (yIn + yOut) / 2 - 1, xOut, yOut, 5.6, { tip: .45 })];
     },
-    bigOval: ({ ex, ey, k, look }) => [ell(ex + look, ey, 10.5 * k, 15, INK), ell(ex + look - 3, ey - 6, 3, 3.6, '#ffffff')],
-    dot: ({ ex, ey, k, look }) => [ell(ex + look, ey + 1, 5.6 * k, 6.4, INK)],
-    wideXL: ({ ex, ey, k, look }) => [ell(ex, ey, 17 * k, 19, '#ffffff', INK, 4.6), ell(ex + look, ey + 1, 5.8, 6.4, INK)],
-    shock: ({ ex, ey, k }) => [ell(ex, ey - 2, 19 * k, 22, '#ffffff', INK, 4.8), ell(ex, ey - 1, 2.8, 3.2, INK)],
+    bigOval: ({ ex, ey, k, look, lookY = 0 }) => [ell(ex + look, ey + lookY * .75, 10.5 * k, 15, INK), ell(ex + look - 3, ey - 6 + lookY * .75, 3, 3.6, '#ffffff')],
+    dot: ({ ex, ey, k, look, lookY = 0 }) => [ell(ex + look, ey + 1 + lookY * .8, 5.6 * k, 6.4, INK)],
+    wideXL: ({ ex, ey, k, look, lookY = 0 }) => [ell(ex, ey, 17 * k, 19, '#ffffff', INK, 4.6), ell(ex + look, ey + 1 + lookY * .85, 5.8, 6.4, INK)],
+    shock: ({ ex, ey, k, look = 0, lookY = 0 }) => [ell(ex, ey - 2, 19 * k, 22, '#ffffff', INK, 4.8), ell(ex + look * .45, ey - 1 + lookY * .55, 2.8, 3.2, INK)],
+    tremble: ({ ex, ey, k, look = 0, lookY = 0, F = {} }) => { const ph = F.fxPhase || 0, jx = Math.sin(ph * 28.0) * 3.2, jy = Math.cos(ph * 19.0) * 2.2; return [ell(ex, ey - 2, 19 * k, 22, '#ffffff', INK, 4.8), ell(ex + look * .4 + jx, ey - 1 + lookY * .5 + jy, 2.7, 3.1, INK), `<ellipse cx="${ex}" cy="${ey - 2}" rx="${(13.5 * k).toFixed(1)}" ry="15.5" fill="none" stroke="${INK}" stroke-width="1.6" stroke-opacity=".3"/>`]; },
     sparkle: ({ ex, ey, k }) => [ell(ex, ey, 12.5 * k, 17, INK), ell(ex - 4 * k, ey - 6, 4.6, 5.4, '#ffffff'), ell(ex + 4 * k, ey + 6, 2.2, 2.4, '#ffffff')],
     happyXL: ({ ex, ey, k }) => [brush(ex - 15 * k, ey + 6, ex, ey - 17, ex + 15 * k, ey + 6, 7, { tip: .45 })],
     squeeze: ({ ex, ey, s, k }) => [brush(ex - s * 12 * k, ey - 10, ex + s * 3 * k, ey - 3, ex + s * 12 * k, ey + 1, 6, { tip: .4 }), brush(ex + s * 12 * k, ey + 1, ex + s * 3 * k, ey + 4, ex - s * 12 * k, ey + 10, 6, { tip: .4 })],
@@ -568,13 +753,20 @@ export const EXT = {
     sideways: ({ mx, my }) => [brush(mx - 2, my + 3, mx + 10, my + 3, mx + 20, my - 5, 5, { tip: .4 })],
     tiny: ({ mx, my }) => [ell(mx, my + 2, 4.2, 4.8, INK)],
     kiss: ({ mx, my }) => [brush(mx - 4, my - 6, mx + 8, my - 1, mx - 3, my + 2, 4.2, { tip: .5 }), brush(mx - 3, my + 2, mx + 8, my + 5, mx - 4, my + 10, 4.2, { tip: .5 })],
+    crooked: ({ mx, my, sq }) => [brush(mx - 18 * sq, my + 7, mx - 3 * sq, my - 6, mx + 18 * sq, my + 3, 5.4, { tip: .4 }), `<path d="M${mx + 14 * sq},${my - 4} l5,8" stroke="${INK}" stroke-width="3.2" stroke-linecap="round"/>`],
+    // V4.0 Multi-Shape Lip-Sync Visemes
+    closed: ({ mx, my, sq }) => [brush(mx - 13 * sq, my + 2, mx, my + 4, mx + 13 * sq, my + 1, 4.6, { tip: .45 })],
+    vAO: ({ mx, my, sq }) => [P(`M${mx},${my - 11} C${mx + 19 * sq},${my - 11} ${mx + 19 * sq},${my + 26} ${mx},${my + 26} C${mx - 19 * sq},${my + 26} ${mx - 19 * sq},${my - 11} ${mx},${my - 11} Z`), P(`M${mx - 10 * sq},${my - 8} Q${mx},${my - 10} ${mx + 10 * sq},${my - 8} L${mx + 9 * sq},${my - 3} Q${mx},${my - 4} ${mx - 9 * sq},${my - 3} Z`, '#ffffff', 'none', 0), ell(mx + 1, my + 19, 9 * sq, 5.5, PINK)],
+    vEI: ({ mx, my, sq }) => [P(`M${mx - 24 * sq},${my - 7} Q${mx},${my - 2} ${mx + 24 * sq},${my - 7} Q${mx + 20 * sq},${my + 17} ${mx},${my + 18} Q${mx - 20 * sq},${my + 17} ${mx - 24 * sq},${my - 7} Z`), P(`M${mx - 19 * sq},${my - 4} Q${mx},${my} ${mx + 19 * sq},${my - 4} L${mx + 17 * sq},${my + 3} Q${mx},${my + 6} ${mx - 17 * sq},${my + 3} Z`, '#ffffff', 'none', 0), ell(mx + 1, my + 12, 8.5 * sq, 3.6, PINK)],
+    vMB: ({ mx, my, sq }) => [brush(mx - 15 * sq, my + 2, mx, my, mx + 15 * sq, my + 2, 6.2, { tip: .35 }), `<path d="M${mx - 17 * sq},${my - 2} q-3,4 0,8 M${mx + 17 * sq},${my - 2} q3,4 0,8" fill="none" stroke="${INK}" stroke-width="2.6" stroke-linecap="round"/>`],
+    vFV: ({ mx, my, sq }) => [P(`M${mx - 16 * sq},${my - 6} Q${mx},${my - 8} ${mx + 16 * sq},${my - 6} L${mx + 14 * sq},${my + 4} Q${mx},${my + 7} ${mx - 14 * sq},${my + 4} Z`, '#ffffff', INK, 3.6), brush(mx - 18 * sq, my + 4, mx, my + 9, mx + 18 * sq, my + 4, 4.8, { tip: .4 })],
   },
   fx: {
-    sweat: ({ cx, hy }) => [drop(cx + 74, hy - 46, 10)],
-    sweats: ({ cx, hy }) => [drop(cx + 78, hy - 50, 11), drop(cx - 82, hy - 30, 8), drop(cx + 92, hy - 14, 6)],
-    vein: ({ cx, hy }) => { const x = cx + 58, y = hy - 62, a = (dx1, dy1, dx2, dy2) => `<path d="M${x + dx1},${y + dy1} Q${x + (dx1 + dx2) * .2},${y + (dy1 + dy2) * .2} ${x + dx2},${y + dy2}" fill="none" stroke="${RED}" stroke-width="5" stroke-linecap="round"/>`; return [a(-4, -14, -4, -4), a(-14, -4, -4, -4), a(4, -14, 4, -4), a(14, -4, 4, -4), a(-4, 14, -4, 4), a(-14, 4, -4, 4), a(4, 14, 4, 4), a(14, 4, 4, 4)]; },
+    sweat: ({ cx, hy, F = {} }) => { const dy = 5 * Math.abs(Math.sin((F.fxPhase || 0) * Math.PI)); return [drop(cx + 82, hy - 22 + dy, 11.5)]; },
+    sweats: ({ cx, hy, F = {} }) => { const dy = 5 * Math.abs(Math.sin((F.fxPhase || 0) * Math.PI)); return [drop(cx + 84, hy - 26 + dy, 11.5), drop(cx - 86, hy - 22 + dy * .7, 8.5), drop(cx + 96, hy - 2 + dy * 1.2, 6.5)]; },
+    vein: ({ cx, hy, F = {} }) => { const sc = 1 + 0.16 * Math.abs(Math.sin((F.fxPhase || 0) * Math.PI * 2)), x = cx + 70, y = hy - 44, a = (dx1, dy1, dx2, dy2) => `<path d="M${(x + dx1 * sc).toFixed(1)},${(y + dy1 * sc).toFixed(1)} Q${(x + (dx1 + dx2) * .2 * sc).toFixed(1)},${(y + (dy1 + dy2) * .2 * sc).toFixed(1)} ${(x + dx2 * sc).toFixed(1)},${(y + dy2 * sc).toFixed(1)}" fill="none" stroke="${RED}" stroke-width="5.5" stroke-linecap="round"/>`; return [`<circle cx="${x}" cy="${y}" r="${(17 * sc).toFixed(1)}" fill="#ffffff" fill-opacity=".55"/>`, a(-4, -14, -4, -4), a(-14, -4, -4, -4), a(4, -14, 4, -4), a(14, -4, 4, -4), a(-4, 14, -4, 4), a(-14, 4, -4, 4), a(4, 14, 4, 4), a(14, 4, 4, 4)]; },
     redMarks: ({ cx, hy }) => [[118, -60, 132, -74], [126, -38, 145, -42], [126, -16, 144, -8], [-118, -60, -132, -74], [-126, -38, -145, -42]].map(([a, b, c, d]) => `<path d="M${cx + a},${hy + b} L${cx + c},${hy + d}" stroke="${RED}" stroke-width="5.5" stroke-linecap="round"/>`),
-    steam: ({ cx, hy }) => { const puff = (x, y, s) => { const d = smooth([[x - 18 * s, y + 4 * s], [x - 14 * s, y - 10 * s], [x - 2 * s, y - 15 * s], [x + 12 * s, y - 12 * s], [x + 19 * s, y - 1 * s], [x + 12 * s, y + 11 * s], [x - 3 * s, y + 13 * s], [x - 14 * s, y + 11 * s]]); return P(d, '#e9e6ee', INK, 3.4); }; return [puff(cx - 118, hy - 8, 1.1), puff(cx - 140, hy - 34, .7), puff(cx + 118, hy - 8, 1.1), puff(cx + 140, hy - 34, .7)]; },
+    steam: ({ cx, hy, F = {} }) => { const dy = -6 * Math.abs(Math.sin((F.fxPhase || 0) * Math.PI * 2)); const puff = (x, y, s) => { const d = smooth([[x - 18 * s, y + 4 * s], [x - 14 * s, y - 10 * s], [x - 2 * s, y - 15 * s], [x + 12 * s, y - 12 * s], [x + 19 * s, y - 1 * s], [x + 12 * s, y + 11 * s], [x - 3 * s, y + 13 * s], [x - 14 * s, y + 11 * s]]); return P(d, '#f4f1f8', INK, 3.6); }; return [puff(cx - 122, hy + 2 + dy, 1.05), puff(cx - 144, hy - 26 + dy * 1.4, .68), puff(cx + 122, hy + 2 + dy, 1.05), puff(cx + 144, hy - 26 + dy * 1.4, .68)]; },
     blush: ({ fx, ey, dx }) => [-1, 1].flatMap(s => [ell(fx + s * (dx + 12), ey + 20, 15, 8, '#f39aac'), ...[-6, 0, 6].map(t => `<path d="M${fx + s * (dx + 12) + t - 2},${ey + 23} l4,-7" stroke="#e0607a" stroke-width="2" stroke-linecap="round"/>`)]),
     tears: ({ fx, ey, dx }) => [-1, 1].map(s => `<path d="M${fx + s * dx},${ey + 8} Q${fx + s * (dx + 4)},${ey + 40} ${fx + s * (dx + 2)},${ey + 76}" fill="none" stroke="${BLUE}" stroke-width="9" stroke-linecap="round" opacity=".95"/>`),
     joyTears: ({ fx, ey, dx }) => [drop(fx - dx - 22, ey - 4, 6), drop(fx + dx + 22, ey - 4, 6)],
@@ -583,17 +775,19 @@ export const EXT = {
     gloom: ({ cx, hy }) => [`<g opacity=".5">${[-48, -32, -16, 0, 16, 32, 48].map(t => `<path d="M${cx + t},${hy - 90 + Math.abs(t) * .5} L${cx + t},${hy - 40}" stroke="#5a5fa8" stroke-width="4" stroke-linecap="round"/>`).join('')}</g>`],
     stars: ({ cx, hy }) => [`<ellipse cx="${cx}" cy="${hy - 108}" rx="70" ry="14" fill="none" stroke="${INK}" stroke-width="3" stroke-dasharray="6 7" opacity=".6"/>`, star4(cx - 62, hy - 110, 11), star4(cx + 8, hy - 96, 13), star4(cx + 60, hy - 118, 10)],
     zzz: ({ cx, hy }) => [[cx + 92, hy - 70, 14], [cx + 118, hy - 98, 18], [cx + 148, hy - 132, 22]].map(([x, y, z]) => `<path d="M${x - z / 2},${y - z / 2} L${x + z / 2},${y - z / 2} L${x - z / 2},${y + z / 2} L${x + z / 2},${y + z / 2}" fill="none" stroke="${INK}" stroke-width="${z * .26}" stroke-linecap="round" stroke-linejoin="round"/>`),
-    exclaim: ({ cx, hy }) => [P(`M${cx + 96},${hy - 150} L${cx + 112},${hy - 150} L${cx + 106},${hy - 108} L${cx + 102},${hy - 108} Z`, RED, INK, 3.5), ell(cx + 104, hy - 96, 7, 7, RED, INK, 3.5)],
-    question: ({ cx, hy }) => [`<path d="M${cx + 88},${hy - 136} Q${cx + 92},${hy - 158} ${cx + 110},${hy - 156} Q${cx + 130},${hy - 152} ${cx + 124},${hy - 134} Q${cx + 118},${hy - 124} ${cx + 108},${hy - 120} L${cx + 108},${hy - 108}" fill="none" stroke="${INK}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>`, ell(cx + 108, hy - 94, 5.5, 5.5, INK)],
+    exclaim: ({ cx, hy }) => [P(`M${cx + 102},${hy - 138} L${cx + 118},${hy - 138} L${cx + 112},${hy - 96} L${cx + 108},${hy - 96} Z`, RED, INK, 3.5), ell(cx + 110, hy - 84, 7, 7, RED, INK, 3.5)],
+    question: ({ cx, hy }) => [`<path d="M${cx + 94},${hy - 120} Q${cx + 98},${hy - 144} ${cx + 116},${hy - 142} Q${cx + 136},${hy - 138} ${cx + 130},${hy - 118} Q${cx + 124},${hy - 108} ${cx + 114},${hy - 104} L${cx + 114},${hy - 92}" fill="none" stroke="${INK}" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>`, `<path d="M${cx + 94},${hy - 120} Q${cx + 98},${hy - 144} ${cx + 116},${hy - 142} Q${cx + 136},${hy - 138} ${cx + 130},${hy - 118} Q${cx + 124},${hy - 108} ${cx + 114},${hy - 104} L${cx + 114},${hy - 92}" fill="none" stroke="#ffd23f" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>`, ell(cx + 114, hy - 78, 6.5, 6.5, '#ffd23f', INK, 3)],
+    lightbulb: ({ cx, hy, F = {} }) => { const x = cx + 110, y = hy - 98, g = 0.85 + 0.15 * Math.sin((F.fxPhase || 0) * Math.PI * 2); return [`<g transform="translate(${x},${y}) scale(${g.toFixed(2)})">`, `<path d="M-16,-6 C-16,-24 16,-24 16,-6 C16,6 9,10 8,18 L-8,18 C-9,10 -16,6 -16,-6 Z" fill="#ffe866" stroke="${INK}" stroke-width="4" stroke-linejoin="round"/>`, `<rect x="-7" y="18" width="14" height="8" rx="2" fill="#aeb4c2" stroke="${INK}" stroke-width="3"/>`, `<path d="M-5,2 Q0,-6 5,2" fill="none" stroke="#d87a1a" stroke-width="2.6" stroke-linecap="round"/>`, ...[-70, -35, 0, 35, 70].map(deg => { const a = (deg - 90) * Math.PI / 180; return `<line x1="${(Math.cos(a) * 24).toFixed(1)}" y1="${(Math.sin(a) * 24).toFixed(1)}" x2="${(Math.cos(a) * 35).toFixed(1)}" y2="${(Math.sin(a) * 35).toFixed(1)}" stroke="#ffd23f" stroke-width="4.2" stroke-linecap="round"/>`; }), `</g>`]; },
     heart: ({ cx, hy }) => [P(`M${cx + 108},${hy - 84} C${cx + 86},${hy - 100} ${cx + 92},${hy - 124} ${cx + 108},${hy - 112} C${cx + 124},${hy - 124} ${cx + 130},${hy - 100} ${cx + 108},${hy - 84} Z`, '#f05a78', INK, 3.5)],
   },
 };
 
 // 24 expression presets, pushed bigger than Rick's (features ~1.3-1.8x, brows travel further, effects added)
 Object.assign(FACES, {
-  smug:      { eyes: 'lidHalf', brows: [[-3, 3, 1, 1.15], [15, -5, 9, 1.15]], mouth: 'smirkXL' },
+  smug:      { eyes: 'lidHalf', brows: [[-3, 3, 1, 1.15], [16, -5, 9, 1.15]], mouth: 'smirkXL' },
+  sneaky:    { eyes: 'squint', brows: [[-4, 7, 1, 1.15], [9, -2, 6, 1.15]], mouth: 'smirkXL' },
   happy:     { eyes: 'happyXL', brows: [[10, -3, 7], [12, -3, 8]], mouth: 'smileXL' },
-  laugh:     { eyes: 'squeeze', brows: [[12, -4, 6], [12, -4, 6]], mouth: 'grinXL', fx: ['joyTears'] },
+  laugh:     { eyes: 'happyXL', brows: [[13, -4, 7], [13, -4, 7]], mouth: 'grinXL' },
   cheer:     { eyes: 'happyXL', brows: [[12, -3, 7], [12, -3, 7]], mouth: 'teeth', fx: ['sparkles'] },
   excited:   { eyes: 'sparkle', brows: [[14, -3, 8], [14, -3, 8]], mouth: 'grinXL', fx: ['sparkles'] },
   shy:       { eyes: 'happyXL', brows: [[4, -5, 4], [4, -5, 4]], mouth: 'smileSmall', fx: ['blush'] },
@@ -601,30 +795,36 @@ Object.assign(FACES, {
   surprised: { eyes: 'wideXL', brows: [[18, -2, 9, 1.1], [20, -2, 9, 1.1]], mouth: 'gaspXL', fx: ['exclaim'] },
   shocked:   { eyes: 'shock', brows: [[22, -1, 9, 1.1], [22, -1, 9, 1.1]], mouth: 'gaspXL', fx: ['shockLines', 'sweat'] },
   scared:    { eyes: 'shock', brows: [[14, -9, 4], [14, -9, 4]], mouth: 'wavy', fx: ['gloom', 'sweats'], wavyW: 26 },
-  worried:   { eyes: 'bigOval', brows: [[12, -12, 3, 1.1], [12, -12, 3, 1.1]], mouth: 'wavy', wavyW: 26, fx: ['sweats'] },
+  worried:   { eyes: 'bigOval', brows: [[14, -12, 3, 1.1], [14, -12, 3, 1.1]], mouth: 'wavy', wavyW: 26, fx: ['sweat'] },
   nervous:   { eyes: 'dot', brows: [[8, -8, 3], [8, -8, 3]], mouth: 'teeth', teethW: 30, teethH: 10, fx: ['sweats'] },
   sad:       { eyes: 'bigOval', brows: [[8, -13, 2, 1.1], [8, -13, 2, 1.1]], mouth: 'frownXL', fx: ['gloom'] },
   crying:    { eyes: 'cry', brows: [[8, -11, 2], [8, -11, 2]], mouth: 'wail', fx: ['tears'] },
   teary:     { eyes: 'tearful', brows: [[8, -10, 2], [8, -10, 2]], mouth: 'wavy', wavyW: 14 },
-  angry:     { eyes: 'angry', brows: [[-6, 12, -2, 1.25], [-6, 12, -2, 1.25]], mouth: 'teeth', teethW: 24, teethH: 9, fx: ['vein'] },
+  angry:     { eyes: 'angry', brows: [[-6, 12, -2, 1.25], [-6, 12, -2, 1.25]], mouth: 'teeth', teethW: 24, teethH: 9, fx: ['vein', 'steam'] },
   furious:   { eyes: 'squeeze', brows: [[-8, 15, -2, 1.35], [-8, 15, -2, 1.35]], mouth: 'shout', fx: ['steam', 'vein', 'redMarks'] },
   annoyed:   { eyes: 'lidHalf', brows: [[-6, 6, 0, 1.15], [-5, 7, 0, 1.15]], mouth: 'flatXL', fx: ['redMarks', 'vein'] },
   frustrated:{ eyes: 'dot', brows: [[0, 9, 0, 1.15], [0, 9, 0, 1.15]], mouth: 'wavy', fx: ['steam'] },
-  skeptical: { eyes: ['lidHalf', 'oval'], brows: [[-6, 5, 0], [18, -3, 9, 1.1]], mouth: 'sideways' },
-  confused:  { eyes: ['dot', 'oval'], brows: [[12, -4, 6], [-2, 6, 0]], mouth: 'wavy', wavyW: 14, fx: ['question'] },
+  skeptical: { eyes: 'lidHalf', brows: [[-6, 6, 0, 1.1], [18, -4, 9, 1.15]], mouth: 'sideways', lookX: 4.5 },
+  confused:  { eyes: ['dot', 'bigOval'], brows: [[15, -4, 7, 1.15], [-4, 7, -1, 1.15]], mouth: 'crooked', fx: ['question'] },
   evil:      { eyes: 'angry', brows: [[-4, 14, -3, 1.3], [-4, 14, -3, 1.3]], mouth: 'evil' },
   dizzy:     { eyes: ['spiral', 'x'], brows: null, mouth: 'tongue', fx: ['stars'] },
   sleepy:    { eyes: 'closed', brows: [[-2, 0, 1], [-2, 0, 1]], mouth: 'gasp', fx: ['zzz'] },
   wink:      { eyes: ['happyXL', 'oval'], brows: [[4, -2, 5], [12, -3, 7]], mouth: 'tongue', fx: ['sparkles'] },
+  // V4.0 Micro-Expression Presets
+  deadpan:   { eyes: 'lidHalf', brows: [[-2, 0, 0, 1.05], [-2, 0, 0, 1.05]], mouth: 'flatXL' },
+  scheming:  { eyes: 'squint', brows: [[-4, 11, 1, 1.2], [-2, 9, 2, 1.2]], mouth: 'evil' },
+  terrified: { eyes: 'tremble', brows: [[20, -10, 4, 1.15], [20, -10, 4, 1.15]], mouth: 'wavy', wavyW: 28, fx: ['sweats', 'gloom'] },
+  idea:      { eyes: 'sparkle', brows: [[16, -3, 8, 1.15], [16, -3, 8, 1.15]], mouth: 'grinXL', fx: ['lightbulb'] },
+  jawdrop:   { eyes: 'shock', brows: [[22, -2, 10, 1.1], [22, -2, 10, 1.1]], mouth: 'gaspXL', fx: ['shockLines'] },
 });
 
 // ---- ACTING HABITS (CB 2026-11-13 02:21 Bangkok "CHARACTER ACTING & MICRO-EXPRESSION RULES"): small unconscious human habits ----
 // tongue out of one mouth corner while concentrating, one eye squinted or shut while aiming, lower lip bitten, one brow up when confused,
 // cheeks puffed on a held breath, nervous and proud smiles. F.side picks the corner / eye (1 = screen right, -1 = screen left; default = facing side).
 Object.assign(EXT.eye, {
-  squint: ({ ex, ey, s, k, look }) => { const ly = ey + 1, pr = 7.4 * k; return [`<path d="M${ex + look - pr},${ly} A${pr},${6.5} 0 0,0 ${ex + look + pr},${ly} Z" fill="${INK}"/>`, brush(ex - s * 15 * k, ly + 3, ex, ly - 2.5, ex + s * 14 * k, ly - 1, 6.2, { tip: .4 }), brush(ex - 9 * k, ly + 9.5, ex, ly + 6.5, ex + 9 * k, ly + 9, 3, { tip: .35 })]; },
+  squint: ({ ex, ey, s, k, look, lookY = 0 }) => { const ly = ey + 1 + lookY * .4, pr = 7.4 * k; return [`<path d="M${ex + look - pr},${ly} A${pr},${6.5} 0 0,0 ${ex + look + pr},${ly} Z" fill="${INK}"/>`, brush(ex - s * 15 * k, ly + 3, ex, ly - 2.5, ex + s * 14 * k, ly - 1, 6.2, { tip: .4 }), brush(ex - 9 * k, ly + 9.5, ex, ly + 6.5, ex + 9 * k, ly + 9, 3, { tip: .35 })]; },
   shut: ({ ex, ey, s, k }) => [brush(ex + s * 13 * k, ey - 6, ex - s * 2 * k, ey, ex - s * 12 * k, ey + 2, 5.2, { tip: .4 }), brush(ex - s * 12 * k, ey + 2, ex - s * 2 * k, ey + 5, ex + s * 12 * k, ey + 9, 4.6, { tip: .4 }), `<path d="M${ex + s * 17 * k},${ey - 8} l${s * 5},-3 M${ex + s * 18 * k},${ey + 2} l${s * 6},0 M${ex + s * 17 * k},${ey + 11} l${s * 5},3" stroke="${INK}" stroke-width="2.6" stroke-linecap="round"/>`],
-  lookSide: ({ ex, ey, k, F }) => { const c = F.side || 1; return [`<path d="M${ex - 9 * k},${ey - 3} A${9 * k},10 0 0,0 ${ex + 9 * k},${ey - 3} Z" fill="#ffffff" stroke="${INK}" stroke-width="3.4"/>`, ell(ex + c * 5 * k, ey + 1, 4.2 * k, 5, INK), brush(ex - 11 * k, ey - 3, ex, ey - 5, ex + 11 * k, ey - 3, 4.4, { tip: .45 })]; },
+  lookSide: ({ ex, ey, k, look = 0, lookY = 0, F }) => { const c = Math.abs(F.lookX ?? 0) > 0.5 ? Math.sign(F.lookX) : (F.side || 1); return [`<path d="M${ex - 9 * k},${ey - 3} A${9 * k},10 0 0,0 ${ex + 9 * k},${ey - 3} Z" fill="#ffffff" stroke="${INK}" stroke-width="3.4"/>`, ell(ex + c * 5 * k, ey + 1 + lookY * .55, 4.2 * k, 5, INK), brush(ex - 11 * k, ey - 3, ex, ey - 5, ex + 11 * k, ey - 3, 4.4, { tip: .45 })]; },
 });
 Object.assign(EXT.mouth, {
   tongueCorner: ({ mx, my, sq, F }) => { const c = F.side || 1, tx = mx + c * 9 * sq;
@@ -653,6 +853,6 @@ Object.assign(FACES, {
   frozenTongue: { eyes: 'wide', brows: [[11, -2, 6], [13, -2, 7]], mouth: 'tongueCorner', side: 1 },
   glanceCam:    { eyes: 'oval', brows: [[6, -6, 3], [8, -7, 3]], mouth: 'tongueCorner', side: 1, fx: ['sweat'] },
   nervousSmile: { eyes: 'dot', brows: [[7, -8, 3], [9, -8, 3]], mouth: 'nervous', fx: ['sweat'] },
-  proud:        { eyes: 'happy', brows: [[8, -2, 6], [12, -3, 8]], mouth: 'proud' },
+  proud:        { eyes: 'happyXL', brows: [[12, -3, 7, 1.15], [14, -3, 8, 1.15]], mouth: 'proud', fx: ['sparkles'] },
   slyWink:      { eyes: ['happy', 'lidHalf'], brows: [[-2, 4, 1, 1.1], [14, -4, 8, 1.1]], mouth: 'proud' },   // moonrakers 2026-11-13 (CB 'add all four'): one eye shut as a curved line, the other open under a half lid, sly half-smile, no tongue. 'wink' stays the old cartoon wink (tongue, sparkles): roller coaster uses k:wink.
 });

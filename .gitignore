@@ -1,5 +1,38 @@
+# Dependencies
 node_modules/
+package-lock.json
+
+# Build and Render Outputs
 out/
+**/out/
+*.mp4
+*.tar.gz
+*.tar
+*.tgz
+*.zip
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
 *.log
+
+# Temporary & handoff folders
+gemini_handoff/
+.temp/
+tmp/
+
+# Secrets, credentials and environment variables
+.env
+.env.*
+*.env
+*.pem
+*.key
+*token*.json
+credentials*.json
+service_account*.json
+client_secret*.json
+
+# OS files
 .DS_Store
 Thumbs.db

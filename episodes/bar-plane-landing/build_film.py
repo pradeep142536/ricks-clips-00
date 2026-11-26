@@ -1,0 +1,356 @@
+import json
+import os
+
+EP_DIR = os.path.dirname(os.path.abspath(__file__))
+WORDS_PATH = os.path.join(EP_DIR, "voice", "words.json")
+FILM_PATH = os.path.join(EP_DIR, "film.json")
+
+with open(WORDS_PATH, "r", encoding="utf-8") as f:
+    words = json.load(f)
+for w in words:
+    w["_k"] = w["w"].strip(" .,?!\"';:-").lower()
+
+print(f"Loaded {len(words)} words cleanly (end={words[-1]['e']:.2f}s).")
+
+sentences = [
+    {"text": "Stealing a plane in New York should get you twenty years in prison.", "words": [0, 12], "subject": "prison_padlock_prop"},
+    {"text": "This guy did it twice, and only paid a hundred bucks.", "words": [13, 23], "subject": "tommy"},
+    {"text": "In nineteen fifty-six, drunk pilot Tommy Fitzpatrick slammed his beer mug down at O'Malley's Bar.", "words": [24, 38], "subject": "tommy"},
+    {"text": "He made a crazy bet he could fly from New Jersey to Manhattan in fifteen minutes flat.", "words": [39, 55], "subject": "stopwatch_bet_sign"},
+    {"text": "Nobody at the crowded table believed a word of his wild boast.", "words": [56, 67], "subject": "patron"},
+    {"text": "So at three in the morning, Tommy crept across a moonlit New Jersey airfield.", "words": [68, 81], "subject": "tommy"},
+    {"text": "He broke inside a tiny propeller plane and blasted off into the night with zero lights.", "words": [82, 97], "subject": "vintage_prop_plane"},
+    {"text": "Tommy raced blind between glowing Manhattan skyscrapers straight toward Washington Heights.", "words": [98, 108], "subject": "vintage_prop_plane"},
+    {"text": "He plunged straight down a narrow New York avenue lined with parked vintage cars.", "words": [109, 122], "subject": "vintage_prop_plane"},
+    {"text": "Rubber tires screeched across dark asphalt right outside O'Malley's front door.", "words": [123, 133], "subject": "vintage_prop_plane"},
+    {"text": "Tommy casually strolled back inside grinning while his friend's jaw hit the floor.", "words": [134, 146], "subject": "patron"},
+    {"text": "Cops surrounded the plane fast, yet the shocked owner refused to press charges.", "words": [147, 159], "subject": "officer"},
+    {"text": "So a courtroom judge slammed his gavel and handed Tommy a hundred-dollar fine.", "words": [160, 172], "subject": "court_judge_gavel"},
+    {"text": "Headlines made him famous, until two years later a new patron called him a liar.", "words": [173, 187], "subject": "headline_newspaper_prop"},
+    {"text": "So Tommy walked outside and parked a second plane at the exact same bar twice!", "words": [188, 202], "subject": "vintage_prop_plane"},
+]
+
+film = {
+    "title": "The Man Who Landed a Plane at a Bar—Twice",
+    "fps": 30,
+    "size": [1080, 1920],
+    "kit3d": True,
+    "ink_outlines": True,
+    "card_emit": 1.0,
+    "caption_y": 0.715,
+    "face_shadow": False,
+    "costume_shade": {
+        "amount": 0.22,
+        "smooth": 4,
+        "keep_drawn_light": True
+    },
+    "tween": {
+        "frames": 4,
+        "walk_frames": 4,
+        "ease": "out",
+        "idle": 0.75,
+        "idle_s": 2.6
+    },
+    "post": {
+        "dof": 1,
+        "bloom": 1,
+        "dust": 0,
+        "vignette": 1
+    },
+    "faces_ep": {
+        "squint": {"eyes": ["squint", "squint"], "brows": [[-3, 6, 0, 1.05], [-3, 6, 0, 1.05]], "mouth": "flat"},
+        "squint_talk": {"eyes": ["squint", "squint"], "brows": [[-2, 5, 1, 1.05], [-1, 4, 1, 1.05]], "mouth": "talk"},
+        "worried_clean": {"eyes": "bigOval", "brows": [[11, -10, 3, 1.08], [11, -10, 3, 1.08]], "mouth": "frownXL"},
+        "brow_talk": {"eyes": "oval", "brows": [[12, -2, 6, 1.05], [14, -2, 7, 1.05]], "mouth": "talk"},
+        "brows_raised": {"eyes": "oval", "brows": [[13, -2, 7, 1.1], [15, -2, 8, 1.1]], "mouth": "o"}
+    },
+    "words": "voice/words.json",
+    "puppet_pkg": [
+        "cast",
+        "../../templates/vector2d_characters/code"
+    ],
+    "camera_idea": {
+        "name": "RicksClips V3.0 Five-Angle Paradox Heist",
+        "why": "Macro gag inserts (20-year padlock, $100 bill, 15:00 stopwatch, tire screech, judge gavel & ticket, spinning newspaper), top-down NYC street overhead glide, doorway mug/window peeks, over-the-wing skyscraper chase, and punch-in reaction zooms."
+    },
+    "cast": {
+        "tommy": {"puppet": "cast:barplane/tommy", "height": 1.74, "heads_tall": 2.85, "clearance_radius": 0.25},
+        "patron": {"puppet": "cast:barplane/patron", "height": 1.72, "heads_tall": 2.75, "clearance_radius": 0.25},
+        "officer": {"puppet": "cast:barplane/officer", "height": 1.78, "heads_tall": 2.85, "clearance_radius": 0.25}
+    },
+    "places": {
+        "paradox_intro": {
+            "set": "paradox_intro", "light": "night", "sky_kind": "night-storm", "backdrop": 8.0, "ground": [0, 0, 0],
+            "light_over": {"sun": "#ffd79c", "si": 1.55, "amb": "#556ea8", "ai": 1.25, "rim": "#9cbaff", "card_emit": 1.0}
+        },
+        "nyc_bar_interior": {"set": "nyc_bar_interior", "light": "interior", "sky_kind": "clear-day", "backdrop": 6.0, "ground": [0, 0, 0]},
+        "nj_airfield_night": {
+            "set": "nj_airfield_night", "light": "night", "sky_kind": "night-storm", "backdrop": 14.0, "ground": [0, 0, 0],
+            "light_over": {"sun": "#c4d8ff", "si": 1.50, "amb": "#4e64a8", "ai": 1.35, "rim": "#a8c4ff", "card_emit": 1.0}
+        },
+        "cockpit_night": {
+            "set": "cockpit_night", "light": "night", "sky_kind": "night-storm", "backdrop": 18.0, "ground": [0, 0, 0],
+            "light_over": {"sun": "#c4d8ff", "si": 1.60, "amb": "#5268a8", "ai": 1.40, "rim": "#b8d0ff", "card_emit": 1.0}
+        },
+        "manhattan_sky_night": {
+            "set": "manhattan_sky_night", "light": "night", "sky_kind": "night-storm", "backdrop": 20.0, "ground": [0, 0, 0],
+            "light_over": {"top": "#0c1538", "hor": "#3c548f", "sun": "#cbd9ff", "si": 1.65, "amb": "#556ea8", "ai": 1.45, "card_emit": 1.0}
+        },
+        "nyc_street_night": {
+            "set": "nyc_street_night", "light": "night", "sky_kind": "night-storm", "backdrop": 12.0, "ground": [0, 0, 0],
+            "light_over": {"hor": "#354980", "sun": "#ffd79c", "si": 1.55, "amb": "#596ea8", "ai": 1.35, "rim": "#9cbaff", "card_emit": 1.0}
+        },
+        "courthouse_bench": {
+            "set": "courthouse_bench", "light": "night", "sky_kind": "night-storm", "backdrop": 8.0, "ground": [0, 0, 0],
+            "light_over": {"sun": "#ffd79c", "si": 1.60, "amb": "#586da8", "ai": 1.30, "rim": "#a8c4ff", "card_emit": 1.0}
+        }
+    },
+    "props": {
+        "prison_padlock_prop": {"place": "paradox_intro", "pos": [-0.14, 0.18, 0.98], "h": 0.36},
+        "hundred_dollar_bill_prop": {"place": "paradox_intro", "pos": [0.28, 0.10, 0.80], "h": 0.12},
+        "bar_counter": {"place": "nyc_bar_interior", "pos": [1.1, 2.55, 0.55], "h": 1.18},
+        "beer_mug": {"place": "nyc_bar_interior", "pos": [-0.05, 2.38, 1.05], "h": 0.22},
+        "stopwatch_bet_sign": {"place": "nyc_bar_interior", "pos": [0.36, 2.52, 1.45], "h": 0.18},
+        "pub_table": {"place": "nyc_bar_interior", "pos": [-2.8, 2.35, 0.4], "h": 0.76},
+        "headline_newspaper_prop": {"place": "nyc_bar_interior", "pos": [0.15, -0.45, 1.38], "h": 0.85},
+        "airfield_hangar": {"place": "nj_airfield_night", "pos": [-10.2, 11.8, 2.5], "h": 5.0},
+        "vintage_prop_plane": {"place": "nj_airfield_night", "pos": [2.6, 4.4, 1.0], "h": 2.2},
+        "nyc_skyscraper": {"place": "manhattan_sky_night", "pos": [11.5, 14.0, 2.0], "h": 28.0},
+        "street_lamp": {"place": "nyc_street_night", "pos": [-4.6, 4.8, 2.1], "h": 4.2},
+        "vintage_sedan": {"place": "nyc_street_night", "pos": [-7.4, 3.1, 0.8], "h": 1.6},
+        "vintage_police_car": {"place": "nyc_street_night", "pos": [-2.55, 0.25, 0.8], "h": 1.6},
+        "court_judge_gavel": {"place": "courthouse_bench", "pos": [-0.24, 0.26, 0.88], "h": 0.25},
+        "fine_ticket_board": {"place": "courthouse_bench", "pos": [0.36, 0.24, 1.02], "h": 0.58}
+    },
+    "sentences": sentences,
+    "acts": [
+        # ---- ACT 1 (0:00 - 0:05.6) PARADOX INTRO: Tommy smirking & shrugging behind padlock + $100 desk ----
+        {"who": "tommy", "at": 0, "pos": [0.10, 1.42, 0.0], "face": "k:smirk", "pose": "stand", "look": [0.10, -1.5, 1.0], "visible": True},
+        {"who": "tommy", "at": ["twice", 1, -18], "pos": [0.10, 1.42, 0.0], "face": "k:brows_raised", "pose": "shrug", "look": [0.10, -1.5, 1.0]},
+        {"who": "tommy", "at": ["hundred", 1], "pos": [0.10, 1.42, 0.0], "face": "k:happy", "pose": "hold_out", "prop": "coin", "hand": "R", "look": [0.10, -1.5, 1.0]},
+
+        # ---- ACT 2 (0:05.6 - 0:18.1) O'MALLEY'S BAR BET (lean_prop slam -> point_out -> laugh!) ----
+        {"who": "tommy", "at": ["nineteen", 1, -5], "pos": [-0.85, 0.15, 0.0], "face": "k:smirk", "pose": "stand", "prop": None, "look": [0.85, 0.45, 1.0], "visible": True},
+        {"who": "tommy", "at": ["slammed", 1, -4], "pos": [-0.35, 0.35, 0.0], "face": "k:brow_talk", "pose": "lean_prop", "look": [0.85, -0.8, 1.0]},
+        {"who": "tommy", "at": ["bet", 1, -4], "pos": [-0.35, 0.35, 0.0], "face": "k:happy", "pose": "point_out", "look": [0.85, -0.8, 1.0]},
+        {"who": "tommy", "at": ["boast", 1, -12], "pos": [-0.35, 0.35, 0.0], "face": "k:squint", "pose": "hands_hips", "look": [0.85, -0.8, 1.0]},
+
+        # ---- ACT 3 (0:18.1 - 0:23.8) NJ AIRFIELD HEIST (knee-bend articulated stride -> plane hop) ----
+        {"who": "tommy", "at": ["So", 1, -4], "pos": [-2.35, 0.05, 0.0], "face": "k:squint", "pose": "stand", "look": [0.2, 0.6, 0.5], "visible": True},
+        {"who": "tommy", "at": ["airfield", 1, -6], "pos": [-0.25, 1.05, 0.0], "face": "k:smirk", "pose": "stand", "look": [1.5, 1.8, 0.8]},
+        {"who": "tommy", "at": ["broke", 1, 0], "pos": [0.95, 2.55, 0.0], "face": "k:squint", "pose": "point_up", "look": [2.2, 3.8, 1.0]},
+        {"who": "tommy", "at": ["propeller", 1, -2], "pos": [1.25, 2.85, 0.0], "visible": False},
+
+        # ---- ACT 4-5 NYC BAR STROLL & STREET CITATION (0:35.5 - 0:49.5) ----
+        {"who": "tommy", "at": ["door", 1, -1], "pos": [0.55, -0.85, 0.0], "visible": False},
+        {"who": "tommy", "at": ["door", 1, 2], "pos": [0.55, -0.85, 0.0], "face": "k:happy", "pose": "cool", "look": [-0.65, -2.0, 1.0], "visible": True},
+        {"who": "tommy", "at": ["casually", 1, -2], "pos": [-0.45, 0.25, 0.0], "face": "k:happy", "pose": "stand", "look": [0.85, 0.45, 1.0]},
+        {"who": "tommy", "at": ["grinning", 1, 0], "pos": [-0.35, 0.35, 0.0], "face": "k:smirk", "pose": "cool", "look": [0.85, 0.45, 1.0]},
+        {"who": "tommy", "at": ["Cops", 1, -2], "pos": [-0.55, -1.05, 0.0], "face": "k:brow_talk", "pose": "hands_hips", "look": [0.65, -2.2, 1.0], "visible": True},
+        # Hidden briefly during gavel macro slam -> pops on "hundred-dollar fine" left of desk to keep ticket unoccluded!
+        {"who": "tommy", "at": ["courtroom", 1, -6], "pos": [-0.46, -0.75, 0.0], "visible": False},
+        {"who": "tommy", "at": ["handed", 1, -4], "pos": [-0.46, -0.75, 0.0], "face": "k:brows_raised", "pose": "shrug", "look": [0.0, -3.5, 1.0], "visible": True},
+
+        # ---- ACT 5B SEQUEL IN BAR & SECOND PLANE ENCORE (0:49.6 - 0:58.0) ----
+        {"who": "tommy", "at": ["Headlines", 1, -5], "pos": [-0.35, 0.40, 0.0], "visible": False},
+        {"who": "tommy", "at": ["years", 2, -2], "pos": [-0.35, 0.40, 0.0], "face": "k:squint_talk", "pose": "hands_hips", "look": [0.85, -0.8, 1.0], "visible": True},
+        {"who": "tommy", "at": ["So", 3, -6], "pos": [-0.35, 0.40, 0.0], "face": "k:smirk", "pose": "stand", "look": [-1.8, -0.5, 0.5]},
+        {"who": "tommy", "at": ["outside", 2, 0], "pos": [-1.25, -0.20, 0.0], "face": "k:smirk", "pose": "stand", "look": [-1.8, -0.5, 0.5]},
+        {"who": "tommy", "at": ["parked", 2, -6], "pos": [0.42, -1.75, 0.0], "visible": False},
+        {"who": "tommy", "at": ["exact", 1, -6], "pos": [0.42, -1.75, 0.0], "face": "k:happy", "pose": "cool", "look": [0.15, -3.5, 0.8], "visible": True},
+
+        # ---- PATRON (Mocking pub regular -> curb lookout -> 0.7s jawdrop!) ----
+        {"who": "patron", "at": 0, "pos": [0.85, 0.45, 0.0], "visible": False},
+        {"who": "patron", "at": ["nineteen", 1, -5], "pos": [0.85, 0.45, 0.0], "face": "k:squint", "pose": "hands_hips", "look": [-0.35, -0.8, 1.0], "visible": True},
+        {"who": "patron", "at": ["crazy", 1, -2], "pos": [0.85, 0.45, 0.0], "face": "k:brows_raised", "pose": "stand", "look": [-0.35, -0.8, 1.0]},
+        {"who": "patron", "at": ["Nobody", 1, -4], "pos": [0.85, 0.45, 0.0], "face": "k:happy", "pose": "cheer", "look": [-0.35, -0.8, 1.0]},
+        {"who": "patron", "at": ["So", 1, -4], "pos": [0.85, 0.45, 0.0], "visible": False},
+        {"who": "patron", "at": ["Heights", 1, -5], "pos": [-1.25, -1.05, 0.0], "face": "k:worried_clean", "pose": "hand_mouth", "look": [1.5, -2.5, 1.8], "visible": True},
+        {"who": "patron", "at": ["plunged", 1, 0], "pos": [-1.25, -1.05, 0.0], "visible": False},
+        {"who": "patron", "at": ["cars", 1, -4], "pos": [-1.25, -1.05, 0.0], "face": "k:brows_raised", "pose": "flinch", "look": [0.8, -1.8, 1.2], "visible": True},
+        {"who": "patron", "at": ["casually", 1, -2], "pos": [0.85, 0.45, 0.0], "face": "k:brows_raised", "pose": "stand", "look": [-0.35, -0.8, 1.0], "visible": True},
+        {"who": "patron", "at": ["jaw", 1, -6], "pos": [0.85, 0.45, 0.0], "face": "jawdrop", "pose": "flinch", "look": [-0.35, -1.2, 1.0]},
+        {"who": "patron", "at": ["jaw", 1, 18], "pos": [0.85, 0.45, 0.0], "face": "k:worried_clean", "pose": "hand_mouth", "look": [-0.35, -0.8, 1.0]},
+        {"who": "patron", "at": ["Cops", 1, -2], "pos": [0.85, 0.45, 0.0], "visible": False},
+        {"who": "patron", "at": ["years", 2, -2], "pos": [0.85, 0.45, 0.0], "face": "k:happy", "pose": "point_out", "look": [-0.35, -0.8, 1.0], "visible": True},
+        {"who": "patron", "at": ["parked", 2, -6], "pos": [-1.02, -1.75, 0.0], "face": "k:brows_raised", "pose": "flinch", "look": [-0.2, -3.2, 1.0], "visible": True},
+        {"who": "patron", "at": ["exact", 1, -2], "pos": [-1.02, -1.75, 0.0], "face": "jawdrop", "pose": "cheer", "look": [-0.2, -3.2, 1.0]},
+
+        # ---- OFFICER (0:42.1 - 0:45.8 Street Citation Beat) ----
+        {"who": "officer", "at": 0, "pos": [0.72, -1.05, 0.0], "visible": False},
+        {"who": "officer", "at": ["Cops", 1, -2], "pos": [0.72, -1.05, 0.0], "face": "k:angry", "pose": "hands_hips", "look": [-0.55, -2.4, 1.0], "visible": True},
+        {"who": "officer", "at": ["owner", 1, -6], "pos": [0.72, -1.05, 0.0], "face": "k:worried_clean", "pose": "write", "prop": "notebook", "hand": "R", "look": [-0.55, -2.4, 1.0]},
+        {"who": "officer", "at": ["courtroom", 1, -8], "pos": [0.72, -1.05, 0.0], "visible": False},
+    ],
+    "say": [
+        {"who": "tommy", "at": ["hundred", 1], "s": 0.9},
+        {"who": "tommy", "at": ["bet", 1, -4], "s": 1.6},
+        {"who": "patron", "at": ["boast", 1, -16], "s": 1.2},
+        {"who": "patron", "at": ["jaw", 1, -4], "s": 0.9},
+        {"who": "officer", "at": ["charges", 1, -14], "s": 1.0},
+        {"who": "patron", "at": ["liar", 1, -14], "s": 1.1},
+    ],
+    "takes": [
+        # 1) PARADOX INTRO (0:00 - 0:05.6): Macro Iron Padlock "20 YEARS PRISON" -> Pullback to "$100" bill + Tommy smirk!
+        {
+            "id": "paradox_hook",
+            "place": "paradox_intro",
+            "at": 0,
+            "stations": [
+                {"at": 0, "pos": [-0.14, -0.58, 1.08], "aim": [-0.14, 0.18, 0.98], "lens": 38, "framing": "O", "subject": "prison_padlock_prop", "hold": 0.45, "shows": ["prison_padlock_prop", "tommy"]},
+                {"at": ["prison", 1], "word": "prison", "lead": 5, "pos": [0.14, -1.18, 1.22], "aim": [0.06, 0.35, 1.04], "lens": 26, "framing": "O", "subject": "prison_padlock_prop", "hold": 0.45, "travel": 0.70, "shows": ["prison_padlock_prop", "hundred_dollar_bill_prop", "tommy"]},
+                {"at": ["hundred", 1], "word": "hundred", "lead": 5, "pos": [0.10, -1.55, 1.40], "aim": [0.10, 0.55, 1.20], "lens": 24, "framing": "M", "subject": "tommy", "hold": 0.48, "travel": 0.85, "shows": ["tommy", "hundred_dollar_bill_prop", "prison_padlock_prop"]}
+            ]
+        },
+        # 2) O'MALLEY'S BAR STAKES (0:05.6 - 0:18.1): Peek over foreground beer mugs -> Mug Slam -> Smooth Zoom Macro 15:00 Stopwatch -> Wide Table Laugh!
+        {
+            "id": "bar_stakes",
+            "place": "nyc_bar_interior",
+            "at": ["nineteen", 1],
+            "stations": [
+                {"at": ["nineteen", 1], "word": "nineteen", "lead": 5, "pos": [0.32, -2.55, 1.44], "aim": [-0.20, 0.35, 1.18], "lens": 24, "framing": "W", "subject": "tommy", "follow": "tommy", "hold": 0.48, "shows": ["tommy", "bar_counter", "beer_mug"]},
+                {"at": ["mug", 1], "word": "mug", "lead": 5, "pos": [-0.45, -1.95, 1.44], "aim": [-0.05, 0.95, 1.18], "lens": 24, "framing": "W", "subject": "tommy", "hold": 0.48, "travel": 1.15, "shows": ["tommy", "beer_mug", "bar_counter"]},
+                {"at": ["fifteen", 1], "word": "fifteen", "lead": 5, "pos": [0.30, 1.10, 1.72], "aim": [0.36, 2.38, 1.25], "lens": 32, "framing": "O", "subject": "stopwatch_bet_sign", "hold": 0.55, "travel": 1.65, "shows": ["stopwatch_bet_sign", "beer_mug"]},
+                {"at": ["table", 1], "word": "table", "lead": 5, "pos": [-0.25, -2.25, 1.44], "aim": [0.35, 0.42, 1.22], "lens": 24, "framing": "W", "subject": "patron", "hold": 0.52, "travel": 1.60, "shows": ["patron", "pub_table", "tommy"]}
+            ]
+        },
+        # 3) NJ AIRFIELD HEIST (0:18.1 - 0:23.8): Articulated sneaking stride -> Prop start & nose-first takeoff!
+        {
+            "id": "nj_heist",
+            "place": "nj_airfield_night",
+            "at": ["So", 1],
+            "stations": [
+                {"at": ["So", 1], "word": "So", "lead": 4, "pos": [-2.35, -2.45, 1.44], "aim": [-1.80, 0.35, 1.22], "lens": 24, "framing": "W", "subject": "tommy", "hold": 0.48, "shows": ["tommy", "airfield_hangar"]},
+                {"at": ["airfield", 1], "word": "airfield", "lead": 6, "pos": [0.85, -2.25, 1.44], "aim": [0.40, 1.55, 1.22], "lens": 24, "framing": "W", "subject": "tommy", "hold": 0.48, "travel": 1.25, "shows": ["tommy", "vintage_prop_plane"]},
+                {"at": ["propeller", 1], "word": "propeller", "lead": 6, "pos": [3.2, -3.2, 1.54], "aim": [2.8, 4.2, 1.25], "lens": 24, "framing": "P", "subject": "vintage_prop_plane", "hold": 0.48, "travel": 1.15, "drift": [0.95, 0.0, 0.0], "creep": 0.0010, "shows": ["vintage_prop_plane", "tommy"]},
+                {"at": ["blasted", 1], "word": "blasted", "lead": 4, "pos": [4.5, -5.2, 1.72], "aim": [11.0, 4.8, 2.2], "lens": 22, "framing": "P", "subject": "vintage_prop_plane", "hold": 0.45, "travel": 0.80, "drift": [1.25, 0.0, 0.0], "creep": 0.0012, "shows": ["vintage_prop_plane"]}
+            ]
+        },
+        # 4) OVER-THE-WING CLOUDS -> MANHATTAN SKYSCRAPER CANYON (0:24.2 - 0:29.8): Tracking actual moving plane pos!
+        {
+            "id": "overwing_manhattan_flight",
+            "place": "manhattan_sky_night",
+            "at": ["into", 1],
+            "stations": [
+                {"at": ["into", 1], "word": "into", "lead": 4, "pos": [-4.2, 6.8, 3.8], "aim": [2.2, 12.6, 2.7], "lens": 24, "framing": "P", "subject": "vintage_prop_plane", "hold": 0.48, "drift": [0.75, 0.0, 0.0], "creep": 0.0010, "shows": ["vintage_prop_plane"]},
+                {"at": ["skyscrapers", 1], "word": "skyscrapers", "lead": 5, "pos": [6.5, 16.5, 4.2], "aim": [0.0, 29.0, 2.2], "lens": 22, "framing": "P", "subject": "nyc_skyscraper", "hold": 0.48, "travel": 2.05, "drift": [1.25, 0.0, 0.0], "creep": 0.0012, "shows": ["nyc_skyscraper", "vintage_prop_plane"]}
+            ]
+        },
+        # 5) CURB LOOKOUT -> TOP-DOWN OVERHEAD GLIDE OVER PLANE -> CRANE DIVE MACRO TIRE SCREECH -> DOORWAY PEEK OUTSIDE O'MALLEY'S (0:29.8 - 0:38.4)
+        {
+            "id": "street_landing_angles",
+            "place": "nyc_street_night",
+            "at": ["Heights", 1],
+            "stations": [
+                {"at": ["Heights", 1], "word": "Heights", "lead": 5, "pos": [-1.15, -3.55, 1.44], "aim": [-1.25, -1.05, 1.24], "lens": 24, "framing": "W", "subject": "patron", "hold": 0.48, "shows": ["patron", "street_lamp"]},
+                # True V3.0 TOP-DOWN OVERHEAD centered cleanly on the airplane gliding down St. Nicholas Ave!
+                {"at": ["avenue", 1], "word": "avenue", "lead": 5, "pos": [10.6, 2.1, 14.2], "aim": [10.4, 2.1, 0.5], "lens": 22, "framing": "P", "subject": "vintage_prop_plane", "hold": 0.48, "travel": 1.65, "drift": [-1.6, 0.0, 0.0], "creep": 0.0010, "shows": ["vintage_prop_plane", "vintage_sedan", "street_lamp"]},
+                {"at": ["screeched", 1], "word": "screeched", "lead": 5, "pos": [-1.25, -0.55, 0.88], "aim": [1.2, 1.9, 0.42], "lens": 34, "framing": "O", "subject": "vintage_prop_plane", "hold": 0.48, "travel": 1.95, "shows": ["vintage_prop_plane"]},
+                {"at": ["door", 1], "word": "door", "lead": 5, "pos": [-0.85, -4.35, 1.44], "aim": [-0.35, -0.25, 1.20], "lens": 24, "framing": "W", "subject": "patron", "hold": 0.50, "travel": 1.85, "shows": ["patron", "tommy", "vintage_prop_plane"]}
+            ]
+        },
+        # 6) BAR RETURN & STRICT 0.7s JAWDROP PUNCH-IN REACTION (0:38.4 - 0:42.1)
+        {
+            "id": "bar_jawdrop",
+            "place": "nyc_bar_interior",
+            "at": ["casually", 1],
+            "stations": [
+                {"at": ["casually", 1], "word": "casually", "lead": 2, "pos": [-1.25, -2.25, 1.44], "aim": [-0.25, 0.35, 1.22], "lens": 24, "framing": "W", "subject": "tommy", "hold": 0.45, "shows": ["tommy", "patron"]},
+                {"at": ["jaw", 1], "word": "jaw", "lead": 4, "pos": [0.85, -1.55, 1.40], "aim": [0.85, 0.45, 1.24], "lens": 34, "framing": "M", "subject": "patron", "hold": 0.55, "travel": 0.90, "shows": ["patron"]}
+            ]
+        },
+        # 7) COPS SURROUND PLANE (0:42.1 - 0:45.8)
+        {
+            "id": "cops_twist",
+            "place": "nyc_street_night",
+            "at": ["Cops", 1],
+            "stations": [
+                {"at": ["Cops", 1], "word": "Cops", "lead": 2, "pos": [-1.65, -4.15, 1.46], "aim": [-0.10, -0.65, 1.18], "lens": 24, "framing": "W", "subject": "officer", "hold": 0.48, "shows": ["officer", "vintage_police_car", "tommy", "vintage_prop_plane"]},
+                {"at": ["charges", 1], "word": "charges", "lead": 5, "pos": [0.55, -3.75, 1.44], "aim": [0.05, -1.00, 1.22], "lens": 26, "framing": "W", "subject": "tommy", "hold": 0.45, "travel": 0.85, "shows": ["tommy", "officer"]}
+            ]
+        },
+        # 8) COURTHOUSE MACRO GAVEL SLAM + UNBLOCKED $100 FINE TICKET + TOMMY SHRUG (0:45.9 - 0:49.5)
+        {
+            "id": "court_gavel_fine",
+            "place": "courthouse_bench",
+            "at": ["courtroom", 1],
+            "stations": [
+                {"at": ["courtroom", 1], "word": "courtroom", "lead": 6, "pos": [0.05, -1.12, 1.46], "aim": [0.05, 0.25, 0.98], "lens": 28, "framing": "O", "subject": "court_judge_gavel", "hold": 0.55, "shows": ["court_judge_gavel", "fine_ticket_board"]},
+                {"at": ["hundred-dollar", 1], "word": "hundred-dollar", "lead": 5, "pos": [-0.08, -2.58, 1.44], "aim": [-0.08, -0.35, 1.18], "lens": 28, "framing": "M", "subject": "tommy", "hold": 0.55, "travel": 0.70, "shows": ["tommy", "fine_ticket_board", "court_judge_gavel"]}
+            ]
+        },
+        # 9) SPINNING 1950s NEWSPAPER + 2 YEARS LATER MOCKING PATRON (0:49.5 - 0:53.8)
+        {
+            "id": "newspaper_sequel_bet",
+            "place": "nyc_bar_interior",
+            "at": ["Headlines", 1],
+            "stations": [
+                {"at": ["Headlines", 1], "word": "Headlines", "lead": 5, "pos": [0.15, -1.68, 1.42], "aim": [0.15, -0.45, 1.38], "lens": 34, "framing": "O", "subject": "headline_newspaper_prop", "hold": 0.48, "shows": ["headline_newspaper_prop"]},
+                {"at": ["patron", 1], "word": "patron", "lead": 5, "pos": [0.45, -2.55, 1.44], "aim": [0.25, 0.40, 1.22], "lens": 24, "framing": "W", "subject": "patron", "hold": 0.48, "travel": 0.65, "shows": ["patron", "tommy", "bar_counter"]},
+                {"at": ["liar", 1], "word": "liar", "lead": 5, "pos": [-1.25, -2.55, 1.44], "aim": [-0.65, 0.05, 1.22], "lens": 24, "framing": "W", "subject": "tommy", "hold": 0.45, "travel": 0.65, "shows": ["tommy"]}
+            ]
+        },
+        # 10) SECOND PLANE PUNCHLINE OUTSIDE EXACT SAME BAR TWICE! (0:53.8 - end)
+        {
+            "id": "second_plane_punchline",
+            "place": "nyc_street_night",
+            "at": ["parked", 2],
+            "stations": [
+                {"at": ["parked", 2], "word": "parked", "lead": 4, "pos": [1.35, -4.95, 1.50], "aim": [0.45, 1.55, 1.20], "lens": 24, "framing": "P", "subject": "vintage_prop_plane", "hold": 0.48, "drift": [0.85, 0.0, 0.0], "creep": 0.0012, "shows": ["vintage_prop_plane", "street_lamp"]},
+                {"at": ["twice", 2], "word": "twice", "lead": 5, "pos": [-0.30, -5.25, 1.44], "aim": [-0.25, -0.45, 1.20], "lens": 22, "framing": "W", "subject": "tommy", "hold": 0.65, "travel": 0.85, "creep": 0.0010, "shows": ["tommy", "patron", "vintage_prop_plane", "street_lamp"]}
+            ]
+        }
+    ],
+    "moods": [
+        {"at": 0, "look": "cold"},
+        {"at": ["hundred", 1], "look": "gold"},
+        {"at": ["nineteen", 1], "look": "warm"},
+        {"at": ["fifteen", 1], "look": "gold"},
+        {"at": ["So", 1], "look": "cold"},
+        {"at": ["blasted", 1], "look": "blue"},
+        {"at": ["skyscrapers", 1], "look": "blue"},
+        {"at": ["screeched", 1], "look": "warm"},
+        {"at": ["jaw", 1], "look": "gold"},
+        {"at": ["Cops", 1], "look": "red"},
+        {"at": ["gavel", 1], "look": "warm"},
+        {"at": ["fine", 1], "look": "gold"},
+        {"at": ["Headlines", 1], "look": "warm"},
+        {"at": ["twice", 2], "look": "gold"}
+    ],
+    "transitions": [
+        {"at": ["years", 2, -6], "kind": "calendar", "label": "2 YEARS LATER", "days": 730, "frames": 18}
+    ],
+    "fx": [
+        {"at": ["prison", 1], "kind": "hit", "on": "prison_padlock_prop", "size": 1.0},
+        {"at": ["hundred", 1], "kind": "sparkles", "on": "hundred_dollar_bill_prop", "size": 0.9},
+        {"at": ["slammed", 1], "kind": "knock", "on": "beer_mug", "size": 0.9},
+        {"at": ["fifteen", 1], "kind": "sparkles", "on": "stopwatch_bet_sign", "size": 0.95},
+        {"at": ["propeller", 1], "kind": "smoke", "on": "vintage_prop_plane", "size": 1.1},
+        {"at": ["screeched", 1], "kind": "hit", "pos": [1.3, 1.85, 0.35], "size": 1.3},
+        {"at": ["gavel", 1, -2], "kind": "knock", "on": "court_judge_gavel", "size": 1.25},
+        {"at": ["fine", 1], "kind": "stamp", "on": "fine_ticket_board", "size": 1.15},
+        {"at": ["twice", 2, -6], "kind": "hit", "pos": [0.9, 2.0, 0.25], "size": 1.3}
+    ],
+    "sound": [
+        {"at": ["prison", 1, -8], "name": "cell_lock_clank", "gain": -5},
+        {"at": ["hundred", 1, -4], "name": "cash_snap", "gain": -6},
+        {"at": ["nineteen", 1], "name": "pub_chatter_amb", "gain": -16},
+        {"at": ["slammed", 1, -2], "name": "mug_clink", "gain": -4},
+        {"at": ["bet", 1, 2], "name": "stopwatch_tick", "gain": -7},
+        {"at": ["morning", 1, -6], "name": "footsteps_tarmac", "gain": -10},
+        {"at": ["propeller", 1], "name": "prop_crank_roar", "gain": -5},
+        {"at": ["raced", 1], "name": "prop_flyby", "gain": -7},
+        {"at": ["screeched", 1, -6], "name": "tire_screech", "gain": -4},
+        {"at": ["casually", 1], "name": "door_bell_jingle", "gain": -8},
+        {"at": ["Cops", 1], "name": "siren_chirp", "gain": -6},
+        {"at": ["gavel", 1, -6], "name": "gavel_slam", "gain": -3},
+        {"at": ["fine", 1], "name": "cash_stamp", "gain": -5},
+        {"at": ["Headlines", 1], "name": "paper_whip", "gain": -6},
+        {"at": ["liar", 1], "name": "record_scratch", "gain": -5},
+        {"at": ["second", 1], "name": "second_screech", "gain": -4}
+    ]
+}
+
+with open(FILM_PATH, "w", encoding="utf-8") as f:
+    json.dump(film, f, indent=2)
+print(f"Film plan written -> {FILM_PATH} ({len(film['takes'])} takes, {len(film['acts'])} acts, {len(film['sound'])} SFX cues)")
