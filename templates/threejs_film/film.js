@@ -629,7 +629,7 @@ window.setup = async (cfg) => {
     for (const o of lamps) { o.geometry.computeBoundingSphere(); const r = o.geometry.boundingSphere.radius, sp = glowSprite('#' + o.material.color.getHexString(), .6); sp.scale.setScalar(r * 9); sp.position.set(0, 0, o.geometry.type === 'CircleGeometry' ? r * 1.2 : 0); o.add(sp); }
   }
   // one card per character (a flat plane that turns to the lens about the vertical axis only, like Rick's cut-outs)
-  for (const [who, entry] of Object.entries(film.cast || {})) {
+  for (const [who, entry] of Object.entries(cfg.worldOnly ? {} : (film.cast || {}))) {
     if (!perf[who]) continue;
     const m = metrics(entry), k = (entry.height || 1.7) / m.px;                       // metres per rig pixel, from the character's own height
     const geo = new THREE.PlaneGeometry(1, 1); geo.translate(0, .5 - (CARD.H - CARD.GY) / CARD.H, 0);   // origin on the ground line: feet stand on state.pos

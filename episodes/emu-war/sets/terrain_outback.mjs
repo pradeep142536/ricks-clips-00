@@ -80,8 +80,32 @@ export function buildOutbackTerrain(THREE, ctx, opts = {}) {
   geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
   geo.computeVertexNormals();
 
+  const texSize = 384;
+  const texels = new Uint8Array(texSize * texSize * 4);
+  let texSeed = 1932;
+  const texRand = () => ((texSeed = (texSeed * 1664525 + 1013904223) >>> 0) / 4294967296);
+  for (let y = 0; y < texSize; y++) for (let x = 0; x < texSize; x++) {
+    const i = (y * texSize + x) * 4;
+    const broad = Math.sin(x * 0.071) * 8 + Math.cos(y * 0.053) * 7;
+    const grain = texRand() * 30 - 15;
+    const crack = ((x * 17 + y * 29 + Math.floor(texRand() * 256)) % 137) < 2 ? -34 : 0;
+    texels[i] = Math.max(62, Math.min(205, 164 + broad + grain + crack));
+    texels[i + 1] = Math.max(35, Math.min(150, 92 + broad * 0.55 + grain * 0.45 + crack * 0.5));
+    texels[i + 2] = Math.max(24, Math.min(115, 55 + broad * 0.35 + grain * 0.28 + crack * 0.3));
+    texels[i + 3] = 255;
+  }
+  const groundTex = new THREE.DataTexture(texels, texSize, texSize, THREE.RGBAFormat);
+  groundTex.wrapS = groundTex.wrapT = THREE.RepeatWrapping;
+  groundTex.repeat.set(sizeX / 7.5, sizeY / 7.5);
+  groundTex.colorSpace = THREE.SRGBColorSpace;
+  groundTex.anisotropy = 8;
+  groundTex.needsUpdate = true;
+
   const mat = new THREE.MeshStandardMaterial({
     vertexColors: true,
+    map: groundTex,
+    bumpMap: groundTex,
+    bumpScale: 0.055,
     roughness: 0.94,
     metalness: 0.0
   });
@@ -93,6 +117,57 @@ export function buildOutbackTerrain(THREE, ctx, opts = {}) {
   mesh.receiveShadow = true;
   mesh.castShadow = false;
   return mesh;
+}
+
+export function buildOutbackGroundDetail(THREE, opts = {}) {
+  const mode = opts.mode || 'wheat';
+  const centerY = opts.centerY ?? 7;
+  const width = opts.width ?? 24;
+  const depth = opts.depth ?? 28;
+  const count = opts.count ?? 210;
+  const group = new THREE.Group();
+  group.name = `${mode}_ground_detail`;
+  let seed = opts.seed ?? 1932;
+  const rand = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
+  const dummy = new THREE.Object3D();
+
+  const stoneGeo = new THREE.IcosahedronGeometry(0.085, 1);
+  stoneGeo.scale(1.5, 0.42, 1.0);
+  const stoneMat = new THREE.MeshStandardMaterial({ color: '#805138', roughness: 0.96, metalness: 0 });
+  const stones = new THREE.InstancedMesh(stoneGeo, stoneMat, count);
+  for (let i = 0; i < count; i++) {
+    const x = (rand() - 0.5) * width;
+    const py = centerY + (rand() - 0.5) * depth;
+    const z = outbackHeight(mode, x, py);
+    const s = 0.35 + rand() * 1.25;
+    dummy.position.set(x, z + 0.025, -py);
+    dummy.rotation.set(rand() * 0.35, rand() * Math.PI * 2, rand() * 0.25);
+    dummy.scale.set(s, s * (0.65 + rand() * 0.5), s);
+    dummy.updateMatrix();
+    stones.setMatrixAt(i, dummy.matrix);
+  }
+  stones.castShadow = true;
+  stones.receiveShadow = true;
+  group.add(stones);
+
+  const bladeGeo = new THREE.ConeGeometry(0.018, 0.34, 4);
+  bladeGeo.translate(0, 0.17, 0);
+  const bladeMat = new THREE.MeshStandardMaterial({ color: '#9b7b35', roughness: 0.96, side: THREE.DoubleSide });
+  const blades = new THREE.InstancedMesh(bladeGeo, bladeMat, count * 2);
+  for (let i = 0; i < count * 2; i++) {
+    const x = (rand() - 0.5) * width;
+    const py = centerY + (rand() - 0.5) * depth;
+    const z = outbackHeight(mode, x, py);
+    const s = 0.55 + rand() * 1.3;
+    dummy.position.set(x, z, -py);
+    dummy.rotation.set((rand() - 0.5) * 0.28, rand() * Math.PI * 2, (rand() - 0.5) * 0.22);
+    dummy.scale.set(s, s, s);
+    dummy.updateMatrix();
+    blades.setMatrixAt(i, dummy.matrix);
+  }
+  blades.castShadow = true;
+  group.add(blades);
+  return group;
 }
 
 /**

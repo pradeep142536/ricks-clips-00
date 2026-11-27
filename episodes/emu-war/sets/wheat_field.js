@@ -6,7 +6,7 @@
 import { buildHeroTruck } from './hero_truck.js';
 import { buildEmuFlock, buildEmu } from './emu_flock.js';
 import { makePropSpawner } from './procedural_props.mjs';
-import { buildOutbackTerrain, buildOutbackHorizon, outbackHeight } from './terrain_outback.mjs';
+import { buildOutbackTerrain, buildOutbackGroundDetail, buildOutbackHorizon, outbackHeight } from './terrain_outback.mjs';
 
 export async function build(THREE, scene, film, ctx) {
   const { B2T, sky } = ctx;
@@ -15,13 +15,14 @@ export async function build(THREE, scene, film, ctx) {
   root.name = 'wheat_field';
 
   if (sky?.clouds) {
+    const skyKind = ctx.place?.sky_kind || 'clear-day';
     sky.clouds({
-      kind: 'clear-day',
+      kind: skyKind,
       seed: 1932,
-      coverage: 0.78,
+      coverage: skyKind === 'clear-day' ? 0.78 : 0.92,
       scale: 1.35,
       sunDir: [0.35, 0.72, 0.48],
-      colors: {
+      ...(skyKind === 'clear-day' ? { colors: {
         top: '#2b6cb8',
         mid: '#6ba5df',
         hor: '#dceaf4',
@@ -29,7 +30,7 @@ export async function build(THREE, scene, film, ctx) {
         lit: '#fffcf4',
         shade: '#a3b8d6',
         rim: '#ffffff'
-      },
+      } } : {}),
       layers: [
         { d: 95, fade: 0.06, size: 1.05, n: 7, el: [2, 9] },
         { d: 155, fade: 0.22, size: 1.15, n: 7, el: [5, 17] },
@@ -41,17 +42,21 @@ export async function build(THREE, scene, film, ctx) {
 
   // 1. Undulating Outback Red-Clay & Golden Paddock Terrain + Distant Mesa Horizon
   root.add(buildOutbackTerrain(THREE, ctx, { mode: 'wheat', centerY: 7.0, sizeX: 76, sizeY: 76 }));
-  root.add(buildOutbackHorizon(THREE, { centerY: 7.0, sunset: false }));
+  root.add(buildOutbackGroundDetail(THREE, { mode: 'wheat', centerY: 7.0, width: 30, depth: 34, count: 260 }));
+  const dramaticLight = ['sunset', 'night', 'storm'].includes(ctx.place?.light);
+  root.add(buildOutbackHorizon(THREE, { centerY: 7.0, sunset: dramaticLight }));
 
   // 2. Cached CC0 GLB Asset Spawners
-  const [spawnWheat, spawnFence, spawnBush, spawnGrass, spawnRock, spawnTree, spawnCrate] = await Promise.all([
+  const [spawnWheat, spawnFence, spawnBush, spawnGrass, spawnRock, spawnTree, spawnCrate, spawnRadio, spawnSandbag] = await Promise.all([
     makePropSpawner(ctx, 'wheat_crop', { shadow: false, tint: '#e4c468' }),
     makePropSpawner(ctx, 'wooden_fence', { shadow: true, tint: '#9e7e5d' }),
     makePropSpawner(ctx, 'dry_bush', { shadow: true, tint: '#8e884e' }),
     makePropSpawner(ctx, 'dry_grass', { shadow: false, tint: '#c59c48' }),
     makePropSpawner(ctx, 'outback_rock', { shadow: true }),
-    makePropSpawner(ctx, 'eucalyptus_tree', { shadow: true, tint: '#7c785c' }),
-    makePropSpawner(ctx, 'ammo_crate', { shadow: true })
+    makePropSpawner(ctx, 'eucalyptus_tree', { shadow: true }),
+    makePropSpawner(ctx, 'ammo_crate', { shadow: true }),
+    makePropSpawner(ctx, 'field_radio', { shadow: true }),
+    makePropSpawner(ctx, 'sandbag', { shadow: true })
   ]);
 
   const gY = (px, py) => outbackHeight('wheat', px, py);
@@ -89,8 +94,11 @@ export async function build(THREE, scene, film, ctx) {
 
   // 5. Sparse Outback Gum/Scrub Trees, Boulders & Bushes (Zero cypress trees!)
   for (const [tx, ty, sc, yaw] of [
+    [-10.5, 4.8, 1.18, 0.1],
+    [10.8, 6.5, 1.08, 2.2],
     [-7.8, 12.0, 1.0, 0.4],
     [8.4, 13.5, 1.12, 1.9],
+    [-1.0, 17.0, 0.92, 1.1],
     [-12.0, 20.0, 1.25, 2.5],
     [13.0, 22.0, 1.18, 0.8]
   ]) {
@@ -107,7 +115,57 @@ export async function build(THREE, scene, film, ctx) {
   spawnCrate([2.45, 0.25, gY(2.45, 0.25)], { parent: root, solid: true, yaw: 0.2, name: 'depot_ammo_crate_1' });
   spawnCrate([2.45, 0.25, gY(2.45, 0.25) + 0.217], { parent: root, solid: true, yaw: -0.1, name: 'depot_ammo_crate_2' });
 
-  // 6. Parked Hero Military Flatbed Truck (well right of foreground actor corridor)
+  // 6. Grounded military field camp: canvas tents, radio table, sandbag wall and practical lantern.
+  // These are placed in the middle distance so every approval camera has foreground, subject and background layers.
+  const canvasMat = new THREE.MeshStandardMaterial({ color: '#887550', roughness: 0.93, metalness: 0, side: THREE.DoubleSide });
+  const darkCanvasMat = new THREE.MeshStandardMaterial({ color: '#4c4430', roughness: 0.95, metalness: 0, side: THREE.DoubleSide });
+  const timberMat = new THREE.MeshStandardMaterial({ color: '#5c3924', roughness: 0.9, metalness: 0 });
+  const ropeMat = new THREE.MeshStandardMaterial({ color: '#b59a66', roughness: 0.9, metalness: 0 });
+  const buildTent = (name, planX, planY, yaw = 0, scale = 1) => {
+    const g = new THREE.Group(); g.name = name;
+    const w = 2.7, d = 3.8, h = 1.8;
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute([
+      -w/2,0,-d/2, w/2,0,-d/2, 0,h,-d/2,
+      -w/2,0,d/2,  w/2,0,d/2,  0,h,d/2
+    ], 3));
+    geo.setIndex([0,1,2, 3,5,4, 0,3,4, 0,4,1, 2,1,4, 2,4,5, 0,2,5, 0,5,3]);
+    geo.computeVertexNormals();
+    const shell = new THREE.Mesh(geo, canvasMat); shell.castShadow = shell.receiveShadow = true; g.add(shell);
+    const flap = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 1.45), darkCanvasMat);
+    flap.position.set(0, 0.72, -d/2 - 0.012); flap.rotation.y = Math.PI; g.add(flap);
+    for (const x of [-w/2, w/2]) {
+      const a = new THREE.Vector3(x, 0.1, -d/2), b = new THREE.Vector3(x * 1.35, 0.02, -d/2 - 1.25);
+      const curve = new THREE.LineCurve3(a, b); g.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 3, 0.014, 5), ropeMat));
+    }
+    g.position.copy(V(planX, planY, gY(planX, planY))); g.rotation.y = yaw; g.scale.setScalar(scale); root.add(g); return g;
+  };
+  buildTent('camp_tent_command', -5.8, 7.1, 0.08, 1.0);
+  buildTent('camp_tent_store', -2.6, 8.2, -0.12, 0.86);
+
+  const radioTable = new THREE.Group(); radioTable.name = 'camp_radio_table';
+  const tableTop = new THREE.Mesh(new THREE.BoxGeometry(1.55, 0.10, 0.78), timberMat); tableTop.position.y = 0.92; tableTop.castShadow = true; radioTable.add(tableTop);
+  for (const x of [-0.66, 0.66]) for (const z of [-0.29, 0.29]) {
+    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.055, 0.9, 8), timberMat); leg.position.set(x, 0.45, z); leg.castShadow = true; radioTable.add(leg);
+  }
+  radioTable.position.copy(V(-1.0, 5.9, gY(-1.0, 5.9))); root.add(radioTable);
+  spawnRadio([-1.0, 5.9, gY(-1.0, 5.9) + 0.98], { parent: root, yaw: 0.2, scale: 1.25, name: 'camp_field_radio' });
+  for (let i = 0; i < 8; i++) {
+    const sx = -4.4 + i * 0.72, sy = 4.55 + Math.sin(i * 0.65) * 0.18;
+    spawnSandbag([sx, sy, gY(sx, sy)], { parent: root, yaw: -0.12 + i * 0.035, scale: 0.92, solid: true, name: `camp_sandbag_${i}` });
+  }
+  for (const [cx, cy, cz, yaw] of [[-0.2, 6.2, 0, 0.2], [-0.65, 6.35, 0, -0.15], [-6.9, 5.9, 0, 0.1]]) {
+    spawnCrate([cx, cy, gY(cx, cy) + cz], { parent: root, yaw, solid: true });
+  }
+
+  const lantern = new THREE.Group(); lantern.name = 'camp_lantern';
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.055, 2.45, 10), timberMat); pole.position.y = 1.225; pole.castShadow = true; lantern.add(pole);
+  const globe = new THREE.Mesh(new THREE.SphereGeometry(0.115, 16, 12), new THREE.MeshStandardMaterial({ color: '#ffe0a0', emissive: '#ff9b45', emissiveIntensity: 2.4, roughness: 0.22 }));
+  globe.name = 'lantern_globe'; globe.userData.role = 'lamp'; globe.position.set(0, 2.18, 0); lantern.add(globe);
+  const warm = new THREE.PointLight('#ffae63', ctx.place?.light === 'day' ? 0.25 : 3.2, 10, 2); warm.position.copy(globe.position); lantern.add(warm);
+  lantern.position.copy(V(-1.9, 5.25, gY(-1.9, 5.25))); root.add(lantern);
+
+  // 7. Parked Hero Military Flatbed Truck (well right of foreground actor corridor)
   const heroTruck = await buildHeroTruck(THREE, ctx, {
     name: 'wheat_parked_truck',
     pos: [4.65, 0.90, gY(4.65, 0.90)],
@@ -117,7 +175,7 @@ export async function build(THREE, scene, film, ctx) {
   });
   root.add(heroTruck);
 
-  // 7. Distant Matte Feathered Emu Flock charging/striding across rolling hills
+  // 8. Distant Matte Feathered Emu Flock charging/striding across rolling hills
   const emuFlock = buildEmuFlock(THREE, ctx, {
     count: 10,
     baseX: -1.5,
