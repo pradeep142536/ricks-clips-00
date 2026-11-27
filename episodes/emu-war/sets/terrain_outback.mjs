@@ -2,6 +2,12 @@
 // Replaces blotchy flat planes with continuous rolling red-ochre/sandy terrain,
 // wheel ruts (dirt_track), dugout depression (ambush_trench), and horizon dunes.
 
+export function campRoadCenterX(py) {
+  // Sweeps from foreground bottom center into the open camp clearing then angles left beside command tent
+  const u = Math.max(-1, Math.min(2, (py + 5.5) / 14.0));
+  return -0.05 - Math.sin(u * 1.45) * 0.22 - Math.max(0, py - 2.0) * 0.16;
+}
+
 export function outbackHeight(mode, px, py) {
   const r2 = Math.hypot(px, py);
   const hills =
@@ -30,16 +36,81 @@ export function outbackHeight(mode, px, py) {
     return hills * flatCenter + trenchPit + berm;
   }
 
-  // 'wheat' / 'fence': keep inner stage area smooth & level for character footing, roll outside
-  const outerBlend = Math.min(1, Math.max(0, (r2 - 3.6) / 6.5));
-  return hills * outerBlend;
+  // 'wheat' / 'fence': smooth beaten camp & foreground road corridor, gently rising horizon swells
+  const roadDx = px - campRoadCenterX(py);
+  const roadEnv = py >= -7.0 && py <= 9.5 ? Math.exp(-Math.pow(roadDx / 1.65, 2)) : 0;
+  const rutL = Math.exp(-Math.pow((roadDx + 0.46) / 0.19, 2));
+  const rutR = Math.exp(-Math.pow((roadDx - 0.46) / 0.19, 2));
+  const roadRuts = (py >= -6.8 && py <= 9.2) ? (-0.042 * (rutL + rutR) + Math.sin(py * 1.15) * 0.011 * roadEnv) : 0;
+  const micro = (Math.sin(px * 1.1 + py * 0.8) * 0.022 + Math.cos(px * 0.65 - py * 1.3) * 0.016) * (1 - roadEnv * 0.85);
+  const outerBlend = Math.min(1, Math.max(0, (r2 - 6.5) / 8.5));
+  const horizonSwell = py > 10.0 ? Math.min(1.6, (py - 10.0) * 0.085) * (0.65 + 0.35 * Math.sin(px * 0.16 + 0.7)) : 0;
+  return hills * outerBlend * (1 - roadEnv * 0.7) + micro + roadRuts + horizonSwell;
+}
+
+function makeRichGroundTex(THREE, repeatX, repeatY) {
+  const S = 512;
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = S;
+  const ctx = canvas.getContext('2d');
+
+  // Sun-baked ochre-terracotta base
+  ctx.fillStyle = '#bd7b48';
+  ctx.fillRect(0, 0, S, S);
+
+  let seed = 1932;
+  const rand = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
+
+  // Layered soil washes (light dusty silt, warm clay, olive-tan dry litter patches)
+  const washes = ['#c8915a', '#a55b33', '#b3894c', '#d0a36c', '#915230', '#8d7843'];
+  for (let i = 0; i < 420; i++) {
+    const x = rand() * S, y = rand() * S;
+    const rx = 10 + rand() * 34, ry = 7 + rand() * 24;
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(rand() * Math.PI);
+    ctx.fillStyle = washes[i % washes.length];
+    ctx.globalAlpha = 0.09 + rand() * 0.14;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // Fine compacted dirt pebbles, chaff straws, and cracked dry-earth fractures
+  for (let i = 0; i < 3200; i++) {
+    const x = rand() * S, y = rand() * S;
+    const r = 0.6 + rand() * 2.2;
+    ctx.fillStyle = rand() > 0.45 ? '#6d3e24' : '#e0b77c';
+    ctx.globalAlpha = 0.14 + rand() * 0.22;
+    ctx.fillRect(x, y, r, r * (0.7 + rand() * 0.6));
+  }
+  ctx.strokeStyle = '#6c3b22';
+  for (let i = 0; i < 240; i++) {
+    const x = rand() * S, y = rand() * S;
+    const a = rand() * Math.PI * 2, len = 6 + rand() * 18;
+    ctx.globalAlpha = 0.12 + rand() * 0.14;
+    ctx.lineWidth = 0.7 + rand() * 0.9;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + Math.cos(a) * len * 0.5, y + Math.sin(a) * len * 0.5);
+    ctx.lineTo(x + Math.cos(a + 0.45) * len, y + Math.sin(a + 0.45) * len);
+    ctx.stroke();
+  }
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(repeatX, repeatY);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 8;
+  return tex;
 }
 
 export function buildOutbackTerrain(THREE, ctx, opts = {}) {
   const mode = opts.mode || 'wheat';
   const sizeX = opts.sizeX ?? 72;
   const sizeY = opts.sizeY ?? 72;
-  const segs = opts.segs ?? 84;
+  const segs = opts.segs ?? 128;
   const centerPlanY = opts.centerY ?? 8.0;
 
   const geo = new THREE.PlaneGeometry(sizeX, sizeY, segs, segs);
@@ -47,10 +118,11 @@ export function buildOutbackTerrain(THREE, ctx, opts = {}) {
 
   const pos = geo.attributes.position;
   const colors = new Float32Array(pos.count * 3);
-  const cClay = new THREE.Color('#b6532e');
-  const cSand = new THREE.Color('#c88649');
-  const cRut = new THREE.Color('#7f341b');
-  const cDryGrass = new THREE.Color('#b79245');
+  const cClay = new THREE.Color('#c16e3f');
+  const cSand = new THREE.Color('#d29a5e');
+  const cRut = new THREE.Color('#803d22');
+  const cCampYard = new THREE.Color('#ba8d58');
+  const cDryGrass = new THREE.Color('#9f8d49');
   const tmp = new THREE.Color();
 
   for (let i = 0; i < pos.count; i++) {
@@ -62,15 +134,28 @@ export function buildOutbackTerrain(THREE, ctx, opts = {}) {
     const h = outbackHeight(mode, planX, planY);
     pos.setY(i, h);
 
-    // Subtle organic vertex color modulation (zero glossy blobs)
-    const patch = 0.5 + 0.5 * Math.sin(planX * 0.42 + Math.cos(planY * 0.37) * 1.4);
-    tmp.copy(cClay).lerp(cSand, patch * 0.72);
+    const patch1 = 0.5 + 0.5 * Math.sin(planX * 0.46 + Math.cos(planY * 0.41) * 1.7);
+    const patch2 = 0.5 + 0.5 * Math.cos(planX * 0.95 - planY * 0.72);
+    tmp.copy(cClay).lerp(cSand, patch1 * 0.68 + patch2 * 0.22);
     if (mode === 'track') {
       const rutBlend = Math.min(1, Math.exp(-Math.pow((planX + 0.88) / 0.42, 2)) + Math.exp(-Math.pow((planX - 0.88) / 0.42, 2)));
       tmp.lerp(cRut, rutBlend * 0.65);
     } else if (mode === 'wheat') {
-      const paddy = Math.exp(-Math.pow(planX / 12.0, 2) - Math.pow((planY - 6.0) / 7.5, 2));
-      tmp.lerp(cDryGrass, paddy * 0.55);
+      const scrubBand = Math.max(0, Math.sin(planX * 0.35 + 1.1) * Math.cos(planY * 0.28));
+      tmp.lerp(cDryGrass, scrubBand * 0.48);
+      if (planY > 1.2 && planY < 10.0) {
+        const yardMask = Math.exp(-Math.pow((planX + 0.2) / 5.5, 2) - Math.pow((planY - 5.2) / 4.2, 2));
+        tmp.lerp(cCampYard, yardMask * 0.58);
+      }
+      if (planY >= -6.8 && planY <= 9.2) {
+        const rDx = planX - campRoadCenterX(planY);
+        const rRut = Math.min(1, Math.exp(-Math.pow((rDx + 0.46) / 0.22, 2)) + Math.exp(-Math.pow((rDx - 0.46) / 0.22, 2)));
+        tmp.lerp(cRut, rRut * 0.72);
+      }
+      if (planY >= 10.2) {
+        const paddy = Math.min(1, (planY - 10.2) / 3.0) * Math.exp(-Math.pow(planX / 15.0, 2));
+        tmp.lerp(cDryGrass, paddy * 0.62);
+      }
     }
     colors[i * 3] = tmp.r;
     colors[i * 3 + 1] = tmp.g;
@@ -80,32 +165,13 @@ export function buildOutbackTerrain(THREE, ctx, opts = {}) {
   geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
   geo.computeVertexNormals();
 
-  const texSize = 384;
-  const texels = new Uint8Array(texSize * texSize * 4);
-  let texSeed = 1932;
-  const texRand = () => ((texSeed = (texSeed * 1664525 + 1013904223) >>> 0) / 4294967296);
-  for (let y = 0; y < texSize; y++) for (let x = 0; x < texSize; x++) {
-    const i = (y * texSize + x) * 4;
-    const broad = Math.sin(x * 0.071) * 8 + Math.cos(y * 0.053) * 7;
-    const grain = texRand() * 30 - 15;
-    const crack = ((x * 17 + y * 29 + Math.floor(texRand() * 256)) % 137) < 2 ? -34 : 0;
-    texels[i] = Math.max(62, Math.min(205, 164 + broad + grain + crack));
-    texels[i + 1] = Math.max(35, Math.min(150, 92 + broad * 0.55 + grain * 0.45 + crack * 0.5));
-    texels[i + 2] = Math.max(24, Math.min(115, 55 + broad * 0.35 + grain * 0.28 + crack * 0.3));
-    texels[i + 3] = 255;
-  }
-  const groundTex = new THREE.DataTexture(texels, texSize, texSize, THREE.RGBAFormat);
-  groundTex.wrapS = groundTex.wrapT = THREE.RepeatWrapping;
-  groundTex.repeat.set(sizeX / 7.5, sizeY / 7.5);
-  groundTex.colorSpace = THREE.SRGBColorSpace;
-  groundTex.anisotropy = 8;
-  groundTex.needsUpdate = true;
+  const groundTex = makeRichGroundTex(THREE, sizeX / 4.5, sizeY / 4.5);
 
   const mat = new THREE.MeshStandardMaterial({
     vertexColors: true,
     map: groundTex,
     bumpMap: groundTex,
-    bumpScale: 0.055,
+    bumpScale: 0.045,
     roughness: 0.94,
     metalness: 0.0
   });
@@ -119,54 +185,135 @@ export function buildOutbackTerrain(THREE, ctx, opts = {}) {
   return mesh;
 }
 
+function makeWeedTuftGeometry(THREE) {
+  // Build a fanning multi-blade arched weed/tussock tuft rosette (ZERO vertical cone spikes)
+  const positions = [];
+  const normals = [];
+  const uvs = [];
+  const indices = [];
+  const blades = 7;
+  const segs = 3;
+  let vBase = 0;
+  for (let b = 0; b < blades; b++) {
+    const az = (b / blades) * Math.PI * 2 + (b % 2) * 0.35;
+    const h = 0.16 + ((b * 37) % 10) * 0.013;
+    const lean = 0.09 + ((b * 23) % 7) * 0.022;
+    const w0 = 0.028 + (b % 3) * 0.006;
+    const cx = Math.cos(az), sz = Math.sin(az);
+    const rx = -sz, rz = cx;
+    for (let s = 0; s <= segs; s++) {
+      const t = s / segs;
+      const w = w0 * (1 - t * 0.88);
+      const y = h * Math.sin(t * Math.PI * 0.52);
+      const rOut = lean * t * t;
+      const mx = cx * rOut, mz = sz * rOut;
+      positions.push(mx - rx * w, y, mz - rz * w);
+      positions.push(mx + rx * w, y, mz + rz * w);
+      normals.push(cx * 0.3, 0.9, sz * 0.3, cx * 0.3, 0.9, sz * 0.3);
+      uvs.push(0, t, 1, t);
+    }
+    for (let s = 0; s < segs; s++) {
+      const i0 = vBase + s * 2;
+      indices.push(i0, i0 + 1, i0 + 3, i0, i0 + 3, i0 + 2);
+    }
+    vBase += (segs + 1) * 2;
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geo.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+  geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+  geo.setIndex(indices);
+  geo.computeVertexNormals();
+  return geo;
+}
+
 export function buildOutbackGroundDetail(THREE, opts = {}) {
   const mode = opts.mode || 'wheat';
   const centerY = opts.centerY ?? 7;
   const width = opts.width ?? 24;
   const depth = opts.depth ?? 28;
-  const count = opts.count ?? 210;
+  const count = opts.count ?? 220;
   const group = new THREE.Group();
   group.name = `${mode}_ground_detail`;
   let seed = opts.seed ?? 1932;
   const rand = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
   const dummy = new THREE.Object3D();
+  const cTmp = new THREE.Color();
 
+  // 1. Irregular fractured stones & roadside gravel clusters
   const stoneGeo = new THREE.IcosahedronGeometry(0.085, 1);
-  stoneGeo.scale(1.5, 0.42, 1.0);
-  const stoneMat = new THREE.MeshStandardMaterial({ color: '#805138', roughness: 0.96, metalness: 0 });
+  const sPos = stoneGeo.attributes.position;
+  for (let i = 0; i < sPos.count; i++) {
+    const sx = sPos.getX(i), sy = sPos.getY(i), sz = sPos.getZ(i);
+    const warp = 0.78 + 0.35 * Math.abs(Math.sin(sx * 31 + sz * 23));
+    sPos.setXYZ(i, sx * 1.45 * warp, sy * 0.45, sz * 1.05 * warp);
+  }
+  stoneGeo.computeVertexNormals();
+  const stoneMat = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.94, metalness: 0.0 });
   const stones = new THREE.InstancedMesh(stoneGeo, stoneMat, count);
-  for (let i = 0; i < count; i++) {
-    const x = (rand() - 0.5) * width;
-    const py = centerY + (rand() - 0.5) * depth;
+  const stonePalette = ['#8c5b3e', '#a4774e', '#6f4833', '#b38c62', '#7a523c'];
+  let placedStones = 0;
+  while (placedStones < count) {
+    const inFg = placedStones < Math.round(count * 0.42);
+    const x = inFg ? (rand() - 0.5) * 8.5 : (rand() - 0.5) * width;
+    const py = inFg ? (-4.6 + rand() * 8.5) : (centerY + (rand() - 0.5) * depth);
+    const rDx = Math.abs(x - campRoadCenterX(py));
+    if (rDx < 0.36 || (rDx > 0.28 && rDx < 0.62 && rand() > 0.25)) continue;
     const z = outbackHeight(mode, x, py);
-    const s = 0.35 + rand() * 1.25;
-    dummy.position.set(x, z + 0.025, -py);
-    dummy.rotation.set(rand() * 0.35, rand() * Math.PI * 2, rand() * 0.25);
-    dummy.scale.set(s, s * (0.65 + rand() * 0.5), s);
+    const s = (inFg ? 0.55 : 0.40) + rand() * 1.35;
+    dummy.position.set(x, z + 0.015, -py);
+    dummy.rotation.set(rand() * 0.3, rand() * Math.PI * 2, rand() * 0.3);
+    dummy.scale.set(s * (0.85 + rand() * 0.5), s * (0.55 + rand() * 0.55), s * (0.8 + rand() * 0.45));
     dummy.updateMatrix();
-    stones.setMatrixAt(i, dummy.matrix);
+    stones.setMatrixAt(placedStones, dummy.matrix);
+    cTmp.set(stonePalette[placedStones % stonePalette.length]);
+    stones.setColorAt(placedStones, cTmp);
+    placedStones++;
   }
   stones.castShadow = true;
   stones.receiveShadow = true;
+  if (stones.instanceColor) stones.instanceColor.needsUpdate = true;
   group.add(stones);
 
-  const bladeGeo = new THREE.ConeGeometry(0.018, 0.34, 4);
-  bladeGeo.translate(0, 0.17, 0);
-  const bladeMat = new THREE.MeshStandardMaterial({ color: '#9b7b35', roughness: 0.96, side: THREE.DoubleSide });
-  const blades = new THREE.InstancedMesh(bladeGeo, bladeMat, count * 2);
-  for (let i = 0; i < count * 2; i++) {
-    const x = (rand() - 0.5) * width;
-    const py = centerY + (rand() - 0.5) * depth;
+  // 2. Varied dry & olive-green tussock weed clumps (ZERO cone spikes!)
+  const tuftGeo = makeWeedTuftGeometry(THREE);
+  const tuftMat = new THREE.MeshStandardMaterial({
+    color: '#ffffff',
+    roughness: 0.90,
+    metalness: 0.0,
+    side: THREE.DoubleSide
+  });
+  const tuftCount = Math.round(count * 1.5);
+  const tufts = new THREE.InstancedMesh(tuftGeo, tuftMat, tuftCount);
+  const tuftPalette = ['#7d7c37', '#94833e', '#656c2d', '#a99346', '#5b6129', '#b08e45'];
+  let placedTufts = 0;
+  let guard = 0;
+  while (placedTufts < tuftCount && guard < tuftCount * 6) {
+    guard++;
+    const inFg = placedTufts < Math.round(tuftCount * 0.46);
+    const x = inFg ? (rand() - 0.5) * 9.5 : (rand() - 0.5) * width;
+    const py = inFg ? (-4.5 + rand() * 11.5) : (centerY + (rand() - 0.5) * depth);
+    // Keep weeds along road shoulders and off packed rut centers + command tent interiors
+    const rDx = Math.abs(x - campRoadCenterX(py));
+    if (py < 9.2 && rDx < 0.72) continue;
+    if (Math.hypot(x + 2.05, py - 5.2) < 1.9) continue;
+    if (Math.hypot(x - 0.85, py - 7.2) < 1.55) continue;
     const z = outbackHeight(mode, x, py);
-    const s = 0.55 + rand() * 1.3;
-    dummy.position.set(x, z, -py);
-    dummy.rotation.set((rand() - 0.5) * 0.28, rand() * Math.PI * 2, (rand() - 0.5) * 0.22);
-    dummy.scale.set(s, s, s);
+    const s = (inFg ? 0.82 : 0.72) + rand() * 1.35;
+    dummy.position.set(x, z - 0.01, -py);
+    dummy.rotation.set((rand() - 0.5) * 0.22, rand() * Math.PI * 2, (rand() - 0.5) * 0.22);
+    dummy.scale.set(s * (0.9 + rand() * 0.5), s * (0.75 + rand() * 0.7), s * (0.9 + rand() * 0.5));
     dummy.updateMatrix();
-    blades.setMatrixAt(i, dummy.matrix);
+    tufts.setMatrixAt(placedTufts, dummy.matrix);
+    cTmp.set(tuftPalette[placedTufts % tuftPalette.length]);
+    tufts.setColorAt(placedTufts, cTmp);
+    placedTufts++;
   }
-  blades.castShadow = true;
-  group.add(blades);
+  tufts.count = placedTufts;
+  tufts.castShadow = true;
+  tufts.receiveShadow = true;
+  if (tufts.instanceColor) tufts.instanceColor.needsUpdate = true;
+  group.add(tufts);
   return group;
 }
 

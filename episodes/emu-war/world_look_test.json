@@ -12,7 +12,24 @@
       "set": "wheat_field",
       "light": "daylight_crisp",
       "sky_kind": "clear-day",
-      "post": { "dof": 0.06, "bloom": 0.10, "vignette": 0.06 }
+      "light_over": {
+        "top": "#2b6cd4",
+        "hor": "#d7e8f6",
+        "sun": "#fff3d6",
+        "si": 3.25,
+        "amb": "#a8c9f0",
+        "ai": 1.05,
+        "ground": "#7c583b",
+        "rim": "#ffebc2",
+        "rimI": 0.55,
+        "dir": [-10, 7.5, 3],
+        "fogExp2": true,
+        "fogColor": "#d7e6f4",
+        "fogDensity": 0.0042,
+        "toneMapping": "ACESFilmic",
+        "exposure": 1.06
+      },
+      "post": { "dof": 0.0, "bloom": 0.06, "vignette": 0.05 }
     },
     "outback_dusk": {
       "set": "wheat_field",
@@ -61,7 +78,7 @@
       "id": "day_ground_wide",
       "place": "outback_day",
       "stations": [
-        { "at": 0, "pos": [-7.8, -4.8, 1.45], "aim": [-1.8, 5.8, 1.18], "lens": 30, "framing": "P", "hold": 2.5 }
+        { "at": 0, "pos": [-0.15, -5.9, 1.56], "aim": [-0.05, 1.2, -0.75], "lens": 27, "framing": "P", "hold": 2.5 }
       ]
     },
     {
