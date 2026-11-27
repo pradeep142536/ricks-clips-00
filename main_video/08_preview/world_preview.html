@@ -4,14 +4,18 @@
 <script type="module">
 import * as THREE from '/templates/threejs_film/vendor/three.module.js';
 import { build } from '../04_world/emu_connected_world.js';
-const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false}); renderer.setSize(innerWidth,innerHeight); renderer.setPixelRatio(1); renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap; renderer.outputColorSpace=THREE.SRGBColorSpace; document.querySelector('#stage').append(renderer.domElement);
+import { createAssetHelper } from '/templates/threejs_film/glb_loader.mjs';
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false}); renderer.setSize(innerWidth,innerHeight); renderer.setPixelRatio(1); renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap; renderer.outputColorSpace=THREE.SRGBColorSpace; renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.05; document.querySelector('#stage').append(renderer.domElement);
 const mode=new URLSearchParams(location.search).get('mode')||'day';
 const looks={day:{sky:'#8fb9df',fog:'#8fb9df',hemi:'#d9ecff',ground:'#6d4027',sun:'#ffd7a0',sunPower:3.0},dusk:{sky:'#5b416d',fog:'#5b416d',hemi:'#9a86b8',ground:'#3a2635',sun:'#ff9a68',sunPower:2.0},night:{sky:'#101b42',fog:'#101b42',hemi:'#536da8',ground:'#17162b',sun:'#9ab7ff',sunPower:1.1},storm:{sky:'#293052',fog:'#293052',hemi:'#7b83aa',ground:'#211c2b',sun:'#d6ddff',sunPower:1.5}};
 const look=looks[mode]||looks.day; const scene=new THREE.Scene(); scene.background=new THREE.Color(look.sky); scene.fog=new THREE.Fog(look.fog,90,300);
-const camera=new THREE.PerspectiveCamera(52,innerWidth/innerHeight,.1,500); camera.position.set(18,13,62); camera.lookAt(45,3,45);
-const hemi=new THREE.HemisphereLight(look.hemi,look.ground,mode==='night'?1.35:2.15); scene.add(hemi); const sun=new THREE.DirectionalLight(look.sun,look.sunPower); sun.position.set(-130,190,95); sun.castShadow=true; sun.shadow.mapSize.set(2048,2048); sun.shadow.camera.left=-250; sun.shadow.camera.right=250; sun.shadow.camera.top=250; sun.shadow.camera.bottom=-250; scene.add(sun);
+const camera=new THREE.PerspectiveCamera(46,innerWidth/innerHeight,.1,500); camera.position.set(34,2.35,57); camera.lookAt(44,1.55,45);
+const hemi=new THREE.HemisphereLight(look.hemi,look.ground,mode==='night'?1.05:1.35); scene.add(hemi); const sun=new THREE.DirectionalLight(look.sun,look.sunPower); sun.position.set(-45,62,34); sun.target.position.set(45,0,45); scene.add(sun.target); sun.castShadow=true; sun.shadow.mapSize.set(4096,4096); sun.shadow.camera.left=-42; sun.shadow.camera.right=42; sun.shadow.camera.top=42; sun.shadow.camera.bottom=-42; sun.shadow.bias=-.00035; scene.add(sun);
 const toon=c=>new THREE.MeshToonMaterial({color:c}); const B2T=p=>new THREE.Vector3(p[0],p[2],-p[1]);
-build(THREE,scene,{}, {B2T,toon});
+const catalog=await fetch('/assets/3d_library/catalog.json').then(r=>{if(!r.ok)throw new Error(`asset catalog ${r.status}`);return r.json()});
+const assets=createAssetHelper({items:Object.values(catalog.assets||{})},B2T,{outline:false});
+await build(THREE,scene,{}, {B2T,toon,assets});
+for(const [x,z,intensity,color] of [[48,54,mode==='night'?5.5:1.5,0xffae62],[57,48,mode==='night'?4.5:1.2,0xffa054]]){const lamp=new THREE.PointLight(color,intensity,20,2);lamp.position.set(x,2.1,z);lamp.castShadow=true;scene.add(lamp)}
 const skyClouds=new THREE.Group(); skyClouds.name='reference_style_cloud_layer'; scene.add(skyClouds);
 const cloudMat=new THREE.MeshToonMaterial({color:mode==='storm'?'#6f7696':mode==='night'?'#38456e':'#dce8f2',transparent:true,opacity:.88});
 [[ 18,34,18,18],[70,40,5,24],[100,31,42,20],[-35,48,28,28]].forEach(([x,y,z,s],i)=>{
@@ -19,7 +23,6 @@ const cloudMat=new THREE.MeshToonMaterial({color:mode==='storm'?'#6f7696':mode==
   [[0,0,0,1.0],[s*.38,1.5,1.5,.72],[-s*.36,-.5,1.2,.82],[s*.7,-.6,0,.55]].forEach(([dx,dy,dz,k])=>{const puff=new THREE.Mesh(new THREE.SphereGeometry(s*.22*k,14,9),cloudMat); puff.scale.set(1.7,.55,1); puff.position.set(dx,dy,dz); g.add(puff)});
 });
 scene.add(new THREE.Mesh(new THREE.SphereGeometry(38,24,16),new THREE.MeshBasicMaterial({color:'#ffecc0'}))); const moon=scene.children.at(-1); moon.position.set(-100,102,-210);
-let start=performance.now(); function draw(now){const t=(now-start)/1000; scene.traverse(o=>{if(o.name==='moving_dust')o.position.z=Math.sin(t*.6)*.8}); renderer.render(scene,camera); requestAnimationFrame(draw)} requestAnimationFrame(draw);
+let start=performance.now(); function draw(now){const t=(now-start)/1000; scene.traverse(o=>{if(o.name==='moving_dust')o.position.z=Math.sin(t*.6)*.8}); renderer.render(scene,camera); if(!window.__WORLD_READY__){window.__WORLD_READY__=true;window.__WORLD_STATS__={mode,children:scene.children.length,assets:true}} requestAnimationFrame(draw)} requestAnimationFrame(draw);
 addEventListener('resize',()=>{renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix()});
-window.__WORLD_READY__=true;
 </script>

@@ -1,7 +1,7 @@
 // THE ARMY THAT LOST A WAR TO BIRDS — one continuous Western Australian world.
 // Plan coordinates are metres: [x, forward, up].  This module intentionally
 // builds the full map once.  It is not a collection of unrelated backgrounds.
-export function build(THREE, scene, film, ctx) {
+export async function build(THREE, scene, film, ctx) {
   const { B2T, toon } = ctx;
   const P = (x, z, y = 0) => B2T([x, z, y]);
   const root = new THREE.Group(); root.name = 'emu_war_connected_world_440m_x_420m';
@@ -89,7 +89,15 @@ export function build(THREE, scene, film, ctx) {
       crown.scale.set(1.0 + (i % 2) * .32, .72, 1.0 + (i % 3) * .22);
     }
   };
-  [[-190,-125,10,1.15],[-170,5,8,.9],[-125,55,11,1.1],[112,-110,12,1.25],[145,75,9,.85],[165,192,12,1.1],[-190,180,10,.9],[-15,245,13,1.1]].forEach((v,i)=>tree(...v, `eucalyptus_${i}`));
+  const treeSites = [[-190,-125,10,1.15],[-170,5,8,.9],[-125,55,11,1.1],[112,-110,12,1.25],[145,75,9,.85],[165,192,12,1.1],[-190,180,10,.9],[-15,245,13,1.1]];
+  if (ctx.assets) {
+    await Promise.all(treeSites.map(([x,z,h], i) => ctx.assets.spawn('eucalyptus_tree', {
+      name:`eucalyptus_${i}`, axis:'height', meters:h, pos:[x,z,0], yaw:(i * 1.37) % (Math.PI * 2),
+      parent:root, outline:false, shadow:true, role:'tree'
+    })));
+  } else {
+    treeSites.forEach((v,i)=>tree(...v, `eucalyptus_${i}`));
+  }
 
   // Farmhouse and visible water tank share the map with every later shot.
   box(12, 8, 4.5, -150, -70, 0, M.plaster, 'farmhouse_main', 'building');
@@ -99,12 +107,30 @@ export function build(THREE, scene, film, ctx) {
   const tank = add(new THREE.CylinderGeometry(2.8, 2.8, 5.7, 20), M.steel, 'farm_water_tank', 'landmark', P(-132, -48, 2.85));
   for (let i = 0; i < 13; i++) beam([-134.6 + i * .43, -48, .2], [-134.6 + i * .43, -48, 5.55], .035, M.iron, `tank_rib_${i}`, 'landmark');
 
-  // Staging area: a readable, proportioned 1930s truck, crates and Lewis gun.
-  box(5.0, 2.15, .75, 45, -45, .65, M.iron, 'truck_chassis', 'truck');
-  box(1.85, 2.05, 1.55, 46.45, -45, 1.4, M.canvas, 'truck_cab', 'truck');
-  box(2.25, 2.05, 1.15, 43.0, -45, 1.4, M.iron, 'truck_bed', 'truck');
-  for (const x of [43.4, 46.5]) { const wheel = add(new THREE.CylinderGeometry(.58, .58, .28, 16), M.shadow, `truck_wheel_${x}`, 'truck', P(x, -46.18, .58)); wheel.rotation.z = Math.PI / 2; }
-  [[38,-51],[40,-51],[38,-48]].forEach((p,i)=>box(1.15,1.15,1.0,p[0],p[1],0,M.woodHi,`ammo_crate_${i}`,'prop'));
+  // Staging area: use the repository's verified textured assets in finished previews.
+  // Primitive geometry remains only as an explicit offline fallback for map debugging.
+  if (ctx.assets) {
+    const stagedAssets = [
+      ['military_truck', { name:'hero_military_truck', axis:'length', meters:5.2, pos:[45,-45,0], yaw:-.72, role:'truck', keepMetal:true }],
+      ['ammo_crate', { name:'ammo_crate_0', axis:'max', meters:1.15, pos:[38,-51,0], yaw:.14, role:'prop' }],
+      ['ammo_crate', { name:'ammo_crate_1', axis:'max', meters:1.05, pos:[40,-51,0], yaw:-.18, role:'prop' }],
+      ['ammo_crate', { name:'ammo_crate_2', axis:'max', meters:.92, pos:[38,-48,0], yaw:.42, role:'prop' }],
+      ['field_radio', { name:'camp_field_radio', axis:'max', meters:.72, pos:[40.2,-47.8,0], yaw:-.35, role:'prop' }],
+      ['sandbag', { name:'sandbag_0', axis:'length', meters:1.0, pos:[42,-52,0], yaw:.2, role:'prop' }],
+      ['sandbag', { name:'sandbag_1', axis:'length', meters:1.0, pos:[43,-52.2,0], yaw:-.08, role:'prop' }],
+      ['outback_rock', { name:'camp_rock_0', axis:'max', meters:1.4, pos:[33,-49,0], yaw:.5, role:'rock' }],
+      ['dry_bush', { name:'camp_bush_0', axis:'height', meters:1.1, pos:[34,-51,0], yaw:1.1, role:'foliage' }],
+      ['dry_grass', { name:'camp_grass_0', axis:'height', meters:.7, pos:[36,-48,0], yaw:.3, role:'foliage' }],
+      ['dry_grass', { name:'camp_grass_1', axis:'height', meters:.65, pos:[48,-53,0], yaw:1.7, role:'foliage' }]
+    ];
+    await Promise.all(stagedAssets.map(([id, opts]) => ctx.assets.spawn(id, { ...opts, parent:root, outline:false, shadow:true })));
+  } else {
+    box(5.0, 2.15, .75, 45, -45, .65, M.iron, 'truck_chassis', 'truck');
+    box(1.85, 2.05, 1.55, 46.45, -45, 1.4, M.canvas, 'truck_cab', 'truck');
+    box(2.25, 2.05, 1.15, 43.0, -45, 1.4, M.iron, 'truck_bed', 'truck');
+    for (const x of [43.4, 46.5]) { const wheel = add(new THREE.CylinderGeometry(.58, .58, .28, 16), M.shadow, `truck_wheel_${x}`, 'truck', P(x, -46.18, .58)); wheel.rotation.z = Math.PI / 2; }
+    [[38,-51],[40,-51],[38,-48]].forEach((p,i)=>box(1.15,1.15,1.0,p[0],p[1],0,M.woodHi,`ammo_crate_${i}`,'prop'));
+  }
   beam([35,-42,.18],[35,-42,1.45],.11,M.steel,'lewis_tripod','gun');
   beam([35,-42,1.15],[33.9,-43.0,.08],.065,M.iron,'lewis_leg_l','gun'); beam([35,-42,1.15],[36.1,-43.0,.08],.065,M.iron,'lewis_leg_r','gun');
   box(1.1,.42,.35,35,-42,1.45,M.iron,'lewis_receiver','gun'); beam([35,-42,1.58],[38,-42,1.58],.075,M.steel,'lewis_barrel','gun');
