@@ -5,28 +5,55 @@
   "size": [1080, 1920],
   "kit3d": true,
   "ink_outlines": false,
-  "post": { "dof": 0.62, "bloom": 0.34, "vignette": 0.22, "dust": 0.12 },
+  "post": { "dof": 0.08, "bloom": 0.18, "vignette": 0.10, "dust": 0.0 },
   "cast": {},
   "places": {
     "outback_day": {
       "set": "wheat_field",
-      "light": "day",
-      "sky_kind": "clear-day"
+      "light": "daylight_crisp",
+      "sky_kind": "clear-day",
+      "post": { "dof": 0.06, "bloom": 0.10, "vignette": 0.06 }
     },
     "outback_dusk": {
       "set": "wheat_field",
-      "light": "sunset",
-      "sky_kind": "dusk-storm"
+      "light": "golden_hour_sunset",
+      "sky_kind": "dusk-storm",
+      "post": { "dof": 0.10, "bloom": 0.20, "vignette": 0.10 }
     },
     "outback_night": {
       "set": "wheat_field",
       "light": "night",
-      "sky_kind": "night-storm"
+      "sky_kind": "night-storm",
+      "light_over": {
+        "si": 2.05,
+        "ai": 1.60,
+        "rimI": 1.00,
+        "exposure": 1.18
+      },
+      "post": { "dof": 0.10, "bloom": 0.34, "vignette": 0.12 }
     },
     "outback_storm": {
       "set": "wheat_field",
-      "light": "storm",
-      "sky_kind": "rain-overcast"
+      "light": "day",
+      "sky_kind": "rain-overcast",
+      "light_over": {
+        "top": "#26364f",
+        "hor": "#8395a8",
+        "sun": "#d4e2ef",
+        "si": 1.85,
+        "amb": "#8da6bd",
+        "ai": 1.55,
+        "ground": "#39445a",
+        "rim": "#c8d9e7",
+        "rimI": 0.80,
+        "dir": [-5, 9, 2],
+        "fogExp2": true,
+        "fogColor": "#8192a4",
+        "fogDensity": 0.010,
+        "toneMapping": "ACESFilmic",
+        "exposure": 1.10
+      },
+      "post": { "dof": 0.10, "bloom": 0.16, "vignette": 0.12 }
     }
   },
   "takes": [
@@ -34,28 +61,28 @@
       "id": "day_ground_wide",
       "place": "outback_day",
       "stations": [
-        { "at": 0, "pos": [-7.4, -4.7, 1.15], "aim": [-1.8, 6.2, 1.05], "lens": 24, "framing": "P", "hold": 2.5 }
+        { "at": 0, "pos": [-7.8, -4.8, 1.45], "aim": [-1.8, 5.8, 1.18], "lens": 30, "framing": "P", "hold": 2.5 }
       ]
     },
     {
       "id": "dusk_camp_track",
       "place": "outback_dusk",
       "stations": [
-        { "at": 75, "pos": [6.8, -3.5, 1.0], "aim": [-1.7, 5.9, 1.1], "lens": 24, "framing": "P", "hold": 2.5 }
+        { "at": 75, "pos": [8.8, -2.6, 1.40], "aim": [3.35, 1.6, 1.10], "lens": 32, "framing": "O", "hold": 2.5 }
       ]
     },
     {
       "id": "night_lantern_low",
       "place": "outback_night",
       "stations": [
-        { "at": 150, "pos": [-0.6, -1.4, 0.58], "aim": [-2.1, 5.5, 1.3], "lens": 26, "framing": "P", "hold": 2.5 }
+        { "at": 150, "pos": [-7.4, -1.2, 1.35], "aim": [-1.9, 5.2, 1.18], "lens": 30, "framing": "P", "hold": 2.5 }
       ]
     },
     {
       "id": "storm_hero_truck",
       "place": "outback_storm",
       "stations": [
-        { "at": 225, "pos": [8.2, -3.2, 1.22], "aim": [3.5, 2.1, 1.12], "lens": 24, "framing": "P", "hold": 2.5 }
+        { "at": 225, "pos": [-4.2, -3.1, 1.38], "aim": [3.65, 1.25, 1.10], "lens": 31, "framing": "O", "hold": 2.5 }
       ]
     }
   ],
