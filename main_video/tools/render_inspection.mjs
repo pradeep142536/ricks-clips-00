@@ -20,7 +20,19 @@ const server = http.createServer((request, response) => {
   fs.createReadStream(filePath).pipe(response);
 });
 const port = await new Promise(resolve => server.listen(0, '127.0.0.1', () => resolve(server.address().port)));
-const browser = await chromium.launch({ headless: true, args: ['--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu-sandbox', '--use-gl=swiftshader', '--use-angle=swiftshader', '--ignore-gpu-blocklist'] });
+const useGpu = process.env.RICKS_GPU === '1';
+const browser = await chromium.launch({
+  headless: true,
+  ignoreDefaultArgs: useGpu ? ['--use-angle=swiftshader-webgl', '--disable-gpu'] : [],
+  args: useGpu ? [
+    '--no-sandbox', '--headless=new', '--disable-dev-shm-usage',
+    '--use-gl=angle', '--use-angle=vulkan', '--enable-features=Vulkan',
+    '--disable-vulkan-surface', '--ignore-gpu-blocklist', '--disable-gpu-vsync'
+  ] : [
+    '--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu-sandbox',
+    '--use-gl=swiftshader', '--use-angle=swiftshader', '--ignore-gpu-blocklist'
+  ]
+});
 try {
   const page = await browser.newPage({ viewport: { width: 1080, height: 1920 }, deviceScaleFactor: 1 });
   page.on('console', message => console.log(`[browser:${message.type()}] ${message.text()}`));
