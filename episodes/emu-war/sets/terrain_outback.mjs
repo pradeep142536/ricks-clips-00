@@ -238,13 +238,13 @@ export function buildOutbackGroundDetail(THREE, opts = {}) {
   const dummy = new THREE.Object3D();
   const cTmp = new THREE.Color();
 
-  // 1. Irregular fractured stones & roadside gravel clusters
-  const stoneGeo = new THREE.IcosahedronGeometry(0.072, 1);
+  // 1. Irregular fractured pebbles & roadside gravel clusters (fine realistic scale, never blocky boulders in road)
+  const stoneGeo = new THREE.IcosahedronGeometry(0.036, 1);
   const sPos = stoneGeo.attributes.position;
   for (let i = 0; i < sPos.count; i++) {
     const sx = sPos.getX(i), sy = sPos.getY(i), sz = sPos.getZ(i);
-    const warp = 0.78 + 0.35 * Math.abs(Math.sin(sx * 31 + sz * 23));
-    sPos.setXYZ(i, sx * 1.45 * warp, sy * 0.45, sz * 1.05 * warp);
+    const warp = 0.78 + 0.35 * Math.abs(Math.sin(sx * 41 + sz * 29));
+    sPos.setXYZ(i, sx * 1.40 * warp, sy * 0.42, sz * 1.05 * warp);
   }
   stoneGeo.computeVertexNormals();
   const stoneMat = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.94, metalness: 0.0 });
@@ -258,9 +258,9 @@ export function buildOutbackGroundDetail(THREE, opts = {}) {
     const x = inFg ? (rand() - 0.5) * 6.5 : (rand() - 0.5) * width;
     const py = inFg ? (-4.5 + rand() * 8.5) : (centerY + (rand() - 0.5) * depth);
     const rDx = Math.abs(x - campRoadCenterX(py));
-    if (rDx < 0.32 || (rDx < 0.65 && rand() > 0.25)) continue;
+    if (rDx < 0.74 && rand() > 0.14) continue;
     const z = outbackHeight(mode, x, py);
-    const s = (inFg ? 0.42 : 0.40) + rand() * 1.05;
+    const s = (inFg ? 0.42 : 0.40) + rand() * 0.85;
     dummy.position.set(x, z + 0.012, -py);
     dummy.rotation.set(rand() * 0.3, rand() * Math.PI * 2, rand() * 0.3);
     dummy.scale.set(s * (0.85 + rand() * 0.5), s * (0.55 + rand() * 0.55), s * (0.8 + rand() * 0.45));
