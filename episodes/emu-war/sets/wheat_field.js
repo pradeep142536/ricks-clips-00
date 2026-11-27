@@ -47,7 +47,7 @@ export async function build(THREE, scene, film, ctx) {
   root.add(buildOutbackHorizon(THREE, { centerY: 7.0, sunset: dramaticLight }));
 
   // 2. Cached CC0 GLB Asset Spawners
-  const [spawnWheat, spawnFence, spawnBush, spawnGrass, spawnRock, spawnTree, spawnCrate, spawnRadio, spawnSandbag, spawnBarrel] = await Promise.all([
+  const [spawnWheat, spawnFence, spawnBush, spawnGrass, spawnRock, spawnTree, spawnCrate, spawnRadio, spawnSandbag] = await Promise.all([
     makePropSpawner(ctx, 'wheat_crop', { shadow: false, tint: '#e4c468' }),
     makePropSpawner(ctx, 'wooden_fence', { shadow: true, tint: '#9e7e5d' }),
     makePropSpawner(ctx, 'dry_bush', { shadow: true, tint: '#8e884e' }),
@@ -56,8 +56,7 @@ export async function build(THREE, scene, film, ctx) {
     makePropSpawner(ctx, 'eucalyptus_tree', { shadow: true }),
     makePropSpawner(ctx, 'ammo_crate', { shadow: true }),
     makePropSpawner(ctx, 'field_radio', { shadow: true }),
-    makePropSpawner(ctx, 'sandbag', { shadow: true }),
-    makePropSpawner(ctx, 'wooden_barrel', { shadow: true })
+    makePropSpawner(ctx, 'sandbag', { shadow: true })
   ]);
 
   const gY = (px, py) => outbackHeight('wheat', px, py);
@@ -183,8 +182,22 @@ export async function build(THREE, scene, film, ctx) {
   for (const [cx, cy, cz, yaw] of [[-0.2, 6.2, 0, 0.2], [-0.65, 6.35, 0, -0.15], [-6.9, 5.9, 0, 0.1], [0.55, 6.35, 0, 0.35], [2.1, 5.6, 0, -0.18]]) {
     spawnCrate([cx, cy, gY(cx, cy) + cz], { parent: root, yaw, solid: true });
   }
+  // Camp water/fuel barrels are deliberately local geometry. The episode manifest does
+  // not contain the generic barrel GLB, so keeping them here avoids a hidden asset fetch.
+  const barrelWood = new THREE.MeshStandardMaterial({ color: '#7a4b2b', roughness: 0.84, metalness: 0 });
+  const barrelBand = new THREE.MeshStandardMaterial({ color: '#2d3439', roughness: 0.62, metalness: 0.36 });
+  const makeBarrel = (name, bx, by, yaw = 0, scale = 1) => {
+    const barrel = new THREE.Group(); barrel.name = name;
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.27, 0.62, 14, 2), barrelWood);
+    body.position.y = 0.31; body.castShadow = body.receiveShadow = true; barrel.add(body);
+    for (const h of [0.13, 0.31, 0.50]) {
+      const band = new THREE.Mesh(new THREE.TorusGeometry(0.258, 0.019, 5, 14), barrelBand);
+      band.rotation.x = Math.PI / 2; band.position.y = h; barrel.add(band);
+    }
+    barrel.position.copy(V(bx, by, gY(bx, by))); barrel.rotation.y = yaw; barrel.scale.setScalar(scale); root.add(barrel);
+  };
   for (const [bx, by, yaw, scale] of [[-3.9, 5.2, 0.15, 0.92], [-3.35, 5.15, 0.0, 0.78], [1.45, 5.2, 0.35, 0.88], [2.45, 5.5, -0.2, 0.74]]) {
-    spawnBarrel([bx, by, gY(bx, by)], { parent: root, yaw, scale, solid: true });
+    makeBarrel(`camp_barrel_${bx}_${by}`, bx, by, yaw, scale);
   }
 
   // Field-radio mast with guy wires, a small signal pennant and a hanging warm light.
