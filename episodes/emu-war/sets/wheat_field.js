@@ -47,7 +47,7 @@ export async function build(THREE, scene, film, ctx) {
   root.add(buildOutbackHorizon(THREE, { centerY: 7.0, sunset: dramaticLight }));
 
   // 2. Cached CC0 GLB Asset Spawners
-  const [spawnWheat, spawnFence, spawnBush, spawnGrass, spawnRock, spawnTree, spawnCrate, spawnRadio, spawnSandbag] = await Promise.all([
+  const [spawnWheat, spawnFence, spawnBush, spawnGrass, spawnRock, spawnTree, spawnCrate, spawnRadio, spawnSandbag, spawnBarrel] = await Promise.all([
     makePropSpawner(ctx, 'wheat_crop', { shadow: false, tint: '#e4c468' }),
     makePropSpawner(ctx, 'wooden_fence', { shadow: true, tint: '#9e7e5d' }),
     makePropSpawner(ctx, 'dry_bush', { shadow: true, tint: '#8e884e' }),
@@ -56,10 +56,35 @@ export async function build(THREE, scene, film, ctx) {
     makePropSpawner(ctx, 'eucalyptus_tree', { shadow: true }),
     makePropSpawner(ctx, 'ammo_crate', { shadow: true }),
     makePropSpawner(ctx, 'field_radio', { shadow: true }),
-    makePropSpawner(ctx, 'sandbag', { shadow: true })
+    makePropSpawner(ctx, 'sandbag', { shadow: true }),
+    makePropSpawner(ctx, 'wooden_barrel', { shadow: true })
   ]);
 
   const gY = (px, py) => outbackHeight('wheat', px, py);
+
+  // A real field track is a composition tool as much as a prop: it carries the eye
+  // from the foreground through the broken fence to the command camp.
+  const roadPoints = [[-1.8, -7.2], [-1.45, -4.0], [-0.8, -1.1], [-0.95, 2.1], [-2.1, 4.9], [-3.7, 8.5]];
+  const roadWidth = 1.5;
+  const roadVerts = [], roadUvs = [], roadIdx = [];
+  for (let i = 0; i < roadPoints.length; i++) {
+    const [x, y] = roadPoints[i];
+    const prev = roadPoints[Math.max(0, i - 1)], next = roadPoints[Math.min(roadPoints.length - 1, i + 1)];
+    const dx = next[0] - prev[0], dy = next[1] - prev[1], len = Math.hypot(dx, dy) || 1;
+    const nx = -dy / len, ny = dx / len;
+    for (const side of [-1, 1]) {
+      const px = x + nx * roadWidth * side, py = y + ny * roadWidth * side;
+      const p = V(px, py, gY(px, py) + 0.018);
+      roadVerts.push(p.x, p.y, p.z); roadUvs.push(side === -1 ? 0 : 1, i / (roadPoints.length - 1));
+    }
+    if (i) roadIdx.push((i - 1) * 2, (i - 1) * 2 + 1, i * 2 + 1, (i - 1) * 2, i * 2 + 1, i * 2);
+  }
+  const roadGeo = new THREE.BufferGeometry();
+  roadGeo.setAttribute('position', new THREE.Float32BufferAttribute(roadVerts, 3));
+  roadGeo.setAttribute('uv', new THREE.Float32BufferAttribute(roadUvs, 2));
+  roadGeo.setIndex(roadIdx); roadGeo.computeVertexNormals();
+  const road = new THREE.Mesh(roadGeo, new THREE.MeshStandardMaterial({ color: '#6d361f', roughness: 0.98, metalness: 0 }));
+  road.name = 'campion_dirt_track'; road.receiveShadow = true; root.add(road);
 
   // 3. Australian Paddock Split-Rail Timber Fence along py = 2.2m (including central hero smash section!)
   for (const fx of [-8.8, -6.6, -4.4, -2.2, 2.2, 4.4, 6.6, 8.8]) {
@@ -140,8 +165,9 @@ export async function build(THREE, scene, film, ctx) {
     }
     g.position.copy(V(planX, planY, gY(planX, planY))); g.rotation.y = yaw; g.scale.setScalar(scale); root.add(g); return g;
   };
-  buildTent('camp_tent_command', -5.8, 7.1, 0.08, 1.0);
-  buildTent('camp_tent_store', -2.6, 8.2, -0.12, 0.86);
+  buildTent('camp_tent_command', -5.8, 7.1, 0.08, 1.18);
+  buildTent('camp_tent_store', -2.6, 8.2, -0.12, 0.98);
+  buildTent('camp_tent_medical', 1.8, 7.25, 0.15, 0.82);
 
   const radioTable = new THREE.Group(); radioTable.name = 'camp_radio_table';
   const tableTop = new THREE.Mesh(new THREE.BoxGeometry(1.55, 0.10, 0.78), timberMat); tableTop.position.y = 0.92; tableTop.castShadow = true; radioTable.add(tableTop);
@@ -154,9 +180,30 @@ export async function build(THREE, scene, film, ctx) {
     const sx = -4.4 + i * 0.72, sy = 4.55 + Math.sin(i * 0.65) * 0.18;
     spawnSandbag([sx, sy, gY(sx, sy)], { parent: root, yaw: -0.12 + i * 0.035, scale: 0.92, solid: true, name: `camp_sandbag_${i}` });
   }
-  for (const [cx, cy, cz, yaw] of [[-0.2, 6.2, 0, 0.2], [-0.65, 6.35, 0, -0.15], [-6.9, 5.9, 0, 0.1]]) {
+  for (const [cx, cy, cz, yaw] of [[-0.2, 6.2, 0, 0.2], [-0.65, 6.35, 0, -0.15], [-6.9, 5.9, 0, 0.1], [0.55, 6.35, 0, 0.35], [2.1, 5.6, 0, -0.18]]) {
     spawnCrate([cx, cy, gY(cx, cy) + cz], { parent: root, yaw, solid: true });
   }
+  for (const [bx, by, yaw, scale] of [[-3.9, 5.2, 0.15, 0.92], [-3.35, 5.15, 0.0, 0.78], [1.45, 5.2, 0.35, 0.88], [2.45, 5.5, -0.2, 0.74]]) {
+    spawnBarrel([bx, by, gY(bx, by)], { parent: root, yaw, scale, solid: true });
+  }
+
+  // Field-radio mast with guy wires, a small signal pennant and a hanging warm light.
+  // It adds the tall midground silhouette and practical focal point used by the night shot.
+  const mast = new THREE.Group(); mast.name = 'camp_signal_mast';
+  const mastPole = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.075, 4.6, 10), timberMat);
+  mastPole.position.y = 2.3; mastPole.castShadow = true; mast.add(mastPole);
+  const mastArm = new THREE.Mesh(new THREE.BoxGeometry(1.65, 0.09, 0.10), timberMat);
+  mastArm.position.set(0, 4.08, 0); mastArm.castShadow = true; mast.add(mastArm);
+  const flag = new THREE.Mesh(new THREE.PlaneGeometry(0.70, 0.46), new THREE.MeshStandardMaterial({ color: '#8a3e2c', roughness: 0.92, side: THREE.DoubleSide }));
+  flag.position.set(0.78, 3.84, 0.02); mast.add(flag);
+  const mastLight = new THREE.Mesh(new THREE.SphereGeometry(0.11, 14, 10), new THREE.MeshStandardMaterial({ color: '#ffe6b3', emissive: '#ff9b45', emissiveIntensity: 2.8, roughness: 0.25 }));
+  mastLight.name = 'signal_lamp_globe'; mastLight.userData.role = 'lamp'; mastLight.position.set(-0.5, 3.93, 0); mast.add(mastLight);
+  const mastWarm = new THREE.PointLight('#ffad61', ctx.place?.light === 'daylight_crisp' ? 0.15 : 3.8, 11, 2); mastWarm.position.copy(mastLight.position); mast.add(mastWarm);
+  for (const [gx, gy] of [[-2.0, -0.9], [2.0, -0.9], [0.0, 2.15]]) {
+    const a = new THREE.Vector3(0, 4.05, 0), b = new THREE.Vector3(gx, 0.08, -gy);
+    mast.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.LineCurve3(a, b), 4, 0.016, 5), ropeMat));
+  }
+  mast.position.copy(V(-2.05, 6.65, gY(-2.05, 6.65))); root.add(mast);
 
   const lantern = new THREE.Group(); lantern.name = 'camp_lantern';
   const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.055, 2.45, 10), timberMat); pole.position.y = 1.225; pole.castShadow = true; lantern.add(pole);
