@@ -15,37 +15,36 @@ function makeRoadTrackTex(THREE) {
   c.width = W; c.height = H;
   const g = c.getContext('2d');
 
-  // Sun-baked sandy ochre road bed darkening cleanly inside the twin wheel ruts
+  // Dusty warm compacted earth road with DARK recessed wheel tracks & softly feathered edges
   const grad = g.createLinearGradient(0, 0, W, 0);
-  grad.addColorStop(0.00, '#c28650');
-  grad.addColorStop(0.14, '#c8925c');
-  grad.addColorStop(0.28, '#74371d'); // left tire rut
-  grad.addColorStop(0.36, '#8f4c2a');
-  grad.addColorStop(0.50, '#cc9a64'); // dusty center crown
-  grad.addColorStop(0.64, '#8f4c2a');
-  grad.addColorStop(0.72, '#74371d'); // right tire rut
-  grad.addColorStop(0.86, '#c8925c');
-  grad.addColorStop(1.00, '#c28650');
+  grad.addColorStop(0.00, '#b57b4c');
+  grad.addColorStop(0.14, '#be8c5a');
+  grad.addColorStop(0.28, '#5f321b'); // dark left tire rut
+  grad.addColorStop(0.36, '#87512e');
+  grad.addColorStop(0.50, '#b98a58'); // warm sandy center hump
+  grad.addColorStop(0.64, '#87512e');
+  grad.addColorStop(0.72, '#5f321b'); // dark right tire rut
+  grad.addColorStop(0.86, '#be8c5a');
+  grad.addColorStop(1.00, '#b57b4c');
   g.fillStyle = grad;
   g.fillRect(0, 0, W, H);
 
   let seed = 7731;
   const rand = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
 
-  // Subtle cross-tread tire impressions inside both ruts
-  for (let y = 0; y < H; y += 9) {
+  // Mud & rubber chevron tread marks pressed into both wheel tracks
+  for (let y = 0; y < H; y += 8) {
     for (const rx of [W * 0.28, W * 0.72]) {
-      g.fillStyle = '#562411';
-      g.globalAlpha = 0.26;
-      g.fillRect(rx - 22 + (rand() - 0.5) * 4, y, 44, 3.5);
+      g.fillStyle = '#3f1e0f';
+      g.globalAlpha = 0.34;
+      g.fillRect(rx - 22 + (rand() - 0.5) * 4, y, 44, 3.2);
     }
   }
-  // Dusty windblown striations & gravel pebbles
-  for (let i = 0; i < 2400; i++) {
+  // Dusty pebbles, scattered dirt clods & kicked-up straw
+  for (let i = 0; i < 3600; i++) {
     const x = rand() * W, y = rand() * H;
-    const sz = 1 + rand() * 3.2;
-    g.fillStyle = rand() > 0.5 ? '#deb177' : '#5e2f19';
-    g.globalAlpha = 0.16 + rand() * 0.24;
+    const sz = 1 + rand() * 3.4;
+    ctxFill(g, rand() > 0.45 ? '#cfa56e' : '#522915', 0.18 + rand() * 0.28);
     g.fillRect(x, y, sz, sz * (0.7 + rand() * 0.6));
   }
   const tex = new THREE.CanvasTexture(c);
@@ -54,6 +53,43 @@ function makeRoadTrackTex(THREE) {
   tex.repeat.set(1, 5.5);
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.anisotropy = 8;
+  return tex;
+}
+
+function ctxFill(g, color, alpha) {
+  g.fillStyle = color;
+  g.globalAlpha = alpha;
+}
+
+function makeBurlapTex(THREE) {
+  const S = 256;
+  const c = document.createElement('canvas');
+  c.width = c.height = S;
+  const g = c.getContext('2d');
+  g.fillStyle = '#b9a378';
+  g.fillRect(0, 0, S, S);
+  // Coarse hessian burlap sack weave + subtle dust smudges (removes modern print labels!)
+  for (let y = 0; y < S; y += 3) {
+    g.fillStyle = y % 6 === 0 ? 'rgba(72, 54, 32, 0.20)' : 'rgba(232, 214, 174, 0.14)';
+    g.fillRect(0, y, S, 1.5);
+  }
+  for (let x = 0; x < S; x += 3) {
+    g.fillStyle = x % 6 === 0 ? 'rgba(68, 50, 30, 0.18)' : 'rgba(226, 206, 168, 0.12)';
+    g.fillRect(x, 0, 1.5, S);
+  }
+  let s = 4411;
+  const r = () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
+  for (let i = 0; i < 60; i++) {
+    g.fillStyle = r() > 0.5 ? '#8f724b' : '#cdb98e';
+    g.globalAlpha = 0.12;
+    g.beginPath();
+    g.arc(r() * S, r() * S, 8 + r() * 24, 0, Math.PI * 2);
+    g.fill();
+  }
+  const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(2, 2);
+  tex.colorSpace = THREE.SRGBColorSpace;
   return tex;
 }
 
@@ -203,20 +239,53 @@ export async function build(THREE, scene, film, ctx) {
   root.add(buildOutbackHorizon(THREE, { centerY: 7.0, sunset: dramaticLight }));
 
   // 2. Cached Certified GLB Asset Spawners
-  const [spawnWheat, spawnFence, spawnBush, spawnRock, spawnTree, spawnCrate, spawnRadio, spawnSandbag, spawnMapTable, spawnRifle, spawnDiary, spawnBinocs] = await Promise.all([
+  const [spawnWheat, spawnFenceRaw, spawnBush, spawnRock, spawnTree, spawnCrate, spawnRadio, spawnSandbagRaw, spawnMapTable, spawnRifle, spawnDiary, spawnBinocs] = await Promise.all([
     makePropSpawner(ctx, 'wheat_crop', { shadow: false, tint: '#e4c468' }),
-    makePropSpawner(ctx, 'wooden_fence', { shadow: true, shadowOpacity: 0.42, tint: '#f0d8be' }),
+    makePropSpawner(ctx, 'wooden_fence', { shadow: true, shadowOpacity: 0.42 }),
     makePropSpawner(ctx, 'dry_bush', { shadow: true, shadowOpacity: 0.34, tint: '#a9a462' }),
     makePropSpawner(ctx, 'outback_rock', { shadow: true, shadowOpacity: 0.45 }),
     makePropSpawner(ctx, 'eucalyptus_tree', { shadow: true, shadowOpacity: 0.42 }),
     makePropSpawner(ctx, 'ammo_crate', { shadow: true, shadowOpacity: 0.46 }),
     makePropSpawner(ctx, 'field_radio', { shadow: true, shadowOpacity: 0.25 }),
     makePropSpawner(ctx, 'sandbag', { shadow: true, shadowOpacity: 0.45 }),
-    makePropSpawner(ctx, 'map_table', { shadow: true, shadowOpacity: 0.42, tint: '#dfc29e' }),
+    makePropSpawner(ctx, 'map_table', { shadow: true, shadowOpacity: 0.42, tint: '#e8ceb0' }),
     makePropSpawner(ctx, 'rifle', { shadow: false }),
     makePropSpawner(ctx, 'war_diary', { shadow: false }),
     makePropSpawner(ctx, 'binoculars', { shadow: false })
   ]);
+
+  const burlapTex = makeBurlapTex(THREE);
+  const spawnSandbag = (planPos, opts = {}) => {
+    const obj = spawnSandbagRaw(planPos, opts);
+    obj.traverse(n => {
+      if (!n.isMesh || !n.material || /_ao_shadow|_outline/.test(n.name || '')) return;
+      for (const m of Array.isArray(n.material) ? n.material : [n.material]) {
+        if (!m || m.transparent) continue;
+        m.map = burlapTex;
+        m.bumpMap = burlapTex;
+        m.bumpScale = 0.025;
+        m.color.set('#ccb686');
+        m.roughness = 0.96;
+        m.metalness = 0.0;
+        m.needsUpdate = true;
+      }
+    });
+    return obj;
+  };
+  const spawnFence = (planPos, opts = {}) => {
+    const obj = spawnFenceRaw(planPos, opts);
+    obj.traverse(n => {
+      if (!n.isMesh || !n.material || /_ao_shadow|_outline/.test(n.name || '')) return;
+      for (const m of Array.isArray(n.material) ? n.material : [n.material]) {
+        if (!m || m.transparent) continue;
+        // Lift dark timber albedo into readable sun-baked weathered gumwood
+        if (m.color) m.color.set('#d8b082');
+        m.roughness = 0.88;
+        m.needsUpdate = true;
+      }
+    });
+    return obj;
+  };
 
   const gY = (px, py) => outbackHeight('wheat', px, py);
 
@@ -224,8 +293,8 @@ export async function build(THREE, scene, film, ctx) {
   const roadTex = makeRoadTrackTex(THREE);
   const roadSteps = 36;
   const roadCols = 7; // outer-L, bank-L, rut-L, crown, rut-R, bank-R, outer-R
-  const roadU = [-1.05, -0.78, -0.46, 0.0, 0.46, 0.78, 1.05];
-  const roadHalfW = 1.02;
+  const roadU = [-1.05, -0.76, -0.38, 0.0, 0.38, 0.76, 1.05];
+  const roadHalfW = 1.18;
   const roadVerts = [], roadUvs = [], roadIdx = [];
   for (let i = 0; i <= roadSteps; i++) {
     const py = -6.0 + (i / roadSteps) * 15.2;
@@ -261,7 +330,7 @@ export async function build(THREE, scene, film, ctx) {
   const roadMat = new THREE.MeshStandardMaterial({
     map: roadTex,
     bumpMap: roadTex,
-    bumpScale: 0.032,
+    bumpScale: 0.042,
     roughness: 0.96,
     metalness: 0.0
   });
@@ -270,42 +339,41 @@ export async function build(THREE, scene, film, ctx) {
   road.receiveShadow = true;
   root.add(road);
 
-  // 4. Aged Split-Rail Paddock Fences: Foreground Wing Gates (open road corridor!) + Rear Paddock Line
+  // 4. Aged Split-Rail Paddock Fences: Left Foreground Wing + Rear Paddock Line (clear road/table view)
   for (const [fx, fy, yaw, nm] of [
-    [-2.15, -1.65, -0.22, 'wheat_fence_fg_left'],
-    [2.15, -1.25, 0.24, 'wheat_fence_fg_right'],
-    [-6.2, 9.8, 0.04, 'wheat_fence_bg_L2'],
-    [-3.9, 10.1, -0.03, 'wheat_fence_bg_L1'],
-    [-1.6, 10.2, 0.05, 'wheat_fence_bg_C'],
-    [2.9, 10.1, -0.04, 'wheat_fence_bg_R1'],
-    [5.3, 9.9, 0.06, 'wheat_fence_bg_R2']
+    [-1.62, -0.55, -0.24, 'wheat_fence_fg_left'],
+    [-8.4, 9.5, 0.06, 'wheat_fence_bg_L3'],
+    [-6.1, 9.8, 0.04, 'wheat_fence_bg_L2'],
+    [-3.8, 10.1, -0.03, 'wheat_fence_bg_L1'],
+    [-1.5, 10.2, 0.05, 'wheat_fence_bg_C'],
+    [3.0, 10.1, -0.04, 'wheat_fence_bg_R1'],
+    [5.4, 9.9, 0.06, 'wheat_fence_bg_R2']
   ]) {
     spawnFence([fx, fy, gY(fx, fy)], { parent: root, yaw, solid: true, name: nm });
   }
-  const smashFence = spawnFence([0.65, 10.2, gY(0.65, 10.2)], {
+  const smashFence = spawnFence([0.75, 10.2, gY(0.75, 10.2)], {
     parent: root,
     solid: true,
     name: 'wheat_fence_smash'
   });
-  const smashFenceBaseZ = gY(0.65, 10.2);
+  const smashFenceBaseZ = gY(0.75, 10.2);
 
-  // 5. LAYER 1 — FOREGROUND PROPS FLANKING THE DIRT ROAD (py = -4.2 .. -1.3)
-  // Left Foreground: crate stack, coopered barrel, sandbags, irregular outback rock, scrub bushes
-  const fgCrate1 = spawnCrate([-0.92, -3.55, gY(-0.92, -3.55)], { parent: root, solid: true, yaw: 0.28, scale: 1.05, name: 'fg_ammo_crate_1' });
-  const fgCrate2 = spawnCrate([-0.94, -3.52, gY(-0.92, -3.55) + 0.22], { parent: root, solid: true, yaw: -0.14, scale: 0.94, shadow: false, name: 'fg_ammo_crate_2' });
-  const fgCrate3 = spawnCrate([-1.18, -3.05, gY(-1.18, -3.05)], { parent: root, solid: true, yaw: 0.62, scale: 0.96, name: 'fg_ammo_crate_3' });
-  spawnRock([-1.28, -3.82, gY(-1.28, -3.82)], { parent: root, yaw: 0.85, scale: 0.56, solid: true, name: 'fg_rock_left_1' });
-  spawnSandbag([-0.76, -2.55, gY(-0.76, -2.55)], { parent: root, yaw: 0.65, scale: 0.96, solid: true, name: 'fg_sandbag_left_1' });
-  spawnSandbag([-1.12, -2.02, gY(-1.12, -2.02)], { parent: root, yaw: 0.35, scale: 0.92, solid: true, name: 'fg_sandbag_left_2' });
-  spawnBush([-1.42, -2.35, gY(-1.42, -2.35)], { parent: root, yaw: 1.15, scale: 0.74, name: 'fg_bush_left_1' });
+  // 5. LAYER 1 — FOREGROUND PROPS FLANKING THE DIRT ROAD (py = -4.15 .. -1.2)
+  // Left Foreground: close burlap sandbags, small jagged boulder, stacked wood/iron ammo crates, coopered barrel
+  spawnRock([-0.62, -3.95, gY(-0.62, -3.95)], { parent: root, yaw: 0.85, scale: 0.32, solid: true, name: 'fg_rock_left_1' });
+  spawnSandbag([-0.55, -3.58, gY(-0.55, -3.58)], { parent: root, yaw: 0.72, scale: 0.76, solid: true, name: 'fg_sandbag_left_0' });
+  spawnCrate([-0.74, -2.98, gY(-0.74, -2.98)], { parent: root, solid: true, yaw: 0.28, scale: 1.0, name: 'fg_ammo_crate_1' });
+  spawnCrate([-0.72, -2.96, gY(-0.74, -2.98) + 0.215], { parent: root, solid: true, yaw: -0.14, scale: 0.90, shadow: false, name: 'fg_ammo_crate_2' });
+  spawnSandbag([-0.70, -2.25, gY(-0.70, -2.25)], { parent: root, yaw: 0.55, scale: 0.90, solid: true, name: 'fg_sandbag_left_1' });
+  spawnBush([-1.32, -1.95, gY(-1.32, -1.95)], { parent: root, yaw: 1.15, scale: 0.72, name: 'fg_bush_left_1' });
 
-  // Right Foreground: curved sandbag corner, stacked crate + bolt-action rifle, irregular rocks, scrub bush
-  spawnSandbag([0.82, -3.45, gY(0.82, -3.45)], { parent: root, yaw: -0.68, scale: 0.95, solid: true, name: 'fg_sandbag_right_1' });
-  spawnSandbag([1.06, -2.92, gY(1.06, -2.92)], { parent: root, yaw: -0.28, scale: 0.92, solid: true, name: 'fg_sandbag_right_2' });
-  spawnCrate([0.88, -2.28, gY(0.88, -2.28)], { parent: root, solid: true, yaw: -0.36, scale: 1.0, name: 'fg_ammo_crate_right_1' });
-  spawnRifle([0.62, -2.22, gY(0.62, -2.22) + 0.04], { parent: root, yaw: 1.05, rotX: 0.14, rotZ: -0.35, scale: 0.92, name: 'fg_rifle_leaning' });
-  spawnRock([1.08, -3.85, gY(1.08, -3.85)], { parent: root, yaw: 2.1, scale: 0.52, solid: true, name: 'fg_rock_right_1' });
-  spawnBush([1.35, -1.78, gY(1.35, -1.78)], { parent: root, yaw: 2.4, scale: 0.78, name: 'fg_bush_right_1' });
+  // Right Foreground: close burlap sandbag corner, small layered rock, crate + leaning bolt-action rifle
+  spawnRock([0.48, -3.82, gY(0.48, -3.82)], { parent: root, yaw: 2.1, scale: 0.30, solid: true, name: 'fg_rock_right_1' });
+  spawnSandbag([0.52, -3.45, gY(0.52, -3.45)], { parent: root, yaw: -0.68, scale: 0.76, solid: true, name: 'fg_sandbag_right_1' });
+  spawnSandbag([0.74, -2.75, gY(0.74, -2.75)], { parent: root, yaw: -0.35, scale: 0.88, solid: true, name: 'fg_sandbag_right_2' });
+  spawnCrate([0.76, -2.15, gY(0.76, -2.15)], { parent: root, solid: true, yaw: -0.36, scale: 0.96, name: 'fg_ammo_crate_right_1' });
+  spawnRifle([0.52, -2.10, gY(0.52, -2.10) + 0.04], { parent: root, yaw: 1.05, rotX: 0.14, rotZ: -0.35, scale: 0.92, name: 'fg_rifle_leaning' });
+  spawnBush([1.45, -1.45, gY(1.45, -1.45)], { parent: root, yaw: 2.4, scale: 0.68, name: 'fg_bush_right_1' });
 
   // Shared detailed CanvasTextures for tents, barrels, and map props
   const canvasTex = makeCanvasDuckTex(THREE);
@@ -340,13 +408,12 @@ export async function build(THREE, scene, film, ctx) {
     root.add(barrel);
     return barrel;
   };
-  makeBarrel('fg_barrel_left', -1.16, -2.55, 0.3, 0.96);
+  makeBarrel('fg_barrel_left', -1.06, -2.28, 0.3, 0.94);
 
   // 6. LAYER 2 — MIDGROUND COMMAND CAMP (py = +1.4 .. +8.8)
   const buildTent = (name, planX, planY, yaw = 0, scale = 1, openInterior = true) => {
     const g = new THREE.Group(); g.name = name;
     const w = 2.65, d = 3.7, h = 1.88, eaveH = 0.56;
-    // Vertical canvas side walls + pitched A-frame roof (authentic army wall-tent silhouette!)
     const pos = [
       -w / 2, 0, -d / 2,      w / 2, 0, -d / 2,      w / 2, eaveH, -d / 2,   -w / 2, eaveH, -d / 2,   0, h, -d / 2,
       -w / 2, 0, d / 2,       w / 2, 0, d / 2,       w / 2, eaveH, d / 2,    -w / 2, eaveH, d / 2,    0, h, d / 2
@@ -369,25 +436,34 @@ export async function build(THREE, scene, film, ctx) {
     shell.castShadow = shell.receiveShadow = true;
     g.add(shell);
 
+    // Strictly interior dark canvas lining & shadow depth (cannot protrude outside outer roof silhouette)
+    const iw = w * 0.90, ih = h * 0.90, ie = eaveH * 0.90, iz = d * 0.10;
+    const inPos = [
+      -iw / 2, 0, iz,    iw / 2, 0, iz,    iw / 2, ie, iz,    -iw / 2, ie, iz,    0, ih, iz
+    ];
+    const inGeo = new THREE.BufferGeometry();
+    inGeo.setAttribute('position', new THREE.Float32BufferAttribute(inPos, 3));
+    inGeo.setIndex([0, 1, 2, 0, 2, 3, 3, 2, 4]);
+    inGeo.computeVertexNormals();
+    g.add(new THREE.Mesh(inGeo, darkCanvasMat));
+
     // Protruding timber ridge pole & front upright pole
     const ridge = new THREE.Mesh(new THREE.CylinderGeometry(0.038, 0.038, d + 0.36, 8), timberMat);
     ridge.rotation.x = Math.PI / 2; ridge.position.set(0, h - 0.02, 0); ridge.castShadow = true; g.add(ridge);
     const frontPole = new THREE.Mesh(new THREE.CylinderGeometry(0.042, 0.052, h + 0.08, 8), timberMat);
     frontPole.position.set(0, (h + 0.08) / 2, -d / 2 - 0.08); frontPole.castShadow = true; g.add(frontPole);
 
-    // Front folded canvas entrance curtains + dark interior shadow depth
-    const backShadow = new THREE.Mesh(new THREE.PlaneGeometry(w * 0.92, h * 0.85), darkCanvasMat);
-    backShadow.position.set(0, h * 0.42, -d * 0.42); backShadow.rotation.y = Math.PI; g.add(backShadow);
+    // Front folded canvas entrance flaps tied back asymmetrically
     for (const s of [-1, 1]) {
-      const wing = new THREE.Mesh(new THREE.BoxGeometry(0.54, eaveH + 0.62, 0.05), canvasMat);
-      wing.position.set(s * (w * 0.36), (eaveH + 0.62) / 2, -d / 2);
-      wing.rotation.y = s * 0.32;
+      const wing = new THREE.Mesh(new THREE.BoxGeometry(0.56, eaveH + 0.56, 0.05), canvasMat);
+      wing.position.set(s * (w * 0.38), (eaveH + 0.56) / 2, -d / 2);
+      wing.rotation.y = s * 0.38;
       wing.castShadow = true;
       g.add(wing);
     }
     if (openInterior) {
       const cot = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.34, 1.5), timberMat);
-      cot.position.set(-0.55, 0.17, -0.35); cot.castShadow = true; g.add(cot);
+      cot.position.set(-0.48, 0.17, -0.35); cot.castShadow = true; g.add(cot);
     }
 
     // Guy ropes + driven wooden ground stakes along both eaves
@@ -410,12 +486,13 @@ export async function build(THREE, scene, film, ctx) {
     root.add(g);
     return g;
   };
-  buildTent('camp_tent_command', -2.15, 5.2, 0.34, 1.05, true);
-  buildTent('camp_tent_store', 0.88, 7.35, -0.28, 0.88, true);
+  // Orient open tent doorways (-Z local) toward the sunny camp road clearing!
+  buildTent('camp_tent_command', -2.25, 5.3, -2.42, 1.04, true);
+  buildTent('camp_tent_store', 0.85, 8.1, 2.85, 0.88, true);
 
   // Midground Tactical Map & Field Radio Table (`map_table.glb` + props resting FLUSH on measured tabletop height)
-  const tablePos = [0.68, 2.25, gY(0.68, 2.25)];
-  const mapTable = spawnMapTable(tablePos, { parent: root, yaw: -0.30, scale: 0.72, solid: true, name: 'camp_radio_table' });
+  const tablePos = [0.64, 1.75, gY(0.64, 1.75)];
+  const mapTable = spawnMapTable(tablePos, { parent: root, yaw: -0.28, scale: 0.74, solid: true, name: 'camp_radio_table' });
   mapTable.updateMatrixWorld(true);
   const tblOrigin = V(...tablePos);
   const ray = new THREE.Raycaster(new THREE.Vector3(tblOrigin.x, tblOrigin.y + 2.0, tblOrigin.z), new THREE.Vector3(0, -1, 0));
@@ -424,87 +501,131 @@ export async function build(THREE, scene, film, ctx) {
   );
   const tblTopZ = tblHits.length ? (tblHits[0].point.y - tblOrigin.y) : 0.60;
 
-  spawnRadio([0.82, 2.38, gY(0.82, 2.38) + tblTopZ], { parent: root, yaw: -0.45, scale: 1.0, name: 'camp_field_radio' });
-  spawnDiary([0.52, 2.15, gY(0.52, 2.15) + tblTopZ], { parent: root, yaw: 0.28, scale: 1.05, name: 'camp_war_diary' });
-  spawnBinocs([0.36, 2.32, gY(0.36, 2.32) + tblTopZ], { parent: root, yaw: 0.75, scale: 1.15, name: 'camp_binoculars' });
+  spawnRadio([0.78, 1.88, gY(0.78, 1.88) + tblTopZ], { parent: root, yaw: -0.45, scale: 1.0, name: 'camp_field_radio' });
+  spawnDiary([0.48, 1.65, gY(0.48, 1.65) + tblTopZ], { parent: root, yaw: 0.28, scale: 1.05, name: 'camp_war_diary' });
+  spawnBinocs([0.32, 1.82, gY(0.32, 1.82) + tblTopZ], { parent: root, yaw: 0.75, scale: 1.15, name: 'camp_binoculars' });
 
   const sheetGeo = new THREE.PlaneGeometry(0.62, 0.44);
   sheetGeo.rotateX(-Math.PI / 2);
   const mapSheet = new THREE.Mesh(sheetGeo, new THREE.MeshStandardMaterial({ map: makeFieldMapTex(THREE), roughness: 0.86 }));
   mapSheet.name = 'camp_tactical_map_sheet';
-  mapSheet.position.copy(V(0.66, 2.10, gY(0.66, 2.10) + tblTopZ + 0.008));
+  mapSheet.position.copy(V(0.62, 1.60, gY(0.62, 1.60) + tblTopZ + 0.008));
   mapSheet.rotation.y = -0.22;
   root.add(mapSheet);
 
-  // Brass Hurricane Table Lantern on tabletop corner (kept crisp on Day, glows warmly at Night!)
+  const isDay = ['daylight_crisp', 'day'].includes(ctx.place?.light);
+
+  // Brass Hurricane Table Lantern on tabletop corner (clean brass/glass in daylight, warm lamp glow after dusk)
   const tableLantern = new THREE.Group();
   tableLantern.name = 'camp_table_lantern';
   const tlBase = new THREE.Mesh(new THREE.CylinderGeometry(0.068, 0.082, 0.06, 12), brassMat);
   tlBase.position.y = 0.03; tlBase.castShadow = true; tableLantern.add(tlBase);
   const tlGlobe = new THREE.Mesh(
     new THREE.SphereGeometry(0.052, 12, 10),
-    new THREE.MeshStandardMaterial({ color: '#ffe5a8', emissive: '#ff9d3b', emissiveIntensity: 1.6, roughness: 0.22 })
+    new THREE.MeshStandardMaterial({
+      color: isDay ? '#f4e0ab' : '#ffe5a8',
+      emissive: '#ff9d3b',
+      emissiveIntensity: isDay ? 0.25 : 2.0,
+      roughness: 0.22
+    })
   );
   tlGlobe.scale.set(0.95, 1.35, 0.95);
-  tlGlobe.position.y = 0.13; tlGlobe.name = 'table_lantern_globe'; tlGlobe.userData.role = 'lamp'; tableLantern.add(tlGlobe);
+  tlGlobe.position.y = 0.13; tlGlobe.name = 'table_lantern_globe';
+  if (!isDay) tlGlobe.userData.role = 'lamp';
+  tableLantern.add(tlGlobe);
   const tlCap = new THREE.Mesh(new THREE.ConeGeometry(0.075, 0.055, 12), brassMat);
   tlCap.position.y = 0.225; tableLantern.add(tlCap);
-  tableLantern.position.copy(V(0.94, 2.02, gY(0.94, 2.02) + tblTopZ));
+  tableLantern.position.copy(V(0.90, 1.52, gY(0.90, 1.52) + tblTopZ));
   root.add(tableLantern);
 
-  // Midground Defensive Sandbag Wall, Supply Crates & Barrels
+  // Midground Defensive Burlap Sandbag Wall, Supply Crates & Barrels
   for (let i = 0; i < 6; i++) {
     const sx = -2.2 + i * 0.56;
-    const sy = 2.65 + Math.sin(i * 0.55) * 0.14;
+    const sy = 2.45 + Math.sin(i * 0.55) * 0.14;
     spawnSandbag([sx, sy, gY(sx, sy)], { parent: root, yaw: -0.15 + i * 0.06, scale: 0.92, solid: true, name: `camp_sandbag_${i}` });
   }
   for (const [cx, cy, cz, yaw] of [
-    [-0.22, 2.65, 0, 0.18],
-    [-0.18, 2.66, 0.21, -0.10],
-    [-2.75, 2.30, 0, 0.42],
-    [1.62, 2.85, 0, -0.25],
-    [1.64, 2.82, 0.21, 0.15]
+    [-0.22, 2.35, 0, 0.18],
+    [-0.18, 2.36, 0.21, -0.10],
+    [-2.75, 2.25, 0, 0.42],
+    [1.62, 2.55, 0, -0.25],
+    [1.64, 2.52, 0.21, 0.15]
   ]) {
     spawnCrate([cx, cy, gY(cx, cy) + cz], { parent: root, yaw, solid: true, shadow: cz === 0 });
   }
   for (const [bx, by, yaw, scale] of [
-    [-2.55, 3.05, 0.2, 0.92],
-    [-2.02, 3.15, -0.15, 0.84],
-    [1.55, 2.15, 0.4, 0.88]
+    [-2.55, 2.85, 0.2, 0.92],
+    [-2.02, 2.95, -0.15, 0.84],
+    [1.52, 1.85, 0.4, 0.88]
   ]) {
     makeBarrel(`camp_barrel_${bx}_${by}`, bx, by, yaw, scale);
   }
 
-  // Tall Timber Field-Radio Mast with Crossbar, Australian Pennant & Guy Wires
+  // Tall Timber Field-Radio Mast with Crossbar, Swallowtail Pennant & Guy Wires
   const mast = new THREE.Group(); mast.name = 'camp_signal_mast';
   const mastPole = new THREE.Mesh(new THREE.CylinderGeometry(0.052, 0.078, 4.5, 10), timberMat);
   mastPole.position.y = 2.25; mastPole.castShadow = true; mast.add(mastPole);
   const mastArm = new THREE.Mesh(new THREE.BoxGeometry(1.55, 0.085, 0.095), timberMat);
   mastArm.position.set(0, 3.92, 0); mastArm.castShadow = true; mast.add(mastArm);
-  const flag = new THREE.Mesh(new THREE.PlaneGeometry(0.68, 0.42), new THREE.MeshStandardMaterial({ color: '#9c3b28', roughness: 0.90, side: THREE.DoubleSide }));
-  flag.position.set(0.76, 3.68, 0.02); mast.add(flag);
-  const mastLight = new THREE.Mesh(new THREE.SphereGeometry(0.10, 14, 10), new THREE.MeshStandardMaterial({ color: '#ffe6b3', emissive: '#ff9b45', emissiveIntensity: 2.2, roughness: 0.25 }));
-  mastLight.name = 'signal_lamp_globe'; mastLight.userData.role = 'lamp'; mastLight.position.set(-0.52, 3.78, 0); mast.add(mastLight);
-  const mastWarm = new THREE.PointLight('#ffad61', ctx.place?.light === 'daylight_crisp' ? 0.12 : 3.6, 11, 2); mastWarm.position.copy(mastLight.position); mast.add(mastWarm);
+  const flagShape = new THREE.Shape();
+  flagShape.moveTo(0, 0.21);
+  flagShape.lineTo(0.86, 0.08);
+  flagShape.lineTo(0.66, 0.0);
+  flagShape.lineTo(0.86, -0.08);
+  flagShape.lineTo(0, -0.21);
+  flagShape.closePath();
+  const flag = new THREE.Mesh(
+    new THREE.ShapeGeometry(flagShape),
+    new THREE.MeshStandardMaterial({ color: '#a33b28', roughness: 0.90, side: THREE.DoubleSide })
+  );
+  flag.position.set(0.18, 3.68, 0.02); mast.add(flag);
+
+  const mastLight = new THREE.Mesh(
+    new THREE.SphereGeometry(0.085, 14, 10),
+    new THREE.MeshStandardMaterial({
+      color: isDay ? '#ebd396' : '#ffe6b3',
+      emissive: '#ff9b45',
+      emissiveIntensity: isDay ? 0.2 : 2.6,
+      roughness: 0.28
+    })
+  );
+  mastLight.name = 'signal_lamp_globe';
+  if (!isDay) mastLight.userData.role = 'lamp';
+  mastLight.position.set(-0.52, 3.78, 0); mast.add(mastLight);
+  const mastCap = new THREE.Mesh(new THREE.ConeGeometry(0.10, 0.08, 10), brassMat);
+  mastCap.position.set(-0.52, 3.86, 0); mast.add(mastCap);
+  const mastWarm = new THREE.PointLight('#ffad61', isDay ? 0.0 : 3.6, 11, 2); mastWarm.position.copy(mastLight.position); mast.add(mastWarm);
   for (const [gx, gy] of [[-1.7, -0.8], [1.7, -0.8], [0.0, 1.85]]) {
     const a = new THREE.Vector3(0, 3.88, 0), b = new THREE.Vector3(gx, 0.08, -gy);
     mast.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.LineCurve3(a, b), 3, 0.014, 5), ropeMat));
   }
   mast.add(makeContactAO(THREE, 0.45, 0.45, 0.40));
-  mast.position.copy(V(-0.85, 7.6, gY(-0.85, 7.6)));
+  mast.position.copy(V(-0.82, 7.2, gY(-0.82, 7.2)));
   root.add(mast);
 
-  // Camp Timber Lamp Post beside command tent entrance
+  // Camp Timber Lamp Post beside command tent entrance (brass/glass lantern without daytime neon bloom)
   const lantern = new THREE.Group(); lantern.name = 'camp_lantern';
   const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.036, 0.056, 2.35, 10), timberMat);
   pole.position.y = 1.175; pole.castShadow = true; lantern.add(pole);
   const lArm = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.05, 0.05), timberMat);
   lArm.position.set(0.14, 2.22, 0); lArm.castShadow = true; lantern.add(lArm);
-  const globe = new THREE.Mesh(new THREE.SphereGeometry(0.105, 16, 12), new THREE.MeshStandardMaterial({ color: '#ffe0a0', emissive: '#ff9b45', emissiveIntensity: 2.2, roughness: 0.22 }));
-  globe.name = 'lantern_globe'; globe.userData.role = 'lamp'; globe.position.set(0.24, 2.08, 0); lantern.add(globe);
-  const warm = new THREE.PointLight('#ffae63', ctx.place?.light === 'daylight_crisp' ? 0.15 : 3.2, 10, 2);
+  const globe = new THREE.Mesh(
+    new THREE.SphereGeometry(0.088, 16, 12),
+    new THREE.MeshStandardMaterial({
+      color: isDay ? '#edd69d' : '#ffe0a0',
+      emissive: '#ff9b45',
+      emissiveIntensity: isDay ? 0.2 : 2.4,
+      roughness: 0.24
+    })
+  );
+  globe.name = 'lantern_globe';
+  if (!isDay) globe.userData.role = 'lamp';
+  globe.position.set(0.24, 2.08, 0); lantern.add(globe);
+  const lCap = new THREE.Mesh(new THREE.ConeGeometry(0.105, 0.08, 10), brassMat);
+  lCap.position.set(0.24, 2.16, 0); lantern.add(lCap);
+  const warm = new THREE.PointLight('#ffae63', isDay ? 0.0 : 3.2, 10, 2);
   warm.position.copy(globe.position); lantern.add(warm);
-  lantern.position.copy(V(-1.05, 4.15, gY(-1.05, 4.15)));
+  lantern.position.copy(V(-1.05, 4.05, gY(-1.05, 4.05)));
   root.add(lantern);
 
   // Parked Hero Military Flatbed Truck framing Right Side of Camp (never blocking tents or center road!)
@@ -518,8 +639,8 @@ export async function build(THREE, scene, film, ctx) {
   root.add(heroTruck);
 
   // 7. LAYER 3 — BACKGROUND: Wheat Paddock behind rear fence, Eucalyptus Trees, Grazing Emus
-  for (let gx = -8.5; gx <= 8.5; gx += 1.25) {
-    for (let gy = 10.9; gy <= 16.2; gy += 1.25) {
+  for (let gx = -10.5; gx <= 9.5; gx += 1.25) {
+    for (let gy = 10.6; gy <= 16.5; gy += 1.25) {
       const px = gx + Math.sin(gx * 4.3 + gy) * 0.35;
       const py = gy + Math.cos(gy * 3.7 + gx) * 0.35;
       spawnWheat([px, py, gY(px, py)], {
@@ -532,9 +653,10 @@ export async function build(THREE, scene, film, ctx) {
 
   for (const [tx, ty, sc, yaw] of [
     [-4.8, 11.8, 1.08, 0.25],
+    [-8.6, 12.2, 1.12, 1.4],
     [5.2, 12.6, 1.04, 2.1],
     [-1.4, 18.8, 0.96, 1.1],
-    [-8.2, 16.5, 1.18, 2.5],
+    [-9.2, 17.5, 1.18, 2.5],
     [8.4, 18.5, 1.14, 0.85],
     [2.8, 21.5, 1.02, 1.65]
   ]) {
@@ -551,6 +673,7 @@ export async function build(THREE, scene, film, ctx) {
     [-3.3, 0.4, 0.5, 0.85],
     [2.6, 0.8, 1.7, 0.82],
     [-3.8, 6.8, 2.8, 0.95],
+    [-6.2, 11.4, 1.2, 1.1],
     [4.4, 8.6, 0.9, 0.92]
   ]) {
     spawnBush([bx, by, gY(bx, by)], { parent: root, yaw, scale: sc });
