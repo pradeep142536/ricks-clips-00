@@ -62,9 +62,9 @@ jobs:
       - name: Render Preview Stills or Full Video
         run: |
           if [ "$EPISODE" = "emu-war" ]; then
-            xvfb-run -s "-screen 0 1080x1920x24" node templates/threejs_film/render.mjs episodes/$EPISODE/film.json --animatic --no-captions --no-audio --scale 1.0 --out ${EPISODE}_full_visual_animatic_1080p.mp4
+            xvfb-run -s "-screen 0 1080x1920x24" node templates/threejs_film/render.mjs episodes/$EPISODE/film.json --animatic --software --no-captions --no-audio --scale 1.0 --out ${EPISODE}_full_visual_animatic_1080p.mp4
           else
-            xvfb-run -s "-screen 0 1080x1920x24" node templates/threejs_film/render.mjs episodes/$EPISODE/film.json --animatic --scale 1.0 --out ${EPISODE}_full_episode_1080p.mp4
+            xvfb-run -s "-screen 0 1080x1920x24" node templates/threejs_film/render.mjs episodes/$EPISODE/film.json --animatic --software --scale 1.0 --out ${EPISODE}_full_episode_1080p.mp4
           fi
 
       - name: Upload Video Artifact
