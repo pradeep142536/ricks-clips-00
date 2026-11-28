@@ -664,9 +664,11 @@ export async function build(THREE, scene, film, ctx) {
 
   // 3. Foreground-to-Camp Sculpted Worn Rutted Dirt Road (irregular organic borders, soft alpha feather)
   const roadTex = makeRoadTextures(THREE);
-  const roadSteps = 56;
-  const roadCols = 7; // outer-skirt-L, bank-L, rut-L, crown, rut-R, bank-R, outer-skirt-R
-  const roadU = [-1.06, -0.76, -0.44, 0.0, 0.44, 0.76, 1.06];
+  const roadSteps = 84;
+  // A dense cross-section prevents tyre ruts becoming wide vector-like bands
+  // at the locked ground camera.  Surface texture supplies the fine soil;
+  // geometry supplies only subtle physical relief.
+  const roadCols = 17;
   const roadHalfW = 0.88;
   const roadVerts = [], roadUvs = [], roadIdx = [];
   for (let i = 0; i <= roadSteps; i++) {
@@ -677,20 +679,17 @@ export async function build(THREE, scene, film, ctx) {
     const nx = dy / len, ny = -dx / len;
     const edgeWob = Math.sin(py * 1.9 + 0.4) * 0.08 + Math.cos(py * 4.3) * 0.04;
     for (let j = 0; j < roadCols; j++) {
-      const u = roadU[j];
+      const u = -1.06 + (j / (roadCols - 1)) * 2.12;
       const wobbleSign = j <= 1 ? edgeWob : (j >= 5 ? -edgeWob * 0.9 : 0);
       const off = u * roadHalfW + wobbleSign;
       const px = cx + nx * off;
       const rPy = py + ny * off;
-      // Make the tyre channels physical, not only painted into the albedo map.
-      // At the locked ground-level Night camera, the former 1.5 cm dip was
-      // invisible and the broad track read as a flat brown slab.
-      const wornPulse = Math.sin(py * 1.18 + (j === 2 ? 0.5 : -0.35)) * 0.009
-        + Math.cos(py * 2.63 + j * 0.8) * 0.006;
-      const rutDip = (j === 2 || j === 4) ? -0.052 + wornPulse
-        : j === 3 ? 0.072 + wornPulse * 0.35
-          : (j === 1 || j === 5) ? 0.020 + wornPulse * 0.5
-            : -0.012 + wornPulse * 0.4;
+      const rutL = Math.exp(-Math.pow((u + 0.44) / 0.13, 2));
+      const rutR = Math.exp(-Math.pow((u - 0.44) / 0.13, 2));
+      const crown = Math.exp(-Math.pow(u / 0.31, 2));
+      const wornPulse = Math.sin(py * 1.18 + u * 1.7) * 0.004
+        + Math.cos(py * 2.63 - u * 3.1) * 0.003;
+      const rutDip = crown * 0.020 - (rutL + rutR) * 0.024 + wornPulse;
       const p = V(px, rPy, gY(px, rPy) + rutDip);
       roadVerts.push(p.x, p.y, p.z);
       roadUvs.push(j / (roadCols - 1), i / roadSteps);
