@@ -539,7 +539,7 @@ export async function build(THREE, scene, film, ctx) {
   }
 
   // 2. Cached Certified GLB Asset Spawners (with strong contact darkness under every prop)
-  const [spawnWheat, spawnFenceRaw, spawnBush, spawnRockRaw, spawnTree, spawnCrateRaw, spawnRadio, spawnSandbagRaw, spawnMapTable, spawnRifleRaw, spawnDiary, spawnBinocs] = await Promise.all([
+  const [spawnWheat, spawnFenceRaw, spawnBush, spawnRockRaw, spawnTree, spawnCrateRaw, spawnRadio, spawnSandbagRaw, spawnMapTable, spawnRifleRaw, spawnDiary, spawnBinocs, spawnGrass] = await Promise.all([
     makePropSpawner(ctx, 'wheat_crop', { shadow: false, tint: '#e4c468' }),
     makePropSpawner(ctx, 'wooden_fence', { shadow: false }),
     makePropSpawner(ctx, 'dry_bush', { shadow: true, shadowOpacity: 0.56, tint: '#9a9556' }),
@@ -551,7 +551,8 @@ export async function build(THREE, scene, film, ctx) {
     makePropSpawner(ctx, 'map_table', { shadow: true, shadowOpacity: 0.72, tint: '#e4c59e' }),
     makePropSpawner(ctx, 'rifle', { shadow: false }),
     makePropSpawner(ctx, 'war_diary', { shadow: false }),
-    makePropSpawner(ctx, 'binoculars', { shadow: false })
+    makePropSpawner(ctx, 'binoculars', { shadow: false }),
+    makePropSpawner(ctx, 'dry_grass', { shadow: false, tint: '#be9344' })
   ]);
 
   const burlapMats = makeBurlapTextures(THREE);
