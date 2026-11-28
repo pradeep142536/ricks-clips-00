@@ -33,26 +33,26 @@
     },
     "outback_dusk": {
       "set": "wheat_field",
-      "light": "sunset",
+      "light": "golden_hour_sunset",
       "sky_kind": "dusk-storm",
       "light_over": {
-        "top": "#1c1c4e",
-        "hor": "#f0a068",
-        "sun": "#ffb062",
-        "si": 3.45,
-        "amb": "#6b88e8",
-        "ai": 1.24,
-        "ground": "#483a66",
-        "rim": "#7f96ff",
-        "rimI": 0.58,
-        "dir": [-11.8, 3.05, 3.85],
+        "top": "#1f2354",
+        "hor": "#eaa472",
+        "sun": "#ffaa58",
+        "si": 2.75,
+        "amb": "#8aa6ff",
+        "ai": 1.82,
+        "ground": "#7372a8",
+        "rim": "#94aaff",
+        "rimI": 0.78,
+        "dir": [-11.8, 2.85, 2.65],
         "fogExp2": true,
-        "fogColor": "#9884b4",
-        "fogDensity": 0.0056,
+        "fogColor": "#9688ad",
+        "fogDensity": 0.0062,
         "toneMapping": "ACESFilmic",
-        "exposure": 1.12
+        "exposure": 1.06
       },
-      "post": { "dof": 0.0, "bloom": 0.08, "vignette": 0.06 }
+      "post": { "dof": 0.0, "bloom": 0.14, "vignette": 0.05 }
     },
     "outback_night": {
       "set": "wheat_field",
