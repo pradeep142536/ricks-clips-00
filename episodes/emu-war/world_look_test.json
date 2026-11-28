@@ -78,7 +78,7 @@
       "id": "day_ground_wide",
       "place": "outback_day",
       "stations": [
-        { "at": 0, "pos": [-0.15, -5.9, 1.56], "aim": [-0.05, 1.2, -0.75], "lens": 27, "framing": "P", "hold": 2.5 }
+        { "at": 0, "pos": [0.56, -4.15, 1.46], "aim": [0.14, 2.35, -0.78], "lens": 27, "framing": "P", "hold": 2.5 }
       ]
     },
     {
