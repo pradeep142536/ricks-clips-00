@@ -61,21 +61,21 @@
       "light_over": {
         "top": "#071133",
         "hor": "#244280",
-        "sun": "#4c88ff",
-        "si": 1.05,
-        "amb": "#3d74e8",
-        "ai": 1.32,
-        "ground": "#284b96",
-        "rim": "#82bdff",
-        "rimI": 0.95,
+        "sun": "#4a84ff",
+        "si": 1.00,
+        "amb": "#4d86f2",
+        "ai": 1.50,
+        "ground": "#3662ba",
+        "rim": "#84bfff",
+        "rimI": 0.98,
         "dir": [-8.5, 6.2, 2.2],
         "fogExp2": true,
-        "fogColor": "#142758",
-        "fogDensity": 0.0065,
+        "fogColor": "#14285a",
+        "fogDensity": 0.0062,
         "toneMapping": "Neutral",
         "exposure": 1.00
       },
-      "post": { "dof": 0.0, "bloom": 0.12, "vignette": 0.14 }
+      "post": { "dof": 0.0, "bloom": 0.12, "vignette": 0.12 }
     },
     "outback_storm": {
       "set": "wheat_field",
