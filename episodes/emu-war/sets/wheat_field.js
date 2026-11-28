@@ -402,13 +402,40 @@ export async function build(THREE, scene, film, ctx) {
 
   if (sky?.clouds) {
     const skyKind = ctx.place?.sky_kind || 'clear-day';
+    // The Night camp needs its own palette: the general `night-storm` preset is
+    // deliberately theatrical for lightning scenes, but this approval shot is
+    // calm moonlight.  Keep this override here so other night/storm sets retain
+    // their existing sky treatment.
+    const nightCloudPalette = skyKind === 'night-storm' && ctx.place?.light === 'night' ? {
+      top: '#07122f',
+      mid: '#10275a',
+      hor: '#48649a',
+      sun: '#789fe8',
+      glow: 0.10,
+      lit: '#506da8',
+      shade: '#0b1736',
+      rim: '#7d9fd8',
+      storm: {
+        core: '#050b20',
+        body: '#112552',
+        slit: '#4e6da8',
+        srim: '#7998ce',
+        under: '#1a315f',
+        scud: '#07122c',
+        rain: '#1d3568',
+        flash: '#d9e7ff',
+        underAmt: 0.0,
+        rimAmt: 0.52,
+        contrast: 1.0
+      }
+    } : null;
     sky.clouds({
       kind: skyKind,
       seed: 1932,
       coverage: skyKind === 'clear-day' ? 0.78 : 0.92,
       scale: 1.35,
       sunDir: [-0.62, 0.56, 0.44],
-      ...(skyKind === 'clear-day' ? { colors: {
+      ...(nightCloudPalette ? { colors: nightCloudPalette } : skyKind === 'clear-day' ? { colors: {
         top: '#2b6cb8',
         mid: '#6ba5df',
         hor: '#dceaf4',
