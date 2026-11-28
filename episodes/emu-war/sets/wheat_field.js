@@ -712,13 +712,18 @@ export async function build(THREE, scene, film, ctx) {
     // multiplier crushed its procedural rut detail into a black foreground.
     roadMat.color.set('#65515a');
     roadMat.roughness = 0.94;
+    // The road lies behind foreground shadows for most of this locked shot.
+    // This tiny blue-violet lift preserves the existing albedo/ruts rather
+    // than turning the track into an unlit black silhouette.
+    roadMat.emissive.set('#20182a');
+    roadMat.emissiveIntensity = 0.32;
 
     // The close rifle, crate, and sandbags sit behind the tent's key-light
     // shadow.  This is a deliberately small, cool bounced-moon fill, not a
     // second sun: it restores readable form at phone scale without creating
     // a visible pool or altering the day/dusk/storm looks.
-    const nightForegroundFill = new THREE.PointLight('#6f91d2', 0.52, 5.2, 2.0);
-    nightForegroundFill.position.copy(V(0.28, -2.85, gY(0.28, -2.85) + 1.15));
+    const nightForegroundFill = new THREE.PointLight('#6f91d2', 0.86, 6.4, 2.0);
+    nightForegroundFill.position.copy(V(-0.06, -2.62, gY(-0.06, -2.62) + 1.35));
     nightForegroundFill.name = 'night_foreground_moon_bounce';
     root.add(nightForegroundFill);
   }
