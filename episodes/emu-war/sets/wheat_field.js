@@ -592,6 +592,8 @@ export async function build(THREE, scene, film, ctx) {
         bumpScale: 0.036,
         color: fTone,
         vertexColors: true,
+        emissive: ctx.place?.light === 'night' ? '#273852' : '#000000',
+        emissiveIntensity: ctx.place?.light === 'night' ? 0.23 : 0.0,
         roughness: 0.89,
         metalness: 0.0
       });
@@ -617,6 +619,12 @@ export async function build(THREE, scene, film, ctx) {
       for (const m of Array.isArray(n.material) ? n.material : [n.material]) {
         if (!m || m.transparent) continue;
         if (m.color) m.color.copy(tint);
+        if (ctx.place?.light === 'night' && m.emissive) {
+          // Preserve the crate's wood grain in the locked moonlit foreground;
+          // this is a material visibility floor, not an emitted glow.
+          m.emissive.set('#51382e');
+          m.emissiveIntensity = 0.25;
+        }
         if ('roughness' in m) m.roughness = 0.64;
         if ('metalness' in m) m.metalness = 0.16;
         if ('envMapIntensity' in m) m.envMapIntensity = 0.48;
@@ -715,8 +723,8 @@ export async function build(THREE, scene, film, ctx) {
     // The road lies behind foreground shadows for most of this locked shot.
     // This tiny blue-violet lift preserves the existing albedo/ruts rather
     // than turning the track into an unlit black silhouette.
-    roadMat.emissive.set('#20182a');
-    roadMat.emissiveIntensity = 0.32;
+    roadMat.emissive.set('#5b4238');
+    roadMat.emissiveIntensity = 0.48;
 
     // The close rifle, crate, and sandbags sit behind the tent's key-light
     // shadow.  This is a deliberately small, cool bounced-moon fill, not a
