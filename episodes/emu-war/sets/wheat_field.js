@@ -666,6 +666,13 @@ export async function build(THREE, scene, film, ctx) {
 
   // 3. Foreground-to-Camp Sculpted Worn Rutted Dirt Road (irregular organic borders, soft alpha feather)
   const roadTex = makeRoadTextures(THREE);
+  const authoredRoadMap = await new THREE.TextureLoader().loadAsync('/assets/textures/emu_outback_dirt_road_v1.png');
+  authoredRoadMap.colorSpace = THREE.SRGBColorSpace;
+  authoredRoadMap.wrapS = THREE.ClampToEdgeWrapping;
+  authoredRoadMap.wrapT = THREE.RepeatWrapping;
+  authoredRoadMap.repeat.set(1, 3.2);
+  authoredRoadMap.anisotropy = 8;
+  authoredRoadMap.needsUpdate = true;
   const roadSteps = 84;
   // A dense cross-section keeps the road profile smooth at the locked ground
   // camera.  The texture supplies the visible soil and rut breakup; geometry
@@ -712,7 +719,7 @@ export async function build(THREE, scene, film, ctx) {
   roadGeo.setIndex(roadIdx);
   roadGeo.computeVertexNormals();
   const roadMat = new THREE.MeshStandardMaterial({
-    map: roadTex.map,
+    map: authoredRoadMap,
     bumpMap: roadTex.bumpMap,
     bumpScale: 0.085,
     alphaMap: roadTex.alphaMap,
