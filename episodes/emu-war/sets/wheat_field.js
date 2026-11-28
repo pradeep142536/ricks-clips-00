@@ -748,7 +748,10 @@ export async function build(THREE, scene, film, ctx) {
   const road = new THREE.Mesh(roadGeo, roadMat);
   road.name = 'campion_dirt_track';
   road.receiveShadow = true;
-  root.add(road);
+  // The close Night camp shot is lit by practicals and moonlight, not a road
+  // reveal.  Keeping this broad daytime track visible made it the dominant
+  // foreground stripe; Day/Dusk/Storm still retain the full road asset.
+  if (ctx.place?.light !== 'night') root.add(road);
 
   // 4. Aged Split-Rail Paddock Fences: Left Foreground Wing + Rear Paddock Line (clear road/table view)
   for (const [fx, fy, yaw, nm] of [
