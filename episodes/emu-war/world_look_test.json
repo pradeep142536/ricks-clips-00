@@ -79,24 +79,24 @@
     },
     "outback_storm": {
       "set": "wheat_field",
-      "light": "day",
+      "light": "storm",
       "sky_kind": "rain-overcast",
       "light_over": {
-        "top": "#26364f",
-        "hor": "#8395a8",
-        "sun": "#d4e2ef",
-        "si": 1.85,
-        "amb": "#8da6bd",
-        "ai": 1.55,
-        "ground": "#39445a",
-        "rim": "#c8d9e7",
-        "rimI": 0.80,
-        "dir": [-5, 9, 2],
+        "top": "#172338",
+        "hor": "#8396aa",
+        "sun": "#c9d7e2",
+        "si": 1.42,
+        "amb": "#7f98ae",
+        "ai": 1.22,
+        "ground": "#2d4055",
+        "rim": "#b9cbd8",
+        "rimI": 0.62,
+        "dir": [-6, 8, 3],
         "fogExp2": true,
-        "fogColor": "#8192a4",
-        "fogDensity": 0.010,
+        "fogColor": "#60758a",
+        "fogDensity": 0.013,
         "toneMapping": "ACESFilmic",
-        "exposure": 1.10
+        "exposure": 0.98
       },
       "post": { "dof": 0.0, "bloom": 0.16, "vignette": 0.12 }
     }
@@ -127,7 +127,7 @@
       "id": "storm_hero_truck",
       "place": "outback_storm",
       "stations": [
-        { "at": 225, "pos": [-4.2, -3.1, 1.38], "aim": [3.65, 1.25, 1.10], "lens": 31, "framing": "O", "hold": 2.5 }
+        { "at": 225, "pos": [0.70, -2.82, 1.48], "aim": [0.12, 1.72, 0.62], "lens": 29, "framing": "P", "hold": 2.5, "creep": 0, "drift": [0, 0, 0] }
       ]
     }
   ],

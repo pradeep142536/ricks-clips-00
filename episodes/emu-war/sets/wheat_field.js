@@ -401,6 +401,7 @@ export async function build(THREE, scene, film, ctx) {
   const V = (x, y, z) => B2T([x, y, z]);
   const root = new THREE.Group();
   root.name = 'wheat_field';
+  const isStormCamp = ctx.place?.sky_kind === 'rain-overcast';
 
   if (sky?.clouds) {
     const skyKind = ctx.place?.sky_kind || 'clear-day';
@@ -432,13 +433,29 @@ export async function build(THREE, scene, film, ctx) {
       }
     } : null;
     const isNightCamp = skyKind === 'night-storm' && ctx.place?.light === 'night';
+    const stormCloudPalette = isStormCamp ? {
+      top: '#172338',
+      mid: '#3f536d',
+      hor: '#8396aa',
+      sun: '#d9e3ed',
+      glow: 0.14,
+      lit: '#aebdca',
+      shade: '#344252',
+      rim: '#d4e0e8',
+      storm: {
+        core: '#17202d', body: '#3d4c5e', slit: '#8e9eae', srim: '#c9d6df',
+        under: '#606f7e', scud: '#202b39', rain: '#667b8e', flash: '#e7f2ff',
+        wallTop: 0.84, foot: 0.05, deck: 0.86, scudCov: 0.58, rainAmt: 1.0,
+        underAmt: 0.16, rimAmt: 0.36, contrast: 0.88
+      }
+    } : null;
     sky.clouds({
       kind: skyKind,
       seed: 1932,
-      coverage: isNightCamp ? 0.58 : skyKind === 'clear-day' ? 0.78 : 0.92,
+      coverage: isNightCamp ? 0.58 : skyKind === 'clear-day' ? 0.78 : isStormCamp ? 1.10 : 0.92,
       scale: 1.35,
       sunDir: [-0.62, 0.56, 0.44],
-      ...(nightCloudPalette ? { colors: nightCloudPalette } : skyKind === 'clear-day' ? { colors: {
+      ...(nightCloudPalette ? { colors: nightCloudPalette } : stormCloudPalette ? { colors: stormCloudPalette } : skyKind === 'clear-day' ? { colors: {
         top: '#2b6cb8',
         mid: '#6ba5df',
         hor: '#dceaf4',
@@ -447,7 +464,9 @@ export async function build(THREE, scene, film, ctx) {
         shade: '#a3b8d6',
         rim: '#ffffff'
       } } : {}),
-      layers: isNightCamp ? [
+      // The painted storm dome contains the heavy cloud deck, wall and rain
+      // curtains. Do not replace it with the soft daytime cloud cards.
+      layers: isStormCamp ? undefined : isNightCamp ? [
         // Keep volume around the horizon but leave the upper third to the deep
         // navy dome; the old all-height cloud stack made calm night read as day.
         { d: 120, fade: 0.12, size: 0.92, n: 4, el: [1, 6] },
@@ -487,7 +506,9 @@ export async function build(THREE, scene, film, ctx) {
   // 1. Undulating Outback Soil, Concentrated Edge/Fence/Camp Vegetation & Gravel + Horizon
   root.add(buildOutbackTerrain(THREE, ctx, { mode: 'wheat', centerY: 7.0, sizeX: 76, sizeY: 76, segs: 180 }));
   root.add(buildOutbackGroundDetail(THREE, { mode: 'wheat', centerY: 7.0, width: 28, depth: 34, count: 290 }));
-  const dramaticLight = ['sunset', 'storm'].includes(ctx.place?.light);
+  // The stylised pink horizon belongs to sunset only. Storm uses the cold
+  // cloud dome above and must not inherit a sunset ridge.
+  const dramaticLight = ctx.place?.light === 'sunset';
   const horizon = buildOutbackHorizon(THREE, { centerY: 7.0, sunset: dramaticLight });
   if (ctx.place?.light === 'night') {
     horizon.traverse(o => {
@@ -495,6 +516,34 @@ export async function build(THREE, scene, film, ctx) {
     });
   }
   root.add(horizon);
+
+  // Storm-only rain: sparse slanted 3D streaks in three depth bands.  The streaks
+  // are deliberately restrained so camp geometry stays readable at phone size.
+  if (isStormCamp) {
+    const rng = seed => {
+      const x = Math.sin(seed * 127.1) * 43758.5453;
+      return x - Math.floor(x);
+    };
+    const rainVerts = [];
+    for (let i = 0; i < 210; i++) {
+      const x = (rng(i * 3 + 1) - 0.5) * 18;
+      const y = -4.5 + rng(i * 3 + 2) * 19;
+      const z = 0.35 + rng(i * 3 + 3) * 7.0;
+      const len = 0.22 + rng(i * 5 + 4) * 0.32;
+      const lean = 0.055 + rng(i * 7 + 5) * 0.06;
+      const a = V(x, y, z);
+      const b = V(x + lean, y - 0.07, Math.max(0.04, z - len));
+      rainVerts.push(a.x, a.y, a.z, b.x, b.y, b.z);
+    }
+    const rainGeo = new THREE.BufferGeometry();
+    rainGeo.setAttribute('position', new THREE.Float32BufferAttribute(rainVerts, 3));
+    const rain = new THREE.LineSegments(rainGeo, new THREE.LineBasicMaterial({
+      color: '#aec8d7', transparent: true, opacity: 0.30, depthWrite: false
+    }));
+    rain.name = 'storm_rain_streaks';
+    rain.renderOrder = 5;
+    root.add(rain);
+  }
 
   // 2. Cached Certified GLB Asset Spawners (with strong contact darkness under every prop)
   const [spawnWheat, spawnFenceRaw, spawnBush, spawnRockRaw, spawnTree, spawnCrateRaw, spawnRadio, spawnSandbagRaw, spawnMapTable, spawnRifleRaw, spawnDiary, spawnBinocs] = await Promise.all([
@@ -699,7 +748,10 @@ export async function build(THREE, scene, film, ctx) {
       const wornPulse = Math.sin(py * 1.18 + u * 1.7) * 0.004
         + Math.cos(py * 2.63 - u * 3.1) * 0.003;
       const rutDip = crown * 0.002 - (rutL + rutR) * 0.003 + wornPulse * 0.20;
-      const p = V(px, rPy, gY(px, rPy) + rutDip);
+      // Keep the road just above the terrain mesh.  Sharing the same depth
+      // plane caused SwiftShader and hardware WebGL to alternate between both
+      // surfaces, producing the false dark centre stripe in close shots.
+      const p = V(px, rPy, gY(px, rPy) + 0.018 + rutDip);
       roadVerts.push(p.x, p.y, p.z);
       roadUvs.push(j / (roadCols - 1), i / roadSteps);
     }
@@ -752,9 +804,23 @@ export async function build(THREE, scene, film, ctx) {
     nightForegroundFill.name = 'night_foreground_moon_bounce';
     root.add(nightForegroundFill);
   }
+  if (isStormCamp) {
+    // Storm shadows made the road read as a black vector stripe. Preserve the
+    // authored gravel texture with a restrained cool material floor instead.
+    roadMat.color.set('#8796a1');
+    roadMat.emissiveMap = authoredRoadMap;
+    roadMat.emissive.set('#63788b');
+    roadMat.emissiveIntensity = 0.16;
+    roadMat.roughness = 0.98;
+  }
   const road = new THREE.Mesh(roadGeo, roadMat);
   road.name = 'campion_dirt_track';
-  road.receiveShadow = true;
+  // The road has its own high-frequency soil texture and shallow physical
+  // relief. Receiving the camp's broad shadow maps turned its narrow centre
+  // into a featureless black stripe at this low vertical camera angle.
+  // Leave shadows on the terrain, tents and props; keep this leading line
+  // legible through the four weather looks.
+  road.receiveShadow = false;
   // The close Night camp shot is lit by practicals and moonlight, not a road
   // reveal.  Keeping this broad daytime track visible made it the dominant
   // foreground stripe; Day/Dusk/Storm still retain the full road asset.
