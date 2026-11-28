@@ -451,8 +451,14 @@ export async function build(THREE, scene, film, ctx) {
   // 1. Undulating Outback Soil, Concentrated Edge/Fence/Camp Vegetation & Gravel + Horizon
   root.add(buildOutbackTerrain(THREE, ctx, { mode: 'wheat', centerY: 7.0, sizeX: 76, sizeY: 76, segs: 180 }));
   root.add(buildOutbackGroundDetail(THREE, { mode: 'wheat', centerY: 7.0, width: 28, depth: 34, count: 290 }));
-  const dramaticLight = ['sunset', 'night', 'storm'].includes(ctx.place?.light);
-  root.add(buildOutbackHorizon(THREE, { centerY: 7.0, sunset: dramaticLight }));
+  const dramaticLight = ['sunset', 'storm'].includes(ctx.place?.light);
+  const horizon = buildOutbackHorizon(THREE, { centerY: 7.0, sunset: dramaticLight });
+  if (ctx.place?.light === 'night') {
+    horizon.traverse(o => {
+      if (o.isMesh && o.material?.color) o.material.color.set('#304e96');
+    });
+  }
+  root.add(horizon);
 
   // 2. Cached Certified GLB Asset Spawners (with strong contact darkness under every prop)
   const [spawnWheat, spawnFenceRaw, spawnBush, spawnRockRaw, spawnTree, spawnCrateRaw, spawnRadio, spawnSandbagRaw, spawnMapTable, spawnRifleRaw, spawnDiary, spawnBinocs] = await Promise.all([
