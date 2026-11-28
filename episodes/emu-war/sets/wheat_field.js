@@ -682,7 +682,15 @@ export async function build(THREE, scene, film, ctx) {
       const off = u * roadHalfW + wobbleSign;
       const px = cx + nx * off;
       const rPy = py + ny * off;
-      const rutDip = (j === 2 || j === 4) ? 0.015 : (j === 0 || j === 6 ? -0.020 : 0.032);
+      // Make the tyre channels physical, not only painted into the albedo map.
+      // At the locked ground-level Night camera, the former 1.5 cm dip was
+      // invisible and the broad track read as a flat brown slab.
+      const wornPulse = Math.sin(py * 1.18 + (j === 2 ? 0.5 : -0.35)) * 0.009
+        + Math.cos(py * 2.63 + j * 0.8) * 0.006;
+      const rutDip = (j === 2 || j === 4) ? -0.052 + wornPulse
+        : j === 3 ? 0.072 + wornPulse * 0.35
+          : (j === 1 || j === 5) ? 0.020 + wornPulse * 0.5
+            : -0.012 + wornPulse * 0.4;
       const p = V(px, rPy, gY(px, rPy) + rutDip);
       roadVerts.push(p.x, p.y, p.z);
       roadUvs.push(j / (roadCols - 1), i / roadSteps);
