@@ -429,10 +429,11 @@ export async function build(THREE, scene, film, ctx) {
         contrast: 1.0
       }
     } : null;
+    const isNightCamp = skyKind === 'night-storm' && ctx.place?.light === 'night';
     sky.clouds({
       kind: skyKind,
       seed: 1932,
-      coverage: skyKind === 'clear-day' ? 0.78 : 0.92,
+      coverage: isNightCamp ? 0.58 : skyKind === 'clear-day' ? 0.78 : 0.92,
       scale: 1.35,
       sunDir: [-0.62, 0.56, 0.44],
       ...(nightCloudPalette ? { colors: nightCloudPalette } : skyKind === 'clear-day' ? { colors: {
@@ -444,7 +445,13 @@ export async function build(THREE, scene, film, ctx) {
         shade: '#a3b8d6',
         rim: '#ffffff'
       } } : {}),
-      layers: [
+      layers: isNightCamp ? [
+        // Keep volume around the horizon but leave the upper third to the deep
+        // navy dome; the old all-height cloud stack made calm night read as day.
+        { d: 120, fade: 0.12, size: 0.92, n: 4, el: [1, 6] },
+        { d: 205, fade: 0.30, size: 0.98, n: 4, el: [4, 11] },
+        { d: 300, fade: 0.44, size: 1.08, n: 3, el: [8, 16] }
+      ] : [
         { d: 95, fade: 0.06, size: 1.05, n: 7, el: [2, 9] },
         { d: 155, fade: 0.22, size: 1.15, n: 7, el: [5, 17] },
         { d: 245, fade: 0.42, size: 1.25, n: 6, el: [10, 24] },
@@ -700,6 +707,12 @@ export async function build(THREE, scene, film, ctx) {
     alphaTest: 0.02,
     depthWrite: true
   });
+  if (ctx.place?.light === 'night') {
+    // A moonlit dirt track needs to stay earthen and subordinate to the camp,
+    // rather than becoming a broad chalk-grey leading stripe.
+    roadMat.color.set('#1d304d');
+    roadMat.roughness = 0.94;
+  }
   const road = new THREE.Mesh(roadGeo, roadMat);
   road.name = 'campion_dirt_track';
   road.receiveShadow = true;
