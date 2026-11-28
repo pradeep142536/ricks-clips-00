@@ -76,7 +76,8 @@ export function fbmTile(u, v, baseP, oct, s) {
 }
 
 function makeRichGroundTextures(THREE, repeatX, repeatY) {
-  // Seamless 1024x1024 procedural soil albedo + height bump + roughness (ZERO pixelated square blocks)
+  // Seamless 1024x1024 high-grain crusty Australian outback soil albedo + bump + roughness
+  // Uses rich multi-scale value noise, crusty mud flakes, fine gravel, and dry silt (zero squiggly worm lines or square blocks)
   const N = 1024;
   const albedo = new Uint8Array(N * N * 4);
   const rough = new Uint8Array(N * N * 4);
@@ -87,36 +88,37 @@ function makeRichGroundTextures(THREE, repeatX, repeatY) {
     for (let x = 0; x < N; x++) {
       const u = x / N;
       const macro = fbmTile(u, v, 4, 3, 1932);
-      const mid = fbmTile(u + macro * 0.06, v - macro * 0.05, 10, 3, 2117);
-      const fine = fbmTile(u, v, 36, 3, 4099);
-      const grit = h2(x, y, 7919);
+      const mid = fbmTile(u + macro * 0.08, v - macro * 0.07, 12, 3, 2117);
+      const clods = fbmTile(u, v, 32, 3, 3307);
+      const microGrit = fbmTile(u, v, 96, 2, 4099);
+      const grain = h2(x, y, 7919);
 
-      // Dry-clay crack ridge lines from warped mid noise difference
-      const crackProbe = Math.abs(fbmTile(u + 0.015 * Math.sin(v * Math.PI * 4), v, 14, 3, 5501) - 0.5);
-      const crack = crackProbe < 0.016 ? (1.0 - crackProbe / 0.016) : 0.0;
+      // Crusty surface flake ridges (short mottled dry-clay platelets, no long wiggly lines)
+      const flakeNoise = fbmTile(u * 1.4, v * 1.4, 24, 3, 5501);
+      const flakeShadow = flakeNoise < 0.38 ? Math.pow((0.38 - flakeNoise) / 0.38, 1.3) * 0.65 : 0.0;
 
-      // Tiny scattered pebbles / ironstone specks modulated smoothly across pixels
-      const peb = fine > 0.74 ? (fine - 0.74) / 0.26 : 0.0;
-      const drySilt = Math.max(0, Math.min(1, (macro - 0.44) * 2.2));
-      const darkLoam = Math.max(0, Math.min(1, (0.42 - macro) * 2.1));
+      // Scattered crisp gravel pebbles & pale limestone specks across high-frequency noise
+      const pebble = clods > 0.70 ? Math.min(1, (clods - 0.70) / 0.22) : 0.0;
+      const fineSpeck = microGrit > 0.68 ? (microGrit - 0.68) / 0.32 : 0.0;
 
-      // Rich Aussie outback palette blending red-clay, dusty ochre, dark loam, and pale silt
-      let r = 178 + (mid - 0.5) * 42 + drySilt * 26 - darkLoam * 48 + peb * 28 - crack * 56 + (grit - 0.5) * 14;
-      let g = 106 + (mid - 0.5) * 32 + drySilt * 28 - darkLoam * 34 + peb * 20 - crack * 38 + (grit - 0.5) * 10;
-      let b = 62  + (mid - 0.5) * 22 + drySilt * 22 - darkLoam * 20 + peb * 14 - crack * 24 + (grit - 0.5) * 8;
+      const drySilt = Math.max(0, Math.min(1, (macro - 0.43) * 2.4));
+      const darkLoam = Math.max(0, Math.min(1, (0.43 - macro) * 2.4));
+
+      let r = 176 + (mid - 0.5) * 48 + (clods - 0.5) * 32 + drySilt * 30 - darkLoam * 52 + pebble * 26 + fineSpeck * 18 - flakeShadow * 46 + (grain - 0.5) * 18;
+      let g = 104 + (mid - 0.5) * 34 + (clods - 0.5) * 24 + drySilt * 32 - darkLoam * 36 + pebble * 22 + fineSpeck * 14 - flakeShadow * 32 + (grain - 0.5) * 13;
+      let b = 60  + (mid - 0.5) * 22 + (clods - 0.5) * 16 + drySilt * 24 - darkLoam * 22 + pebble * 18 + fineSpeck * 10 - flakeShadow * 20 + (grain - 0.5) * 10;
 
       const idx = (y * N + x) * 4;
-      albedo[idx]     = Math.max(36, Math.min(230, r)) | 0;
-      albedo[idx + 1] = Math.max(24, Math.min(188, g)) | 0;
-      albedo[idx + 2] = Math.max(16, Math.min(145, b)) | 0;
+      albedo[idx]     = Math.max(34, Math.min(232, r)) | 0;
+      albedo[idx + 1] = Math.max(22, Math.min(192, g)) | 0;
+      albedo[idx + 2] = Math.max(15, Math.min(150, b)) | 0;
       albedo[idx + 3] = 255;
 
-      const hVal = Math.max(0, Math.min(255, (128 + (fine - 0.5) * 95 + peb * 85 - crack * 115 + (grit - 0.5) * 24))) | 0;
+      const hVal = Math.max(0, Math.min(255, 128 + (clods - 0.5) * 90 + (microGrit - 0.5) * 75 + pebble * 95 - flakeShadow * 90 + (grain - 0.5) * 32)) | 0;
       bump[idx] = bump[idx + 1] = bump[idx + 2] = hVal;
       bump[idx + 3] = 255;
 
-      // Hardpacked clay patches slightly smoother (0.84) than loose dusty silt (0.98)
-      const rVal = Math.max(210, Math.min(254, (236 + drySilt * 16 - darkLoam * 22 - peb * 12))) | 0;
+      const rVal = Math.max(206, Math.min(254, 238 + drySilt * 14 - darkLoam * 24 - pebble * 16)) | 0;
       rough[idx] = rough[idx + 1] = rough[idx + 2] = rVal;
       rough[idx + 3] = 255;
     }
@@ -145,7 +147,7 @@ export function buildOutbackTerrain(THREE, ctx, opts = {}) {
   const mode = opts.mode || 'wheat';
   const sizeX = opts.sizeX ?? 72;
   const sizeY = opts.sizeY ?? 72;
-  const segs = opts.segs ?? 128;
+  const segs = opts.segs ?? 180;
   const centerPlanY = opts.centerY ?? 8.0;
 
   const geo = new THREE.PlaneGeometry(sizeX, sizeY, segs, segs);
@@ -154,10 +156,10 @@ export function buildOutbackTerrain(THREE, ctx, opts = {}) {
   const pos = geo.attributes.position;
   const colors = new Float32Array(pos.count * 3);
   const cClay = new THREE.Color('#ad5a34');
-  const cSand = new THREE.Color('#caa06d');
-  const cRut = new THREE.Color('#6a371f');
-  const cCampYard = new THREE.Color('#b08657');
-  const cDarkSoil = new THREE.Color('#774428');
+  const cSand = new THREE.Color('#cfa572');
+  const cRut = new THREE.Color('#66341d');
+  const cCampYard = new THREE.Color('#b48b5c');
+  const cDarkSoil = new THREE.Color('#703e24');
   const cDryGrass = new THREE.Color('#918348');
   const tmp = new THREE.Color();
 
@@ -169,12 +171,12 @@ export function buildOutbackTerrain(THREE, ctx, opts = {}) {
     const h = outbackHeight(mode, planX, planY);
     pos.setY(i, h);
 
-    // Non-periodic multi-frequency terrain soil patches breaking any tile repetition
-    const w1 = 0.5 + 0.5 * Math.sin(planX * 0.43 + Math.cos(planY * 0.37) * 1.9);
-    const w2 = 0.5 + 0.5 * Math.cos(planX * 0.89 - planY * 0.67 + Math.sin(planX * 0.21) * 1.5);
-    const w3 = 0.5 + 0.5 * Math.sin((planX * 1.3 + planY * 0.95) * 0.61);
-    tmp.copy(cClay).lerp(cSand, w1 * 0.52 + w2 * 0.28);
-    if (w3 > 0.65) tmp.lerp(cDarkSoil, (w3 - 0.65) * 1.15);
+    // Rich non-repeating multi-frequency dusty/loam/clay ground variation (breaks right foreground!)
+    const w1 = 0.5 + 0.5 * Math.sin(planX * 0.48 + Math.cos(planY * 0.41) * 2.1);
+    const w2 = 0.5 + 0.5 * Math.cos(planX * 1.15 - planY * 0.83 + Math.sin(planX * 0.33) * 1.6);
+    const w3 = 0.5 + 0.5 * Math.sin((planX * 1.85 + planY * 1.35) * 0.72 + Math.cos(planY * 1.7) * 0.9);
+    tmp.copy(cClay).lerp(cSand, w1 * 0.48 + w2 * 0.34);
+    if (w3 > 0.58) tmp.lerp(cDarkSoil, Math.min(0.65, (w3 - 0.58) * 1.45));
 
     if (mode === 'track') {
       const rutBlend = Math.min(1, Math.exp(-Math.pow((planX + 0.88) / 0.42, 2)) + Math.exp(-Math.pow((planX - 0.88) / 0.42, 2)));
@@ -189,9 +191,9 @@ export function buildOutbackTerrain(THREE, ctx, opts = {}) {
       if (planY >= -6.8 && planY <= 9.2) {
         const rDx = planX - campRoadCenterX(planY);
         const rRut = Math.min(1, Math.exp(-Math.pow((rDx + 0.44) / 0.26, 2)) + Math.exp(-Math.pow((rDx - 0.44) / 0.26, 2)));
-        const berm = Math.min(1, Math.exp(-Math.pow((Math.abs(rDx) - 0.82) / 0.28, 2)));
-        tmp.lerp(cRut, rRut * 0.55);
-        tmp.lerp(cSand, berm * 0.25);
+        const berm = Math.min(1, Math.exp(-Math.pow((Math.abs(rDx) - 0.82) / 0.32, 2)));
+        tmp.lerp(cRut, rRut * 0.52);
+        tmp.lerp(cSand, berm * 0.32);
       }
       if (planY >= 10.2) {
         const paddy = Math.min(1, (planY - 10.2) / 3.0) * Math.exp(-Math.pow(planX / 17.0, 2));
@@ -206,13 +208,13 @@ export function buildOutbackTerrain(THREE, ctx, opts = {}) {
   geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
   geo.computeVertexNormals();
 
-  const groundTex = makeRichGroundTextures(THREE, sizeX / 6.2, sizeY / 6.2);
+  const groundTex = makeRichGroundTextures(THREE, sizeX / 5.2, sizeY / 5.2);
 
   const mat = new THREE.MeshStandardMaterial({
     vertexColors: true,
     map: groundTex.map,
     bumpMap: groundTex.bumpMap,
-    bumpScale: 0.068,
+    bumpScale: 0.125,
     roughnessMap: groundTex.roughnessMap,
     roughness: 1.0,
     metalness: 0.0
@@ -282,53 +284,67 @@ export function buildOutbackGroundDetail(THREE, opts = {}) {
   const dummy = new THREE.Object3D();
   const cTmp = new THREE.Color();
 
-  // Anchor zones: cluster plants and gravel around disturbed edges, rocks, bushes, fences, and camp borders
-  // instead of spreading lonely dots uniformly across open earth.
-  const clusterAnchors = [
-    [-0.60, -3.75, 0.55], // fg left rock & sandbag
-    [-0.82, -2.55, 0.65], // fg left crate stack
-    [-1.25, -1.75, 0.85], // fg left bush & barrel
-    [-1.55, -0.55, 1.35], // fg left paddock fence line
-    [0.52, -3.65, 0.50],  // fg right rock & sandbag edge
-    [0.82, -2.35, 0.68],  // fg right crate & sandbag cluster
-    [1.35, -1.55, 0.90],  // fg right bush
-    [-2.75, 2.30, 1.05],  // camp perimeter left crates/barrels
-    [-2.15, 5.20, 1.85],  // command tent edges & stake line
-    [1.60, 2.25, 1.15],   // table & right barrels
-    [2.85, 5.55, 1.75],   // truck margin & camp edge
-    [-3.8, 10.1, 2.2],    // rear fence L
-    [0.75, 10.2, 2.0],    // rear fence C
-    [4.2, 10.0, 2.2],     // rear fence R
-    [-3.1, 1.8, 0.95],    // mid-left rock
-    [3.8, 1.4, 1.05]      // mid-right rock
+  // Anchor zones: cluster plants and gravel tightly around disturbed edges, rocks, bushes, fences, and camp borders
+  // leaving wide open dirt clear instead of spreading lonely grass stars across open right ground.
+  const plantAnchors = [
+    [-0.60, -3.75, 0.36], // fg left rock & sandbag
+    [-0.82, -2.55, 0.45], // fg left crate stack
+    [-1.25, -1.75, 0.62], // fg left bush & barrel
+    [-1.55, -0.55, 1.15], // fg left paddock fence line
+    [0.82, -2.28, 0.48],  // fg right crate & sandbag cluster
+    [1.35, -1.55, 0.72],  // fg right bush
+    [-2.75, 2.30, 0.90],  // camp perimeter left crates/barrels
+    [-2.15, 5.20, 1.65],  // command tent edges & stake line
+    [1.60, 2.25, 0.95],   // table & right barrels
+    [2.85, 5.55, 1.45],   // truck margin & camp edge
+    [-3.8, 10.1, 2.0],    // rear fence L
+    [0.75, 10.2, 1.8],    // rear fence C
+    [4.2, 10.0, 2.0],     // rear fence R
+    [-3.1, 1.8, 0.85],    // mid-left rock
+    [3.8, 1.4, 0.95]      // mid-right rock
+  ];
+  const gravelAnchors = [
+    [-0.60, -3.75, 0.52],
+    [0.48, -3.72, 0.48],
+    [0.76, -2.55, 0.58],
+    [-1.55, -0.55, 1.05],
+    [1.35, -1.55, 0.68],
+    [-2.55, 2.85, 0.85],
+    [1.52, 1.85, 0.78]
   ];
 
-  const sampleClusteredPos = (roadAvoid) => {
-    // 80% clustered tightly near props/fences/road shoulders; 20% sparse outer scrub/paddock
+  const samplePlantPos = () => {
     const roll = rand();
-    if (roll < 0.58) {
-      const a = clusterAnchors[Math.floor(rand() * clusterAnchors.length)];
+    if (roll < 0.78) {
+      const a = plantAnchors[Math.floor(rand() * plantAnchors.length)];
       const ang = rand() * Math.PI * 2;
-      const dist = (0.14 + Math.pow(rand(), 1.3) * a[2]);
+      const dist = 0.14 + Math.pow(rand(), 1.35) * a[2];
       return [a[0] + Math.cos(ang) * dist, a[1] + Math.sin(ang) * dist];
     }
-    if (roll < 0.82) {
-      // Road shoulder margins only (disturbed earth berms)
-      const py = -4.2 + rand() * 13.0;
-      const side = rand() > 0.5 ? 1 : -1;
-      const px = campRoadCenterX(py) + side * (roadAvoid + 0.04 + rand() * 0.42);
-      return [px, py];
+    // Outer fence/paddock margin
+    return [(rand() - 0.5) * width, 8.5 + rand() * 11.0];
+  };
+  const sampleGravelPos = () => {
+    const roll = rand();
+    if (roll < 0.62) {
+      const a = gravelAnchors[Math.floor(rand() * gravelAnchors.length)];
+      const ang = rand() * Math.PI * 2;
+      const dist = 0.10 + Math.pow(rand(), 1.2) * a[2];
+      return [a[0] + Math.cos(ang) * dist, a[1] + Math.sin(ang) * dist];
     }
-    return [(rand() - 0.5) * width, centerY + (rand() - 0.5) * depth];
+    const py = -4.5 + rand() * 13.5;
+    const side = rand() > 0.5 ? 1 : -1;
+    const px = campRoadCenterX(py) + side * (0.45 + rand() * 0.65);
+    return [px, py];
   };
 
-  // 1. Tight irregular fractured gravel clusters concentrated along ruts edges, rocks, and fence bases
-  const stoneGeo = new THREE.IcosahedronGeometry(0.028, 1);
+  // 1. Tight irregular fractured gravel clusters concentrated along rut margins, rocks, and fence bases
+  const stoneGeo = new THREE.IcosahedronGeometry(0.024, 1);
   const sPos = stoneGeo.attributes.position;
   for (let i = 0; i < sPos.count; i++) {
     const sx = sPos.getX(i), sy = sPos.getY(i), sz = sPos.getZ(i);
     const warp = 0.72 + 0.45 * Math.abs(Math.sin(sx * 47 + sz * 31));
-    sPos.setXYZ(i, sx * 1.45 * warp, sy * 0.42, sz * 1.10 * warp);
+    sPos.setXYZ(i, sx * 1.45 * warp, sy * 0.40, sz * 1.10 * warp);
   }
   stoneGeo.computeVertexNormals();
   const stoneMat = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.94, metalness: 0.0 });
@@ -338,14 +354,14 @@ export function buildOutbackGroundDetail(THREE, opts = {}) {
   let guard = 0;
   while (placedStones < count && guard < count * 8) {
     guard++;
-    const [x, py] = sampleClusteredPos(0.68);
+    const [x, py] = sampleGravelPos();
     const rDx = Math.abs(x - campRoadCenterX(py));
-    if (py < 9.2 && rDx < 0.54) continue;
+    if (py < 9.2 && rDx < 0.24) continue;
     const z = outbackHeight(mode, x, py);
-    const s = (py < 0 ? 0.42 : 0.40) + rand() * 0.82;
-    dummy.position.set(x, z + 0.008, -py);
+    const s = (py < 0 ? 0.38 : 0.38) + rand() * 0.78;
+    dummy.position.set(x, z + 0.006, -py);
     dummy.rotation.set(rand() * 0.3, rand() * Math.PI * 2, rand() * 0.3);
-    dummy.scale.set(s * (0.85 + rand() * 0.5), s * (0.50 + rand() * 0.50), s * (0.8 + rand() * 0.45));
+    dummy.scale.set(s * (0.85 + rand() * 0.5), s * (0.48 + rand() * 0.48), s * (0.8 + rand() * 0.45));
     dummy.updateMatrix();
     stones.setMatrixAt(placedStones, dummy.matrix);
     cTmp.set(stonePalette[placedStones % stonePalette.length]);
@@ -358,7 +374,7 @@ export function buildOutbackGroundDetail(THREE, opts = {}) {
   if (stones.instanceColor) stones.instanceColor.needsUpdate = true;
   group.add(stones);
 
-  // 2. Fine dry-olive & bleached straw tussocks concentrated strictly around fence bases, boulders & disturbed edges
+  // 2. Dry sun-scorched scrub tussocks strictly clustered around fence bases, bushes, boulders & camp borders
   const tuftGeo = makeWeedTuftGeometry(THREE);
   const tuftMat = new THREE.MeshStandardMaterial({
     color: '#ffffff',
@@ -366,21 +382,21 @@ export function buildOutbackGroundDetail(THREE, opts = {}) {
     metalness: 0.0,
     side: THREE.DoubleSide
   });
-  const tuftCount = Math.round(count * 1.45);
+  const tuftCount = Math.round(count * 1.25);
   const tufts = new THREE.InstancedMesh(tuftGeo, tuftMat, tuftCount);
-  const tuftPalette = ['#706b35', '#87783d', '#5c5b2a', '#998243', '#525124', '#856e39'];
+  const tuftPalette = ['#786c39', '#8e7b41', '#645c2f', '#9c8347', '#5a5328', '#856d38'];
   let placedTufts = 0;
   guard = 0;
   while (placedTufts < tuftCount && guard < tuftCount * 8) {
     guard++;
-    const [x, py] = sampleClusteredPos(0.76);
+    const [x, py] = samplePlantPos();
     const rDx = Math.abs(x - campRoadCenterX(py));
-    if (py < 9.2 && rDx < 0.72) continue;
-    if (py < -3.4 && Math.abs(x) < 0.75) continue;
-    if (Math.hypot(x + 2.15, py - 5.1) < 1.85) continue;
+    if (py < 9.2 && rDx < 0.74) continue;
+    if (py < -2.6 && Math.hypot(x - 0.50, py + 3.45) > 0.35 && Math.hypot(x + 0.60, py + 3.65) > 0.38) continue;
+    if (Math.hypot(x + 2.15, py - 5.2) < 1.85) continue;
     if (Math.hypot(x - 1.25, py - 8.2) < 1.55) continue;
     const z = outbackHeight(mode, x, py);
-    const s = (py < 0 ? 0.52 : 0.62) + rand() * 0.62;
+    const s = (py < 0 ? 0.48 : 0.60) + rand() * 0.56;
     dummy.position.set(x, z - 0.008, -py);
     dummy.rotation.set((rand() - 0.5) * 0.22, rand() * Math.PI * 2, (rand() - 0.5) * 0.22);
     dummy.scale.set(s * (0.9 + rand() * 0.5), s * (0.68 + rand() * 0.58), s * (0.9 + rand() * 0.5));

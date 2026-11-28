@@ -27,7 +27,8 @@ function makeRoadTextures(THREE) {
     for (let x = 0; x < W; x++) {
       const u = x / W;
       const nMacro = fbmTile(u, v * 2.0, 5, 3, 7731);
-      const nFine = fbmTile(u, v * 2.0, 28, 3, 8819);
+      const nFine = fbmTile(u, v * 2.0, 32, 3, 8819);
+      const nMicro = fbmTile(u, v * 2.0, 88, 2, 9341);
       const grit = h2(x, y, 9127);
 
       const uc = u - 0.5 + wobbleC;
@@ -36,37 +37,37 @@ function makeRoadTextures(THREE) {
       const rutDR = Math.exp(-Math.pow((uc - 0.21) / 0.068, 2));
       const rut = Math.min(1, rutDL + rutDR);
 
-      const bermL = Math.exp(-Math.pow((uc + 0.305) / 0.036, 2)) + Math.exp(-Math.pow((uc + 0.125) / 0.034, 2));
-      const bermR = Math.exp(-Math.pow((uc - 0.305) / 0.036, 2)) + Math.exp(-Math.pow((uc - 0.125) / 0.034, 2));
+      const bermL = Math.exp(-Math.pow((uc + 0.305) / 0.042, 2)) + Math.exp(-Math.pow((uc + 0.125) / 0.040, 2));
+      const bermR = Math.exp(-Math.pow((uc - 0.305) / 0.042, 2)) + Math.exp(-Math.pow((uc - 0.125) / 0.040, 2));
       const berm = Math.min(1, bermL + bermR);
 
-      // Smooth organic chevron/rib tread pattern modulated cleanly by noise (zero sharp rectangular steps)
+      // Subtle weathered tire impressions broken by clods & gravel (never uniform ladder stripes!)
       const chevAngle = uc < 0 ? (uc + 0.21) : -(uc - 0.21);
-      const tread = 0.5 + 0.5 * Math.sin((v * 82.0 + Math.abs(chevAngle) * 16.0 + nMacro * 1.4) * Math.PI * 2);
-      const treadGroove = rut * Math.pow(tread, 1.4) * (0.55 + 0.45 * nFine);
+      const tread = 0.5 + 0.5 * Math.sin((v * 74.0 + Math.abs(chevAngle) * 14.0 + nMacro * 2.2) * Math.PI * 2);
+      const treadGroove = rut * Math.pow(tread, 1.6) * (0.25 + 0.55 * nFine) * 0.55;
 
-      // Irregular eroded dusty shoulder fade
-      const edgeL = Math.max(0, Math.min(1, (u - (0.09 + edgeWobL)) / 0.13));
-      const edgeR = Math.max(0, Math.min(1, ((0.91 + edgeWobR) - u) / 0.13));
+      // Wide irregular eroded dusty shoulder fade across outer 26%
+      const edgeL = Math.max(0, Math.min(1, (u - (0.06 + edgeWobL)) / 0.22));
+      const edgeR = Math.max(0, Math.min(1, ((0.94 + edgeWobR) - u) / 0.22));
       const edgeMask = Math.min(edgeL, edgeR);
       const edgeSmoother = edgeMask * edgeMask * (3 - 2 * edgeMask);
-      const erosionBreak = Math.max(0, Math.min(1, edgeSmoother + (nFine - 0.5) * 0.28 * (1 - edgeSmoother)));
+      const erosionBreak = Math.max(0, Math.min(1, edgeSmoother + (nFine - 0.5) * 0.34 * (1 - edgeSmoother)));
 
-      const dampPatch = Math.max(0, 0.42 - nMacro) * 1.5;
-      const peb = nFine > 0.72 ? (nFine - 0.72) / 0.28 : 0.0;
+      const dampPatch = Math.max(0, 0.44 - nMacro) * 1.6;
+      const peb = nFine > 0.68 ? (nFine - 0.68) / 0.32 : 0.0;
 
-      // Color mixing: dusty warm earth base -> compacted darker terracotta ruts -> lighter silt berm dust
-      let r = 178 + (nMacro - 0.5) * 32 + berm * 24 - rut * 66 - treadGroove * 26 + peb * 26 - dampPatch * 30 + (grit - 0.5) * 12;
-      let g = 114 + (nMacro - 0.5) * 24 + berm * 22 - rut * 46 - treadGroove * 18 + peb * 18 - dampPatch * 22 + (grit - 0.5) * 9;
-      let b = 70  + (nMacro - 0.5) * 18 + berm * 16 - rut * 28 - treadGroove * 11 + peb * 12 - dampPatch * 14 + (grit - 0.5) * 7;
+      // Rich high-grit dusty earthen road: compacted terracotta ruts + silty crown + pebble flecks
+      let r = 176 + (nMacro - 0.5) * 38 + (nMicro - 0.5) * 26 + berm * 22 - rut * 64 - treadGroove * 22 + peb * 28 - dampPatch * 32 + (grit - 0.5) * 16;
+      let g = 112 + (nMacro - 0.5) * 28 + (nMicro - 0.5) * 18 + berm * 20 - rut * 44 - treadGroove * 15 + peb * 20 - dampPatch * 24 + (grit - 0.5) * 12;
+      let b = 68  + (nMacro - 0.5) * 20 + (nMicro - 0.5) * 14 + berm * 14 - rut * 28 - treadGroove * 10 + peb * 14 - dampPatch * 15 + (grit - 0.5) * 9;
 
       const idx = (y * W + x) * 4;
-      albedo[idx]     = Math.max(32, Math.min(225, r)) | 0;
-      albedo[idx + 1] = Math.max(22, Math.min(182, g)) | 0;
-      albedo[idx + 2] = Math.max(14, Math.min(140, b)) | 0;
+      albedo[idx]     = Math.max(30, Math.min(228, r)) | 0;
+      albedo[idx + 1] = Math.max(20, Math.min(186, g)) | 0;
+      albedo[idx + 2] = Math.max(14, Math.min(144, b)) | 0;
       albedo[idx + 3] = 255;
 
-      const hVal = Math.max(0, Math.min(255, 134 + berm * 38 - rut * 64 - treadGroove * 36 + (nFine - 0.5) * 65 + peb * 68)) | 0;
+      const hVal = Math.max(0, Math.min(255, 134 + berm * 34 - rut * 58 - treadGroove * 26 + (nFine - 0.5) * 85 + (nMicro - 0.5) * 65 + peb * 85)) | 0;
       bump[idx] = bump[idx + 1] = bump[idx + 2] = hVal;
       bump[idx + 3] = 255;
 
@@ -448,7 +449,7 @@ export async function build(THREE, scene, film, ctx) {
   }
 
   // 1. Undulating Outback Soil, Concentrated Edge/Fence/Camp Vegetation & Gravel + Horizon
-  root.add(buildOutbackTerrain(THREE, ctx, { mode: 'wheat', centerY: 7.0, sizeX: 76, sizeY: 76, segs: 128 }));
+  root.add(buildOutbackTerrain(THREE, ctx, { mode: 'wheat', centerY: 7.0, sizeX: 76, sizeY: 76, segs: 180 }));
   root.add(buildOutbackGroundDetail(THREE, { mode: 'wheat', centerY: 7.0, width: 28, depth: 34, count: 290 }));
   const dramaticLight = ['sunset', 'night', 'storm'].includes(ctx.place?.light);
   root.add(buildOutbackHorizon(THREE, { centerY: 7.0, sunset: dramaticLight }));
@@ -656,7 +657,7 @@ export async function build(THREE, scene, film, ctx) {
   const roadMat = new THREE.MeshStandardMaterial({
     map: roadTex.map,
     bumpMap: roadTex.bumpMap,
-    bumpScale: 0.048,
+    bumpScale: 0.085,
     alphaMap: roadTex.alphaMap,
     roughnessMap: roadTex.roughnessMap,
     roughness: 1.0,
@@ -852,17 +853,18 @@ export async function build(THREE, scene, film, ctx) {
     const frontPole = new THREE.Mesh(new THREE.CylinderGeometry(0.042, 0.052, h + 0.08, 8), timberMat);
     frontPole.position.set(0, (h + 0.08) / 2, -d / 2 - 0.08); frontPole.castShadow = true; g.add(frontPole);
 
-    // Draped folded canvas doorway flaps + canvas tie-back straps + interior wool roll & supply box
+    // Draped folded canvas doorway flaps tucked softly along front gable edge + tie-back cord + pegs
     for (const s of [-1, 1]) {
       const fShape = new THREE.Shape();
       fShape.moveTo(0, 0);
-      fShape.lineTo(s * 0.56, 0);
-      fShape.lineTo(s * 0.42, eaveH + 0.42);
-      fShape.lineTo(0, eaveH + 0.10);
+      fShape.lineTo(s * 0.44, 0);
+      fShape.lineTo(s * 0.30, eaveH + 0.34);
+      fShape.lineTo(0, eaveH + 0.14);
       fShape.closePath();
       const wing = new THREE.Mesh(new THREE.ShapeGeometry(fShape), canvasMat);
       wing.position.set(s * (w * 0.50), 0, -d / 2 - 0.02);
-      wing.rotation.y = s * -0.45;
+      wing.rotation.y = s * -0.18;
+      wing.rotation.x = 0.08;
       wing.castShadow = wing.receiveShadow = true;
       g.add(wing);
 
@@ -1073,27 +1075,34 @@ export async function build(THREE, scene, film, ctx) {
     if (!n.isMesh || !n.material || /_ao_shadow|_outline/.test(n.name || '')) return;
     if (/wheel|tire/i.test(n.name || '')) {
       const gClone = n.geometry.clone();
-      applyBaseDirtGradient(THREE, gClone, 0.42, '#8d5333', '#ffffff');
+      applyBaseDirtGradient(THREE, gClone, 0.45, '#b26b42', '#ffffff');
       n.geometry = gClone;
       for (const m of Array.isArray(n.material) ? n.material : [n.material]) {
         if (!m || m.transparent) continue;
         m.vertexColors = true;
-        if (m.color) m.color.set('#38302b');
-        if ('roughness' in m) m.roughness = 0.92;
+        if (m.color) m.color.set('#554a42');
+        if ('roughness' in m) m.roughness = 0.90;
         if ('metalness' in m) m.metalness = 0.0;
         m.needsUpdate = true;
       }
       return;
     }
-    for (const m of Array.isArray(n.material) ? n.material : [n.material]) {
-      if (!m || m.transparent) continue;
+    const mats = Array.isArray(n.material) ? n.material : [n.material];
+    const hasPaint = mats.some(m => m && !m.transparent && !/glass|window|windshield|bumper|grill|mirror|light|rim|metal/i.test(m.name || n.name || ''));
+    if (hasPaint && !/glass|window|windshield/i.test(n.name || '')) {
+      const gClone = n.geometry.clone();
+      applyBaseDirtGradient(THREE, gClone, 0.24, '#9b6442', '#ffffff');
+      n.geometry = gClone;
+    }
+    for (const m of mats) {
+      if (!m || m.transparent || /glass|window|windshield/i.test(m.name || n.name || '')) continue;
       const isTrim = /bumper|grill|mirror|light|rim|metal/i.test(m.name || n.name || '');
       if (isTrim) {
         if ('metalness' in m) m.metalness = 0.68;
         if ('roughness' in m) m.roughness = 0.30;
         if ('envMapIntensity' in m) m.envMapIntensity = 0.72;
       } else {
-        // Satin olive-drab enamel paint catching sun/sky highlight on hood, cab roof & fenders
+        m.vertexColors = true;
         if ('roughness' in m) m.roughness = Math.min(m.roughness ?? 0.8, 0.44);
         if ('metalness' in m) m.metalness = 0.16;
         if ('envMapIntensity' in m) m.envMapIntensity = 0.58;
