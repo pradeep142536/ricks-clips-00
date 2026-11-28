@@ -98,7 +98,7 @@
         "toneMapping": "ACESFilmic",
         "exposure": 1.10
       },
-      "post": { "dof": 0.10, "bloom": 0.16, "vignette": 0.12 }
+      "post": { "dof": 0.0, "bloom": 0.16, "vignette": 0.12 }
     }
   },
   "takes": [
@@ -106,14 +106,14 @@
       "id": "day_ground_wide",
       "place": "outback_day",
       "stations": [
-        { "at": 0, "pos": [0.78, -4.08, 1.38], "aim": [0.06, 2.35, -0.9], "lens": 26, "framing": "P", "hold": 2.5, "creep": 0, "drift": [0, 0, 0] }
+        { "at": 0, "pos": [0.70, -2.82, 1.48], "aim": [0.12, 1.72, 0.62], "lens": 29, "framing": "P", "hold": 2.5, "creep": 0, "drift": [0, 0, 0] }
       ]
     },
     {
       "id": "dusk_camp_track",
       "place": "outback_dusk",
       "stations": [
-        { "at": 75, "pos": [0.78, -4.08, 1.38], "aim": [0.06, 2.35, -0.9], "lens": 26, "framing": "P", "hold": 2.5, "creep": 0, "drift": [0, 0, 0] }
+        { "at": 75, "pos": [0.70, -2.82, 1.48], "aim": [0.12, 1.72, 0.62], "lens": 29, "framing": "P", "hold": 2.5, "creep": 0, "drift": [0, 0, 0] }
       ]
     },
     {
