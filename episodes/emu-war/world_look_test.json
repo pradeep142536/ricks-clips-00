@@ -120,7 +120,7 @@
       "id": "night_lantern_low",
       "place": "outback_night",
       "stations": [
-        { "at": 150, "pos": [0.78, -4.08, 1.38], "aim": [0.06, 2.35, -0.9], "lens": 26, "framing": "P", "hold": 2.5, "creep": 0, "drift": [0, 0, 0] }
+        { "at": 150, "pos": [0.70, -2.82, 1.48], "aim": [0.08, 2.05, -0.58], "lens": 27, "framing": "P", "hold": 2.5, "creep": 0, "drift": [0, 0, 0] }
       ]
     },
     {
