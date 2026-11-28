@@ -91,28 +91,30 @@ export async function build(THREE, scene, film, ctx) {
     root.add(new THREE.Mesh(new THREE.TubeGeometry(curl, 12, 0.008, 5), M.wire));
   }
 
-  // 3. FOREGROUND FRAMING LAYER (Left & Right Farmyard Corners — clear of Meredith/Gunner/Bird & camera corridor)
-  // Left foreground: split-rail wing, coopered barrel + warm dusk brass lantern, wagon wheel, sandbags
-  spawnFence([-1.58, -1.65, gY(-1.58, -1.65)], { parent: root, yaw: 0.44, name: 'fence_fg_wing_L' });
-  buildCooperedBarrel(THREE, ctx, gY, root, 'fence_fg_barrel_L', -1.12, -1.92, 0.25, 0.86);
-  const fgLanternL = buildBrassLantern(THREE, { name: 'fence_fg_lantern_L', isDay: false, scale: 1.15, light: true, lightIntensity: 1.55, lightDistance: 4.6 });
-  fgLanternL.position.copy(V(-1.10, -1.90, gY(-1.12, -1.92) + 0.56));
+  // 3. FOREGROUND FRAMING LAYER (Tucked cleanly inside st0/st1/st3 portrait horizontal cone without blocking cast)
+  // Left foreground: split-rail wing, coopered barrel + warm dusk brass lantern, spoked wheel & grass
+  spawnFence([-1.32, -1.60, gY(-1.32, -1.60)], { parent: root, yaw: 0.42, name: 'fence_fg_wing_L' });
+  buildCooperedBarrel(THREE, ctx, gY, root, 'fence_fg_barrel_L', -0.62, -1.82, 0.25, 0.84);
+  const fgLanternL = buildBrassLantern(THREE, { name: 'fence_fg_lantern_L', isDay: false, scale: 1.12, light: true, lightIntensity: 1.55, lightDistance: 4.8 });
+  fgLanternL.position.copy(V(-0.60, -1.80, gY(-0.62, -1.82) + 0.55));
   root.add(fgLanternL);
   root.add(buildWagonWheel(THREE, ctx, {
     name: 'fence_fg_wagon_wheel_L',
-    pos: [-1.42, -1.32, gY(-1.42, -1.32)],
-    yaw: 0.55,
+    pos: [-0.84, -1.48, gY(-0.84, -1.48)],
+    yaw: 0.52,
     lean: 0.14,
-    scale: 0.90
+    scale: 0.86
   }));
-  spawnSandbag([-0.92, -2.25, gY(-0.92, -2.25)], { parent: root, yaw: 0.62, scale: 0.84, name: 'fence_fg_bag_L' });
+  spawnSandbag([-0.42, -2.08, gY(-0.42, -2.08)], { parent: root, yaw: 0.58, scale: 0.80, name: 'fence_fg_bag_L' });
 
-  // Right foreground: angled paddock rail wing, stacked ammo crates + leaning rifle, sandbag, rock & grass
-  spawnFence([1.68, -1.55, gY(1.68, -1.55)], { parent: root, yaw: -0.46, name: 'fence_fg_wing_R' });
-  spawnCrate([1.14, -2.02, gY(1.14, -2.02)], { parent: root, yaw: -0.36, scale: 0.94, name: 'fence_fg_crate_R1' });
-  spawnCrate([1.16, -2.00, gY(1.14, -2.02) + 0.205], { parent: root, yaw: 0.14, scale: 0.86, shadow: false, name: 'fence_fg_crate_R2' });
-  spawnRifle([1.26, -1.92, gY(1.26, -1.92) + 0.18], { parent: root, yaw: -0.78, scale: 0.88, name: 'fence_fg_rifle_R' });
-  spawnSandbag([0.84, -2.28, gY(0.84, -2.28)], { parent: root, yaw: -0.58, scale: 0.82, name: 'fence_fg_bag_R' });
+  // Right foreground: angled paddock rail wing, stacked ammo crates + leaning rifle, sandbag & dry grass
+  spawnFence([1.32, -1.55, gY(1.32, -1.55)], { parent: root, yaw: -0.44, name: 'fence_fg_wing_R' });
+  spawnCrate([0.62, -1.84, gY(0.62, -1.84)], { parent: root, yaw: -0.34, scale: 0.90, name: 'fence_fg_crate_R1' });
+  spawnCrate([0.64, -1.82, gY(0.62, -1.84) + 0.20], { parent: root, yaw: 0.14, scale: 0.82, shadow: false, name: 'fence_fg_crate_R2' });
+  spawnRifle([0.72, -1.74, gY(0.72, -1.74) + 0.17], { parent: root, yaw: -0.78, scale: 0.86, name: 'fence_fg_rifle_R' });
+  spawnSandbag([0.46, -2.10, gY(0.46, -2.10)], { parent: root, yaw: -0.52, scale: 0.80, name: 'fence_fg_bag_R' });
+  spawnGrass([0.42, -1.68, gY(0.42, -1.68)], { parent: root, yaw: 0.6, scale: 0.92, name: 'fence_fg_grass_R' });
+  spawnGrass([-0.38, -1.62, gY(-0.38, -1.62)], { parent: root, yaw: 1.8, scale: 0.88, name: 'fence_fg_grass_L' });
 
   // Approved Option (A) Pitchfork resting upright in dirt beside farmer spot
   const fork = buildPitchfork(THREE, ctx, {

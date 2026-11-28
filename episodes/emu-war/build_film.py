@@ -205,9 +205,9 @@ film = {
             "stations": [
                 {
                     "at": 0,
-                    "pos": [-0.30, -2.55, 2.08],
-                    "aim": [-0.15, 0.25, 0.90],
-                    "lens": 29,
+                    "pos": [-0.22, -2.75, 2.08],
+                    "aim": [-0.05, 0.25, 0.88],
+                    "lens": 28,
                     "subject": "major_meredith",
                     "framing": "W",
                     "shows": ["major_meredith", "gunner"],
@@ -242,9 +242,9 @@ film = {
                 {
                     "at": ["hordes", 1],
                     "lead": 6,
-                    "pos": [1.65, -3.05, 2.15],
-                    "aim": [0.35, 0.85, 0.52],
-                    "lens": 28,
+                    "pos": [1.65, -3.15, 2.15],
+                    "aim": [0.46, 0.85, 0.54],
+                    "lens": 27,
                     "subject": "bird",
                     "framing": "P",
                     "shows": ["bird", "major_meredith"],
@@ -437,9 +437,9 @@ film = {
                 {
                     "at": ["chasing", 1],
                     "lead": 6,
-                    "pos": [-4.05, -4.15, 2.48],
-                    "aim": [-1.10, 1.10, -0.02],
-                    "lens": 27,
+                    "pos": [-3.85, -4.55, 2.48],
+                    "aim": [-1.05, 1.10, 0.02],
+                    "lens": 25,
                     "subject": "gunner",
                     "framing": "P",
                     "shows": ["gunner", "bird"],
@@ -512,9 +512,9 @@ film = {
                 {
                     "at": ["bullets", 1],
                     "lead": 6,
-                    "pos": [-0.85, -2.90, 2.10],
-                    "aim": [0.12, 0.20, 0.72],
-                    "lens": 29,
+                    "pos": [-0.85, -3.05, 2.12],
+                    "aim": [0.28, 0.25, 0.72],
+                    "lens": 28,
                     "subject": "major_meredith",
                     "framing": "W",
                     "shows": ["major_meredith", "bird"],
@@ -652,6 +652,74 @@ film = {
         {"who": "bird", "at": ["award", 1], "pos": [-0.15, 0.25, 0.0], "face": "k:smirk", "pose": "stand", "visible": True, "dir": 1, "facing": [0.0, -1.0]}
     ]
 }
+
+# Character performance is authored against the same word indices as the
+# narration.  The scene subject becomes the storyteller for that sentence:
+# their mouth receives the five-viseme track, while short reactions land on
+# the specific story word.  This prevents a card from simply sliding through
+# a detailed 3D set with one unchanging face.
+performance_cues = [
+    # Hook / damaged farm: Meredith starts confident, the farmer owns the loss.
+    {"who": "major_meredith", "at": 0, "say": [0, 9], "speaking": True},
+    {"who": "major_meredith", "at": ["lost", 1], "face": "bruh", "pose": "shrug", "headTilt": 8},
+    {"who": "farmer", "at": ["Drought", 1], "say": [10, 19], "speaking": True},
+    {"who": "farmer", "at": ["drove", 1], "face": "k:worried_clean", "pose": "flinch", "lookAt": [0.6, 1.1, 0.8]},
+    {"who": "farmer", "at": ["hordes", 1], "face": "jawdrop", "pose": "point_out", "headTilt": -9},
+    {"who": "farmer", "at": ["smashed", 1], "say": [20, 30], "speaking": True},
+    {"who": "farmer", "at": ["fences", 1], "face": "k:worried_clean", "pose": "flinch", "lookAt": [-0.9, 1.0, 0.7]},
+    {"who": "farmer", "at": ["holes", 1], "face": "jawdrop", "pose": "point_up", "headTilt": 10},
+
+    # Headquarters: the farmer pleads; Meredith's confidence reads as a
+    # performance beat rather than a frozen card.
+    {"who": "farmer", "at": ["Desperate", 1], "say": [31, 39], "speaking": True},
+    {"who": "farmer", "at": ["begged", 1], "face": "k:nervous", "pose": "hand_mouth", "headTilt": 7},
+    {"who": "major_meredith", "at": ["So", 1], "say": [40, 51], "speaking": True},
+    {"who": "major_meredith", "at": ["Major", 1], "face": "k:smirk", "pose": "hands_hips", "headTilt": -7},
+    {"who": "major_meredith", "at": ["Lewis", 1], "face": "k:brow_talk", "pose": "finger_up", "lookAt": [0.25, 1.4, 1.0]},
+
+    # Ambush: the gunner talks through the plan, then plays the jam as a
+    # physical change from aiming, to firing, to shocked frustration.
+    {"who": "gunner", "at": ["They", 2], "say": [52, 60], "speaking": True},
+    {"who": "gunner", "at": ["rounds", 1], "face": "k:smirk", "pose": "hold_out", "headTilt": -5},
+    {"who": "gunner", "at": ["Campion's", 1], "say": [61, 70], "speaking": True},
+    {"who": "gunner", "at": ["deadly", 1], "face": "k:squint", "pose": "lean_in", "lookAt": [0.15, 2.0, 0.6]},
+    {"who": "gunner", "at": ["Over", 1], "say": [71, 80], "speaking": True},
+    {"who": "gunner", "at": ["marched", 1], "face": "k:brows_raised", "pose": "hold_out", "headTilt": 6},
+    {"who": "gunner", "at": ["The", 2], "say": [81, 90], "speaking": True},
+    {"who": "gunner", "at": ["waited", 1], "face": "k:squint", "pose": "lean_in", "headTilt": 5},
+    {"who": "gunner", "at": ["fire", 1], "face": "strain", "pose": "hold_out", "headTilt": -6},
+    {"who": "gunner", "at": ["Suddenly", 1], "say": [91, 100], "speaking": True},
+    {"who": "gunner", "at": ["jammed", 1], "face": "jawdrop", "pose": "flinch", "headTilt": 10},
+
+    # Chase: the emu is a moving actor, not a card translated across screen.
+    {"who": "bird", "at": ["The", 3], "say": [101, 110], "speaking": True},
+    {"who": "bird", "at": ["scattered", 1], "face": "k:angry", "pose": "walk1", "walk": True, "headTilt": -6},
+    {"who": "gunner", "at": ["Next", 1], "say": [111, 122], "speaking": True},
+    {"who": "gunner", "at": ["bolted", 1], "face": "strain", "pose": "lean_in", "headTilt": 5},
+    {"who": "gunner", "at": ["They", 3], "say": [123, 133], "speaking": True},
+    {"who": "gunner", "at": ["roared", 1], "face": "k:squint", "pose": "hold_out", "headTilt": -5},
+    {"who": "bird", "at": ["sprinting", 1], "face": "k:angry", "pose": "walk0", "walk": True, "headTilt": 5},
+    {"who": "gunner", "at": ["The", 4], "say": [134, 147], "speaking": True},
+    {"who": "gunner", "at": ["wild", 1], "face": "jawdrop", "pose": "flinch", "headTilt": 11},
+    {"who": "bird", "at": ["steering", 1], "face": "k:angry", "pose": "walk1", "walk": True, "headTilt": -8},
+    {"who": "gunner", "at": ["The", 5], "say": [148, 159], "speaking": True},
+    {"who": "gunner", "at": ["veered", 1], "face": "k:worried_clean", "pose": "flinch", "headTilt": 9},
+
+    # The ending alternates between Meredith's embarrassed admission and the
+    # bird's victorious reaction instead of leaving either one expressionless.
+    {"who": "major_meredith", "at": ["You", 1], "say": [160, 168], "speaking": True},
+    {"who": "major_meredith", "at": ["guerrilla", 1], "face": "sus", "pose": "shrug", "headTilt": 9},
+    {"who": "bird", "at": ["Each", 1], "say": [169, 180], "speaking": True},
+    {"who": "bird", "at": ["sentinel", 1], "face": "k:smirk", "pose": "point_up", "headTilt": -7},
+    {"who": "major_meredith", "at": ["Major", 2], "say": [181, 201], "speaking": True},
+    {"who": "major_meredith", "at": ["tank", 1], "face": "jawdrop", "pose": "flinch", "headTilt": 10},
+    {"who": "major_meredith", "at": ["retreat", 1], "face": "bruh", "pose": "slump", "headTilt": 12},
+    {"who": "farmer", "at": ["In", 4], "say": [202, 212], "speaking": True},
+    {"who": "farmer", "at": ["asked", 1], "face": "k:brows_raised", "pose": "finger_up", "headTilt": -6},
+    {"who": "bird", "at": ["Another", 1], "say": [213, 223], "speaking": True},
+    {"who": "bird", "at": ["emus", 2], "face": "k:smirk", "pose": "cheer", "headTilt": -8},
+]
+film["acts"].extend(performance_cues)
 
 with open(FILM_PATH, "w", encoding="utf-8") as f:
     json.dump(film, f, indent=2)

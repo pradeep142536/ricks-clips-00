@@ -144,21 +144,21 @@ export async function build(THREE, scene, film, ctx) {
   spawnFence([-2.95, -0.90, gY(-2.95, -0.90)], { parent: root, yaw: 0.52, solid: true, name: 'trench_fg_fence_L' });
 
   // Right foreground crates, brass lantern on corner post, spoked wagon wheel, & sandbags
-  spawnSandbag([0.82, -1.25, gY(0.82, -1.25)], { parent: root, yaw: 0.22, scale: 0.88, name: 'trench_fg_bag_R1' });
-  spawnSandbag([1.45, -1.32, gY(1.45, -1.32)], { parent: root, yaw: -0.34, scale: 0.92, name: 'trench_fg_bag_R2' });
-  spawnCrate([1.42, -0.85, gY(1.42, -0.85)], { parent: root, yaw: -0.28, scale: 0.95, name: 'trench_fg_crate_R1' });
-  spawnCrate([1.44, -0.84, gY(1.42, -0.85) + 0.21], { parent: root, yaw: 0.16, scale: 0.86, shadow: false, name: 'trench_fg_crate_R2' });
-  const fgLanternPost = box(0.09, 0.09, 0.82, 1.02, -0.78, gY(1.02, -0.78), M.trenchTimber, 'trench_lantern_post');
+  spawnSandbag([0.62, -1.10, gY(0.62, -1.10)], { parent: root, yaw: 0.24, scale: 0.86, name: 'trench_fg_bag_R1' });
+  spawnSandbag([1.15, -1.22, gY(1.15, -1.22)], { parent: root, yaw: -0.32, scale: 0.90, name: 'trench_fg_bag_R2' });
+  spawnCrate([0.78, -0.92, gY(0.78, -0.92)], { parent: root, yaw: -0.28, scale: 0.92, name: 'trench_fg_crate_R1' });
+  spawnCrate([0.80, -0.91, gY(0.78, -0.92) + 0.21], { parent: root, yaw: 0.16, scale: 0.84, shadow: false, name: 'trench_fg_crate_R2' });
+  const fgLanternPost = box(0.09, 0.09, 0.72, 0.48, -0.82, gY(0.48, -0.82), M.trenchTimber, 'trench_lantern_post');
   fgLanternPost.add(makeContactAO(THREE, 0.45, 0.45, 0.72));
-  const trenchLantern = buildBrassLantern(THREE, { name: 'trench_fg_lantern', isDay: true, scale: 1.05, light: true, lightIntensity: 0.26 });
-  trenchLantern.position.copy(V(1.02, -0.78, gY(1.02, -0.78) + 0.82));
+  const trenchLantern = buildBrassLantern(THREE, { name: 'trench_fg_lantern', isDay: true, scale: 1.05, light: true, lightIntensity: 0.28 });
+  trenchLantern.position.copy(V(0.48, -0.82, gY(0.48, -0.82) + 0.72));
   root.add(trenchLantern);
   root.add(buildWagonWheel(THREE, ctx, {
     name: 'trench_fg_wagon_wheel',
-    pos: [2.05, -0.68, gY(2.05, -0.68)],
+    pos: [1.55, -0.74, gY(1.55, -0.74)],
     yaw: -0.45,
     lean: -0.15,
-    scale: 0.90
+    scale: 0.88
   }));
   buildCooperedBarrel(THREE, ctx, gY, root, 'trench_mid_barrel_L', -2.35, 0.20, 0.4, 0.90);
 

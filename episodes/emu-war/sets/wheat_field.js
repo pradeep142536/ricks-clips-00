@@ -914,14 +914,18 @@ export async function build(THREE, scene, film, ctx) {
   // Foreground tactile camp props: spoked bush wagon wheel propped beside left paddock fence & warm lantern on barrel
   root.add(buildWagonWheel(THREE, ctx, {
     name: 'fg_wheat_wagon_wheel',
-    pos: [-1.18, -0.82, gY(-1.18, -0.82)],
-    yaw: 0.38,
+    pos: [-0.95, -0.92, gY(-0.95, -0.92)],
+    yaw: 0.36,
     lean: 0.16,
-    scale: 0.92
+    scale: 0.86
   }));
   const fgBarrelLantern = buildPropLantern(THREE, { name: 'fg_wheat_barrel_lantern', isDay, scale: 0.96, light: true, lightIntensity: isDay ? 0.20 : 1.4 });
   fgBarrelLantern.position.copy(V(-0.95, -2.02, gY(-0.98, -2.02) + 0.59));
   root.add(fgBarrelLantern);
+  // Subtle right foreground grass & crate framing at st0 lower-right edge
+  spawnCrate([0.68, -1.65, gY(0.68, -1.65)], { parent: root, yaw: -0.32, scale: 0.88, name: 'fg_wheat_crate_lower_R' });
+  spawnGrass([0.48, -1.42, gY(0.48, -1.42)], { parent: root, yaw: 0.4, scale: 0.85, name: 'fg_wheat_grass_R' });
+  spawnGrass([-0.68, -1.25, gY(-0.68, -1.25)], { parent: root, yaw: 1.9, scale: 0.82, name: 'fg_wheat_grass_L' });
 
   // 6. LAYER 2 — MIDGROUND COMMAND CAMP (py = +1.4 .. +8.8)
   const buildTent = (name, planX, planY, yaw = 0, scale = 1, openInterior = true) => {
