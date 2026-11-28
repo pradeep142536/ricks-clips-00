@@ -665,9 +665,9 @@ export async function build(THREE, scene, film, ctx) {
   // 3. Foreground-to-Camp Sculpted Worn Rutted Dirt Road (irregular organic borders, soft alpha feather)
   const roadTex = makeRoadTextures(THREE);
   const roadSteps = 84;
-  // A dense cross-section prevents tyre ruts becoming wide vector-like bands
-  // at the locked ground camera.  Surface texture supplies the fine soil;
-  // geometry supplies only subtle physical relief.
+  // A dense cross-section keeps the road profile smooth at the locked ground
+  // camera.  The texture supplies the visible soil and rut breakup; geometry
+  // only provides shallow, natural relief.
   const roadCols = 17;
   const roadHalfW = 0.88;
   const roadVerts = [], roadUvs = [], roadIdx = [];
@@ -689,7 +689,7 @@ export async function build(THREE, scene, film, ctx) {
       const crown = Math.exp(-Math.pow(u / 0.31, 2));
       const wornPulse = Math.sin(py * 1.18 + u * 1.7) * 0.004
         + Math.cos(py * 2.63 - u * 3.1) * 0.003;
-      const rutDip = crown * 0.020 - (rutL + rutR) * 0.024 + wornPulse;
+      const rutDip = crown * 0.004 - (rutL + rutR) * 0.006 + wornPulse * 0.35;
       const p = V(px, rPy, gY(px, rPy) + rutDip);
       roadVerts.push(p.x, p.y, p.z);
       roadUvs.push(j / (roadCols - 1), i / roadSteps);
@@ -728,10 +728,11 @@ export async function build(THREE, scene, film, ctx) {
     roadMat.color.set('#65515a');
     roadMat.roughness = 0.94;
     // The road lies behind foreground shadows for most of this locked shot.
-    // This tiny blue-violet lift preserves the existing albedo/ruts rather
-    // than turning the track into an unlit black silhouette.
-    roadMat.emissive.set('#5b4238');
-    roadMat.emissiveIntensity = 0.48;
+    // Use its existing soil texture as a very low material floor, preserving
+    // the painted grit and tyre marks rather than making a uniform bright band.
+    roadMat.emissiveMap = roadTex.map;
+    roadMat.emissive.set('#725044');
+    roadMat.emissiveIntensity = 0.22;
 
     // The close rifle, crate, and sandbags sit behind the tent's key-light
     // shadow.  This is a deliberately small, cool bounced-moon fill, not a
