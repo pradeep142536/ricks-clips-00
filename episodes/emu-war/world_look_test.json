@@ -13,23 +13,23 @@
       "light": "daylight_crisp",
       "sky_kind": "clear-day",
       "light_over": {
-        "top": "#2b6cd4",
-        "hor": "#d7e8f6",
-        "sun": "#fff3d6",
-        "si": 3.25,
-        "amb": "#a8c9f0",
-        "ai": 1.05,
-        "ground": "#7c583b",
-        "rim": "#ffebc2",
-        "rimI": 0.55,
-        "dir": [-10, 7.5, 3],
+        "top": "#2768d0",
+        "hor": "#d6e9f8",
+        "sun": "#fff0ce",
+        "si": 3.70,
+        "amb": "#8dc0ff",
+        "ai": 0.86,
+        "ground": "#764f34",
+        "rim": "#ffe7bd",
+        "rimI": 0.34,
+        "dir": [-11.5, 8.0, 2.8],
         "fogExp2": true,
-        "fogColor": "#d7e6f4",
-        "fogDensity": 0.0042,
+        "fogColor": "#d7e8f6",
+        "fogDensity": 0.0024,
         "toneMapping": "ACESFilmic",
-        "exposure": 1.06
+        "exposure": 1.05
       },
-      "post": { "dof": 0.0, "bloom": 0.06, "vignette": 0.05 }
+      "post": { "dof": 0.0, "bloom": 0.04, "vignette": 0.05 }
     },
     "outback_dusk": {
       "set": "wheat_field",
