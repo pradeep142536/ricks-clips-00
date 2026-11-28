@@ -198,16 +198,16 @@ film = {
     ],
     "sentences": sentences,
     "takes": [
-        # Take 1: Outback Wheat Field (0.0s to ~9.9s) -> fast 1.5-2.3s beats + 0:07 fence-smash close-up
+        # Take 1: Outback Wheat Field (0.0s to ~9.9s) -> ground-level over fg crates/fence/wheel (<20% sky)
         {
             "id": "t1",
             "place": "wheat_field",
             "stations": [
                 {
                     "at": 0,
-                    "pos": [-0.55, -2.55, 1.42],
-                    "aim": [-0.25, 0.25, 1.16],
-                    "lens": 28,
+                    "pos": [-0.30, -2.55, 2.08],
+                    "aim": [-0.15, 0.25, 0.90],
+                    "lens": 29,
                     "subject": "major_meredith",
                     "framing": "W",
                     "shows": ["major_meredith", "gunner"],
@@ -216,9 +216,9 @@ film = {
                 {
                     "at": ["war", 1],
                     "lead": 6,
-                    "pos": [1.55, -3.75, 1.56],
-                    "aim": [-0.78, 0.60, 1.14],
-                    "lens": 24,
+                    "pos": [1.35, -3.10, 2.15],
+                    "aim": [-0.10, 0.55, 0.58],
+                    "lens": 30,
                     "subject": "major_meredith",
                     "framing": "W",
                     "shows": ["major_meredith", "bird"],
@@ -229,9 +229,9 @@ film = {
                 {
                     "at": ["Drought", 1],
                     "lead": 6,
-                    "pos": [-0.95, -3.55, 1.48],
-                    "aim": [-0.82, 0.65, 1.14],
-                    "lens": 26,
+                    "pos": [-0.85, -3.00, 2.08],
+                    "aim": [-0.82, 0.20, 0.72],
+                    "lens": 29,
                     "subject": "farmer",
                     "framing": "W",
                     "shows": ["farmer", "major_meredith"],
@@ -242,9 +242,9 @@ film = {
                 {
                     "at": ["hordes", 1],
                     "lead": 6,
-                    "pos": [2.15, -3.55, 1.56],
-                    "aim": [0.15, 1.25, 1.10],
-                    "lens": 26,
+                    "pos": [1.65, -3.05, 2.15],
+                    "aim": [0.35, 0.85, 0.52],
+                    "lens": 28,
                     "subject": "bird",
                     "framing": "P",
                     "shows": ["bird", "major_meredith"],
@@ -256,8 +256,8 @@ film = {
                 {
                     "at": ["smashed", 1],
                     "lead": 6,
-                    "pos": [-0.95, -0.85, 1.32],
-                    "aim": [0.12, 2.20, 0.96],
+                    "pos": [-0.45, -1.75, 1.98],
+                    "aim": [-0.95, 1.15, 0.76],
                     "lens": 30,
                     "subject": "bird",
                     "framing": "O",
@@ -269,9 +269,9 @@ film = {
                 {
                     "at": ["ruined", 1],
                     "lead": 6,
-                    "pos": [-1.65, -2.85, 1.44],
-                    "aim": [-1.25, 0.10, 1.15],
-                    "lens": 28,
+                    "pos": [-1.45, -2.85, 2.08],
+                    "aim": [-1.28, -0.15, 0.88],
+                    "lens": 29,
                     "subject": "farmer",
                     "framing": "W",
                     "shows": ["farmer"],
@@ -329,7 +329,7 @@ film = {
             ]
         },
 
-        # Take 3: Ambush Trench (~14.95s to ~28.5s) - Gunner behind Lewis Gun -> 0:16 aim -> 0:18 OTS sightline
+        # Take 3: Ambush Trench (~14.95s to ~28.5s) - Ground-level over rear sandbags/crates/lantern (<20% sky)
         {
             "id": "t3",
             "place": "ambush_trench",
@@ -337,9 +337,9 @@ film = {
                 {
                     "at": ["They", 2],
                     "lead": 6,
-                    "pos": [-1.85, -2.45, 1.46],
-                    "aim": [0.24, 0.85, 1.00],
-                    "lens": 26,
+                    "pos": [-1.45, -2.25, 1.92],
+                    "aim": [0.18, 0.50, 0.58],
+                    "lens": 30,
                     "subject": "gunner",
                     "framing": "W",
                     "shows": ["gunner"],
@@ -350,9 +350,9 @@ film = {
                 {
                     "at": ["expecting", 1],
                     "lead": 6,
-                    "pos": [1.55, -1.25, 1.44],
-                    "aim": [-0.15, 1.55, 0.98],
-                    "lens": 28,
+                    "pos": [1.35, -1.75, 1.86],
+                    "aim": [0.12, 0.70, 0.72],
+                    "lens": 30,
                     "subject": "gunner",
                     "framing": "M",
                     "shows": ["gunner"],
@@ -363,9 +363,9 @@ film = {
                 {
                     "at": ["Campion's", 1],
                     "lead": 6,
-                    "pos": [-0.55, -1.75, 1.50],
-                    "aim": [0.22, 2.65, 0.98],
-                    "lens": 28,
+                    "pos": [-0.45, -1.85, 1.92],
+                    "aim": [0.22, 1.35, 0.48],
+                    "lens": 30,
                     "subject": "gunner",
                     "framing": "O",
                     "shows": ["gunner"],
@@ -376,9 +376,9 @@ film = {
                 {
                     "at": ["Over", 1],
                     "lead": 6,
-                    "pos": [2.25, -3.15, 1.66],
-                    "aim": [0.15, 2.20, 1.06],
-                    "lens": 24,
+                    "pos": [1.75, -2.45, 2.04],
+                    "aim": [0.15, 1.25, 0.24],
+                    "lens": 29,
                     "subject": "bird",
                     "framing": "W",
                     "shows": ["gunner"],
@@ -389,9 +389,9 @@ film = {
                 {
                     "at": ["opened", 1],
                     "lead": 6,
-                    "pos": [-1.55, -1.95, 1.38],
-                    "aim": [0.22, 0.95, 0.96],
-                    "lens": 28,
+                    "pos": [-1.25, -2.00, 1.86],
+                    "aim": [0.18, 0.60, 0.62],
+                    "lens": 30,
                     "subject": "gunner",
                     "framing": "O",
                     "shows": ["gunner"],
@@ -402,9 +402,9 @@ film = {
                 {
                     "at": ["jammed", 1],
                     "lead": 6,
-                    "pos": [1.35, -2.05, 1.42],
-                    "aim": [0.12, 0.65, 0.98],
-                    "lens": 28,
+                    "pos": [1.20, -1.95, 1.86],
+                    "aim": [0.14, 0.45, 0.72],
+                    "lens": 30,
                     "subject": "gunner",
                     "framing": "M",
                     "shows": ["gunner"],
@@ -415,7 +415,7 @@ film = {
             ]
         },
 
-        # Take 4: Dirt Track & Flatbed Truck Chase (~28.5s to ~40.7s) - Clear truck bed + 3.2s wide flowing chase
+        # Take 4: Dirt Track & Flatbed Truck Chase (~28.5s to ~40.7s) - Trackside ground-level (<20% sky)
         {
             "id": "t4",
             "place": "dirt_track",
@@ -423,9 +423,9 @@ film = {
                 {
                     "at": ["scattered", 1],
                     "lead": 6,
-                    "pos": [3.50, -4.40, 1.75],
-                    "aim": [-1.20, 1.20, 1.15],
-                    "lens": 24,
+                    "pos": [3.05, -3.95, 2.52],
+                    "aim": [-0.85, 0.75, -0.05],
+                    "lens": 29,
                     "subject": "bird",
                     "framing": "P",
                     "shows": ["bird", "gunner"],
@@ -437,8 +437,8 @@ film = {
                 {
                     "at": ["chasing", 1],
                     "lead": 6,
-                    "pos": [-4.45, -3.45, 1.60],
-                    "aim": [-0.15, 1.35, 1.08],
+                    "pos": [-4.05, -4.15, 2.48],
+                    "aim": [-1.10, 1.10, -0.02],
                     "lens": 27,
                     "subject": "gunner",
                     "framing": "P",
@@ -452,9 +452,9 @@ film = {
                 {
                     "at": ["steering", 1],
                     "lead": 6,
-                    "pos": [1.45, -2.45, 1.72],
-                    "aim": [-0.45, 0.65, 1.38],
-                    "lens": 28,
+                    "pos": [1.15, -3.35, 2.46],
+                    "aim": [-0.95, 0.80, 0.44],
+                    "lens": 27,
                     "subject": "gunner",
                     "framing": "O",
                     "shows": ["gunner", "bird"],
@@ -465,7 +465,7 @@ film = {
             ]
         },
 
-        # Take 5: Broken Fence Crash & Guerrilla Tactics (~40.7s to ~52.2s)
+        # Take 5: Broken Fence Crash & Guerrilla Tactics (~40.7s to ~52.2s) - Separated cast + fg props (<20% sky)
         {
             "id": "t5",
             "place": "broken_fence",
@@ -473,9 +473,9 @@ film = {
                 {
                     "at": ["crashed", 1],
                     "lead": 6,
-                    "pos": [2.60, -4.10, 1.75],
-                    "aim": [0.0, 0.90, 0.95],
-                    "lens": 26,
+                    "pos": [0.35, -3.65, 2.18],
+                    "aim": [-0.08, 0.35, 0.52],
+                    "lens": 28,
                     "subject": "gunner",
                     "framing": "W",
                     "shows": ["gunner", "major_meredith"],
@@ -486,9 +486,9 @@ film = {
                 {
                     "at": ["warfare", 1],
                     "lead": 6,
-                    "pos": [-1.45, -2.75, 1.42],
-                    "aim": [-0.55, 0.0, 1.14],
-                    "lens": 28,
+                    "pos": [-1.35, -2.65, 2.06],
+                    "aim": [-0.52, -0.05, 0.90],
+                    "lens": 30,
                     "subject": "major_meredith",
                     "framing": "W",
                     "shows": ["major_meredith"],
@@ -499,8 +499,8 @@ film = {
                 {
                     "at": ["sentinel", 1],
                     "lead": 6,
-                    "pos": [2.25, -2.25, 1.44],
-                    "aim": [1.55, 0.25, 1.24],
+                    "pos": [1.95, -2.35, 2.08],
+                    "aim": [1.45, 0.35, 0.90],
                     "lens": 30,
                     "subject": "bird",
                     "framing": "M",
@@ -512,9 +512,9 @@ film = {
                 {
                     "at": ["bullets", 1],
                     "lead": 6,
-                    "pos": [-1.25, -2.85, 1.42],
-                    "aim": [0.10, 0.15, 1.16],
-                    "lens": 28,
+                    "pos": [-0.85, -2.90, 2.10],
+                    "aim": [0.12, 0.20, 0.72],
+                    "lens": 29,
                     "subject": "major_meredith",
                     "framing": "W",
                     "shows": ["major_meredith", "bird"],

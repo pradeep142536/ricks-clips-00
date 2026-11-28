@@ -301,6 +301,125 @@ export function buildDispatchBox(THREE, ctx, opts = {}) {
 }
 
 /**
+ * Approved Option (A): Brass Hurricane Storm Lantern with wire guard ribs, glass chimney, & subtle filament.
+ * Pivot strictly at base bottom (y = 0).
+ */
+export function buildBrassLantern(THREE, opts = {}) {
+  const isDay = opts.isDay ?? true;
+  const sc = opts.scale ?? 1.0;
+  const lg = new THREE.Group();
+  lg.name = opts.name || 'brass_hurricane_lantern';
+
+  const brassMat = new THREE.MeshStandardMaterial({ color: '#c9a148', roughness: 0.34, metalness: 0.68 });
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(0.068, 0.084, 0.056, 12), brassMat);
+  base.position.y = 0.028;
+  base.castShadow = true;
+  lg.add(base);
+
+  const glassMat = new THREE.MeshStandardMaterial({
+    color: isDay ? '#f4dfb0' : '#ffe5a8',
+    emissive: '#ff9632',
+    emissiveIntensity: isDay ? 0.42 : 1.9,
+    roughness: 0.18,
+    transparent: isDay,
+    opacity: isDay ? 0.74 : 1.0
+  });
+  const globe = new THREE.Mesh(new THREE.SphereGeometry(0.052, 14, 10), glassMat);
+  globe.scale.set(0.95, 1.35, 0.95);
+  globe.position.y = 0.125;
+  globe.name = `${lg.name}_globe`;
+  if (!isDay) globe.userData.role = 'lamp';
+  lg.add(globe);
+
+  const wick = new THREE.Mesh(
+    new THREE.SphereGeometry(0.016, 8, 8),
+    new THREE.MeshBasicMaterial({ color: '#ffae42', toneMapped: false })
+  );
+  wick.position.y = 0.118;
+  lg.add(wick);
+
+  for (let r = 0; r < 3; r++) {
+    const ang = (r / 3) * Math.PI * 2;
+    const rib = new THREE.Mesh(new THREE.CylinderGeometry(0.004, 0.004, 0.15, 5), brassMat);
+    rib.position.set(Math.cos(ang) * 0.062, 0.125, Math.sin(ang) * 0.062);
+    lg.add(rib);
+  }
+
+  const cap = new THREE.Mesh(new THREE.ConeGeometry(0.078, 0.055, 12), brassMat);
+  cap.position.y = 0.222;
+  cap.castShadow = true;
+  lg.add(cap);
+
+  if (opts.light) {
+    const pt = new THREE.PointLight('#ff9f44', opts.lightIntensity ?? (isDay ? 0.24 : 1.45), opts.lightDistance ?? (isDay ? 1.8 : 4.2), 2);
+    pt.position.set(0, 0.14, 0);
+    lg.add(pt);
+  }
+
+  lg.scale.setScalar(sc);
+  return lg;
+}
+
+/**
+ * Approved Option (A): Spoked Weathered Timber & Iron-Tyre Bush Wagon Wheel (radius ~ 0.46m).
+ * Upright in local XY plane (pivot at rim bottom y = 0) so yaw/tilt lean cleanly against posts/crates.
+ */
+export function buildWagonWheel(THREE, ctx, opts = {}) {
+  const R = opts.radius ?? 0.46;
+  const g = new THREE.Group();
+  g.name = opts.name || 'wagon_wheel_option_a';
+
+  const timber = new THREE.MeshStandardMaterial({ map: makeWalnutTex(THREE), color: '#b58d64', roughness: 0.88, metalness: 0.0 });
+  const darkWood = makeMatteMat(THREE, '#6b4a2f', 0.90, 0.0);
+  const ironRim = makeMatteMat(THREE, '#3a3430', 0.78, 0.38);
+
+  const hubGroup = new THREE.Group();
+  hubGroup.position.y = R;
+
+  // Wooden felloe ring + outer rusted iron tire band
+  const felloe = new THREE.Mesh(new THREE.TorusGeometry(R - 0.035, 0.032, 8, 28), timber);
+  felloe.castShadow = felloe.receiveShadow = true;
+  hubGroup.add(felloe);
+
+  const tyre = new THREE.Mesh(new THREE.TorusGeometry(R - 0.008, 0.014, 6, 28), ironRim);
+  tyre.castShadow = true;
+  hubGroup.add(tyre);
+
+  // Turned nave hub & iron bands
+  const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.082, 0.19, 12), darkWood);
+  hub.rotation.x = Math.PI / 2;
+  hub.castShadow = true;
+  hubGroup.add(hub);
+
+  for (const hz of [-0.075, 0.075]) {
+    const collar = new THREE.Mesh(new THREE.CylinderGeometry(0.068, 0.068, 0.025, 12), ironRim);
+    collar.rotation.x = Math.PI / 2;
+    collar.position.z = hz;
+    hubGroup.add(collar);
+  }
+
+  // Ten tapered ash spokes
+  const nSpokes = 10;
+  for (let i = 0; i < nSpokes; i++) {
+    const a = (i / nSpokes) * Math.PI * 2;
+    const spokeLen = R - 0.095;
+    const spoke = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.021, spokeLen, 7), timber);
+    spoke.position.set(Math.cos(a) * (0.055 + spokeLen * 0.5), Math.sin(a) * (0.055 + spokeLen * 0.5), 0);
+    spoke.rotation.z = a - Math.PI / 2;
+    spoke.castShadow = true;
+    hubGroup.add(spoke);
+  }
+
+  g.add(hubGroup);
+  if (opts.pos && ctx?.B2T) g.position.copy(ctx.B2T(opts.pos));
+  if (opts.yaw != null) g.rotation.y = opts.yaw;
+  if (opts.lean != null) g.rotation.x = opts.lean;
+  if (opts.tilt != null) g.rotation.z = opts.tilt;
+  if (opts.scale != null) g.scale.setScalar(opts.scale);
+  return g;
+}
+
+/**
  * Helper to spawn one normalized CC0 GLB prototype and place lightweight clones
  * without reloading/re-parsing from network.
  */

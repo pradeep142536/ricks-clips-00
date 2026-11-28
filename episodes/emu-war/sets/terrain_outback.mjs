@@ -284,34 +284,61 @@ export function buildOutbackGroundDetail(THREE, opts = {}) {
   const dummy = new THREE.Object3D();
   const cTmp = new THREE.Color();
 
-  // Anchor zones: cluster plants and gravel tightly around disturbed edges, rocks, bushes, fences, and camp borders
-  // leaving wide open dirt clear instead of spreading lonely grass stars across open right ground.
-  const plantAnchors = [
-    [-0.60, -3.75, 0.36], // fg left rock & sandbag
-    [-0.82, -2.55, 0.45], // fg left crate stack
-    [-1.25, -1.75, 0.62], // fg left bush & barrel
-    [-1.55, -0.55, 1.15], // fg left paddock fence line
-    [0.82, -2.28, 0.48],  // fg right crate & sandbag cluster
-    [1.35, -1.55, 0.72],  // fg right bush
-    [-2.75, 2.30, 0.90],  // camp perimeter left crates/barrels
-    [-2.15, 5.20, 1.65],  // command tent edges & stake line
-    [1.60, 2.25, 0.95],   // table & right barrels
-    [2.85, 5.55, 1.45],   // truck margin & camp edge
-    [-3.8, 10.1, 2.0],    // rear fence L
-    [0.75, 10.2, 1.8],    // rear fence C
-    [4.2, 10.0, 2.0],     // rear fence R
-    [-3.1, 1.8, 0.85],    // mid-left rock
-    [3.8, 1.4, 0.95]      // mid-right rock
-  ];
-  const gravelAnchors = [
-    [-0.60, -3.75, 0.52],
-    [0.48, -3.72, 0.48],
-    [0.76, -2.55, 0.58],
-    [-1.55, -0.55, 1.05],
-    [1.35, -1.55, 0.68],
-    [-2.55, 2.85, 0.85],
-    [1.52, 1.85, 0.78]
-  ];
+  // Anchor zones: cluster plants and gravel tightly around disturbed edges, rocks, bushes, fences, trenches, tracks & camp borders
+  // while keeping dugout trench interior and active wheel ruts clear.
+  const PLANT_BY_MODE = {
+    wheat: [
+      [-0.60, -3.75, 0.40], [-0.82, -2.55, 0.50], [-1.25, -1.75, 0.65], [-1.55, -0.55, 1.15],
+      [0.82, -2.28, 0.52], [1.35, -1.55, 0.75], [-2.75, 2.30, 0.90], [-2.15, 5.20, 1.65],
+      [1.60, 2.25, 0.95], [2.85, 5.55, 1.45], [-3.8, 10.1, 2.0], [0.75, 10.2, 1.8],
+      [4.2, 10.0, 2.0], [-3.1, 1.8, 0.85], [3.8, 1.4, 0.95]
+    ],
+    trench: [
+      [-1.75, -1.55, 0.65], [1.75, -1.55, 0.65], [-2.85, -0.45, 0.75], [2.75, -0.35, 0.75],
+      [-3.50, 1.15, 1.10], [3.40, 1.15, 1.10], [-1.45, 1.45, 0.85], [1.65, 1.45, 0.85],
+      [-4.80, 3.20, 1.25], [4.50, 4.00, 1.25], [-5.60, 5.40, 1.40], [5.80, 6.20, 1.45],
+      [-6.50, 11.8, 2.10], [2.80, 8.80, 1.65], [-9.0, 16.5, 2.40], [9.0, 18.0, 2.40]
+    ],
+    track: [
+      [-2.10, -2.20, 0.75], [2.05, -2.05, 0.75], [-2.60, 0.80, 0.85], [2.45, 0.60, 0.85],
+      [-2.90, 4.20, 0.95], [2.95, 4.50, 1.05], [-7.20, 8.50, 1.60], [3.60, 2.20, 1.10],
+      [4.80, 10.5, 1.60], [-8.40, 16.0, 1.90], [5.60, 14.0, 1.75], [-2.35, 14.5, 1.10],
+      [2.55, 18.0, 1.30], [-9.20, 23.0, 2.20], [9.20, 26.0, 2.20]
+    ],
+    broken_fence: [
+      [-1.45, -2.10, 0.60], [1.45, -1.95, 0.65], [-1.55, 0.35, 0.75], [2.25, 1.30, 0.95],
+      [-2.40, 1.35, 0.95], [-4.40, 1.40, 1.20], [4.40, 1.40, 1.20], [3.60, 0.65, 0.90],
+      [-4.20, 2.30, 1.10], [4.50, 2.50, 1.15], [-3.00, 5.20, 1.40], [2.60, 5.40, 1.40],
+      [-5.60, 8.80, 1.75], [-7.40, 13.0, 2.00], [7.80, 14.2, 2.00]
+    ]
+  };
+  const GRAVEL_BY_MODE = {
+    wheat: [
+      [-0.60, -3.75, 0.52], [0.48, -3.72, 0.48], [0.76, -2.55, 0.58], [-1.55, -0.55, 1.05],
+      [1.35, -1.55, 0.68], [-2.55, 2.85, 0.85], [1.52, 1.85, 0.78]
+    ],
+    trench: [
+      [-1.55, -1.45, 0.65], [1.55, -1.45, 0.65], [-2.20, 1.05, 0.95], [2.20, 1.05, 0.95],
+      [-4.80, 3.20, 1.15], [4.50, 4.00, 1.15], [-2.50, 7.50, 1.25], [-5.20, 2.50, 1.20]
+    ],
+    track: [
+      [-1.55, -2.40, 0.65], [1.55, -2.10, 0.65], [-1.55, 2.20, 0.75], [1.60, 2.40, 0.75],
+      [3.20, 5.50, 1.05], [-7.50, 4.00, 1.10], [5.40, 14.0, 1.15], [-1.55, 9.50, 0.85], [1.65, 10.5, 0.85]
+    ],
+    broken_fence: [
+      [-1.35, -2.05, 0.62], [1.35, -1.85, 0.62], [-2.20, 1.25, 0.85], [2.20, 1.25, 0.85],
+      [3.60, 0.60, 0.95], [-1.45, 0.35, 0.65], [0.20, 1.40, 1.10], [-3.20, 3.40, 1.05]
+    ]
+  };
+  const plantAnchors = PLANT_BY_MODE[mode] || PLANT_BY_MODE.wheat;
+  const gravelAnchors = GRAVEL_BY_MODE[mode] || GRAVEL_BY_MODE.wheat;
+
+  const roadCenterFn = (py) => {
+    if (mode === 'track') return 0.0;
+    if (mode === 'trench') return -5.3 + Math.sin(py * 0.14) * 0.28;
+    if (mode === 'broken_fence') return 0.10 - Math.sin((py + 4.0) * 0.16) * 0.22;
+    return campRoadCenterX(py);
+  };
 
   const samplePlantPos = () => {
     const roll = rand();
@@ -321,8 +348,7 @@ export function buildOutbackGroundDetail(THREE, opts = {}) {
       const dist = 0.14 + Math.pow(rand(), 1.35) * a[2];
       return [a[0] + Math.cos(ang) * dist, a[1] + Math.sin(ang) * dist];
     }
-    // Outer fence/paddock margin
-    return [(rand() - 0.5) * width, 8.5 + rand() * 11.0];
+    return [(rand() - 0.5) * width, (mode === 'trench' ? 2.5 : mode === 'track' ? 0.0 : 8.5) + rand() * 14.0];
   };
   const sampleGravelPos = () => {
     const roll = rand();
@@ -332,9 +358,10 @@ export function buildOutbackGroundDetail(THREE, opts = {}) {
       const dist = 0.10 + Math.pow(rand(), 1.2) * a[2];
       return [a[0] + Math.cos(ang) * dist, a[1] + Math.sin(ang) * dist];
     }
-    const py = -4.5 + rand() * 13.5;
+    const py = -4.5 + rand() * (mode === 'track' ? 24.0 : 15.0);
     const side = rand() > 0.5 ? 1 : -1;
-    const px = campRoadCenterX(py) + side * (0.45 + rand() * 0.65);
+    const spread = mode === 'track' ? (1.05 + rand() * 1.15) : (0.45 + rand() * 0.65);
+    const px = roadCenterFn(py) + side * spread;
     return [px, py];
   };
 
@@ -352,13 +379,15 @@ export function buildOutbackGroundDetail(THREE, opts = {}) {
   const stonePalette = ['#7d5036', '#916744', '#5c3b29', '#a37e58', '#6e4733'];
   let placedStones = 0;
   let guard = 0;
+  const heightMode = mode === 'broken_fence' ? 'wheat' : mode;
   while (placedStones < count && guard < count * 8) {
     guard++;
     const [x, py] = sampleGravelPos();
-    const rDx = Math.abs(x - campRoadCenterX(py));
+    const rDx = Math.abs(x - roadCenterFn(py));
     if (py < 9.2 && rDx < 0.24) continue;
-    const z = outbackHeight(mode, x, py);
-    const s = (py < 0 ? 0.38 : 0.38) + rand() * 0.78;
+    if (mode === 'trench' && Math.abs(x) < 3.45 && py > -1.25 && py < 0.75) continue;
+    const z = outbackHeight(heightMode, x, py);
+    const s = 0.38 + rand() * 0.78;
     dummy.position.set(x, z + 0.006, -py);
     dummy.rotation.set(rand() * 0.3, rand() * Math.PI * 2, rand() * 0.3);
     dummy.scale.set(s * (0.85 + rand() * 0.5), s * (0.48 + rand() * 0.48), s * (0.8 + rand() * 0.45));
@@ -390,12 +419,15 @@ export function buildOutbackGroundDetail(THREE, opts = {}) {
   while (placedTufts < tuftCount && guard < tuftCount * 8) {
     guard++;
     const [x, py] = samplePlantPos();
-    const rDx = Math.abs(x - campRoadCenterX(py));
-    if (py < 9.2 && rDx < 0.74) continue;
-    if (py < -2.6 && Math.hypot(x - 0.50, py + 3.45) > 0.35 && Math.hypot(x + 0.60, py + 3.65) > 0.38) continue;
-    if (Math.hypot(x + 2.15, py - 5.2) < 1.85) continue;
-    if (Math.hypot(x - 1.25, py - 8.2) < 1.55) continue;
-    const z = outbackHeight(mode, x, py);
+    const rDx = Math.abs(x - roadCenterFn(py));
+    if (mode === 'wheat' && py < 9.2 && rDx < 0.74) continue;
+    if (mode === 'track' && Math.abs(x) < 1.35) continue;
+    if (mode === 'broken_fence' && py < 5.0 && rDx < 0.72) continue;
+    if (mode === 'trench' && Math.abs(x) < 3.45 && py > -1.35 && py < 1.15) continue;
+    if (mode === 'wheat' && py < -2.6 && Math.hypot(x - 0.50, py + 3.45) > 0.35 && Math.hypot(x + 0.60, py + 3.65) > 0.38) continue;
+    if (mode === 'wheat' && Math.hypot(x + 2.15, py - 5.2) < 1.85) continue;
+    if (mode === 'wheat' && Math.hypot(x - 1.25, py - 8.2) < 1.55) continue;
+    const z = outbackHeight(heightMode, x, py);
     const s = (py < 0 ? 0.48 : 0.60) + rand() * 0.56;
     dummy.position.set(x, z - 0.008, -py);
     dummy.rotation.set((rand() - 0.5) * 0.22, rand() * Math.PI * 2, (rand() - 0.5) * 0.22);

@@ -6,7 +6,8 @@
 
 import { buildHeroTruck } from './hero_truck.js';
 import { buildEmuFlock, buildEmu } from './emu_flock.js';
-import { makePropSpawner } from './procedural_props.mjs';
+import { buildBrassLantern as buildPropLantern, buildWagonWheel, makePropSpawner } from './procedural_props.mjs';
+import { applyCrispSkyClouds, buildOutbackTent, scatterEucalyptusBelt } from './outback_dressing.mjs';
 import { buildOutbackTerrain, buildOutbackGroundDetail, buildOutbackHorizon, outbackHeight, campRoadCenterX, h2, fbmTile } from './terrain_outback.mjs';
 
 function makeRoadTextures(THREE) {
@@ -449,36 +450,28 @@ export async function build(THREE, scene, film, ctx) {
         underAmt: 0.16, rimAmt: 0.36, contrast: 0.88
       }
     } : null;
-    sky.clouds({
-      kind: skyKind,
-      seed: 1932,
-      coverage: isNightCamp ? 0.58 : skyKind === 'clear-day' ? 0.78 : isStormCamp ? 1.10 : 0.92,
-      scale: 1.35,
-      sunDir: [-0.62, 0.56, 0.44],
-      ...(nightCloudPalette ? { colors: nightCloudPalette } : stormCloudPalette ? { colors: stormCloudPalette } : skyKind === 'clear-day' ? { colors: {
-        top: '#2b6cb8',
-        mid: '#6ba5df',
-        hor: '#dceaf4',
-        sun: '#ffe9be',
-        lit: '#fffcf4',
-        shade: '#a3b8d6',
-        rim: '#ffffff'
-      } } : {}),
-      // The painted storm dome contains the heavy cloud deck, wall and rain
-      // curtains. Do not replace it with the soft daytime cloud cards.
-      layers: isStormCamp ? undefined : isNightCamp ? [
-        // Keep volume around the horizon but leave the upper third to the deep
-        // navy dome; the old all-height cloud stack made calm night read as day.
-        { d: 120, fade: 0.12, size: 0.92, n: 4, el: [1, 6] },
-        { d: 205, fade: 0.30, size: 0.98, n: 4, el: [4, 11] },
-        { d: 300, fade: 0.44, size: 1.08, n: 3, el: [8, 16] }
-      ] : [
-        { d: 95, fade: 0.06, size: 1.05, n: 7, el: [2, 9] },
-        { d: 155, fade: 0.22, size: 1.15, n: 7, el: [5, 17] },
-        { d: 245, fade: 0.42, size: 1.25, n: 6, el: [10, 24] },
-        { d: 340, fade: 0.35, size: 1.50, n: 5, el: [14, 32], cirrus: true }
-      ]
-    });
+    if (skyKind === 'clear-day') {
+      // Crisp per-pixel daytime cumulus banks via stormDome (never blurred 128px puff cards)
+      applyCrispSkyClouds(sky, 'day', { sunDir: [-0.62, 0.56, 0.44] });
+    } else {
+      sky.clouds({
+        kind: skyKind,
+        seed: 1932,
+        coverage: isNightCamp ? 0.58 : isStormCamp ? 1.10 : 0.92,
+        scale: 1.35,
+        sunDir: [-0.62, 0.56, 0.44],
+        ...(nightCloudPalette ? { colors: nightCloudPalette } : stormCloudPalette ? { colors: stormCloudPalette } : {}),
+        // The painted storm dome contains the heavy cloud deck, wall and rain
+        // curtains. Do not replace it with the soft daytime cloud cards.
+        layers: isStormCamp ? undefined : isNightCamp ? [
+          // Keep volume around the horizon but leave the upper third to the deep
+          // navy dome; the old all-height cloud stack made calm night read as day.
+          { d: 120, fade: 0.12, size: 0.92, n: 4, el: [1, 6] },
+          { d: 205, fade: 0.30, size: 0.98, n: 4, el: [4, 11] },
+          { d: 300, fade: 0.44, size: 1.08, n: 3, el: [8, 16] }
+        ] : undefined
+      });
+    }
   }
 
   const isDay = ['daylight_crisp', 'day'].includes(ctx.place?.light);
@@ -505,7 +498,7 @@ export async function build(THREE, scene, film, ctx) {
 
   // 1. Undulating Outback Soil, Concentrated Edge/Fence/Camp Vegetation & Gravel + Horizon
   root.add(buildOutbackTerrain(THREE, ctx, { mode: 'wheat', centerY: 7.0, sizeX: 76, sizeY: 76, segs: 180 }));
-  root.add(buildOutbackGroundDetail(THREE, { mode: 'wheat', centerY: 7.0, width: 28, depth: 34, count: 290 }));
+  root.add(buildOutbackGroundDetail(THREE, { mode: 'wheat', centerY: 7.0, width: 32, depth: 38, count: 420 }));
   // The stylised pink horizon belongs to sunset only. Storm uses the cold
   // cloud dome above and must not inherit a sunset ridge.
   const dramaticLight = ctx.place?.light === 'sunset';
@@ -918,6 +911,17 @@ export async function build(THREE, scene, film, ctx) {
     return barrel;
   };
   makeBarrel('fg_barrel_left', -0.98, -2.02, 0.3, 0.92);
+  // Foreground tactile camp props: spoked bush wagon wheel propped beside left paddock fence & warm lantern on barrel
+  root.add(buildWagonWheel(THREE, ctx, {
+    name: 'fg_wheat_wagon_wheel',
+    pos: [-1.18, -0.82, gY(-1.18, -0.82)],
+    yaw: 0.38,
+    lean: 0.16,
+    scale: 0.92
+  }));
+  const fgBarrelLantern = buildPropLantern(THREE, { name: 'fg_wheat_barrel_lantern', isDay, scale: 0.96, light: true, lightIntensity: isDay ? 0.20 : 1.4 });
+  fgBarrelLantern.position.copy(V(-0.95, -2.02, gY(-0.98, -2.02) + 0.59));
+  root.add(fgBarrelLantern);
 
   // 6. LAYER 2 — MIDGROUND COMMAND CAMP (py = +1.4 .. +8.8)
   const buildTent = (name, planX, planY, yaw = 0, scale = 1, openInterior = true) => {
@@ -1279,30 +1283,36 @@ export async function build(THREE, scene, film, ctx) {
   }
   root.add(heroTruck);
 
-  // 7. LAYER 3 — BACKGROUND: Wheat Paddock behind rear fence, Eucalyptus Trees, Grazing Emus
-  for (let gx = -10.5; gx <= 9.5; gx += 1.25) {
-    for (let gy = 10.6; gy <= 16.5; gy += 1.25) {
+  // 7. LAYER 3 — BACKGROUND: Wheat Paddock behind rear fence, Eucalyptus Trees, Grazing Emus, & Supply Tent
+  buildOutbackTent(THREE, ctx, gY, root, 'camp_tent_outpost_left', -5.6, 8.2, -2.15, 0.86);
+  for (let gx = -12.5; gx <= 12.5; gx += 1.05) {
+    for (let gy = 10.6; gy <= 17.5; gy += 1.15) {
       const px = gx + Math.sin(gx * 4.3 + gy) * 0.35;
       const py = gy + Math.cos(gy * 3.7 + gx) * 0.35;
       spawnWheat([px, py, gY(px, py)], {
         parent: root,
         yaw: (px + py) * 0.7,
-        scale: 0.92 + Math.abs(Math.sin(px * 3)) * 0.25
+        scale: 0.90 + Math.abs(Math.sin(px * 3)) * 0.28
       });
     }
   }
 
-  for (const [tx, ty, sc, yaw] of [
+  scatterEucalyptusBelt(spawnTree, gY, root, [
     [-4.8, 11.8, 1.08, 0.25],
-    [-8.6, 12.2, 1.12, 1.4],
+    [-8.6, 12.2, 1.16, 1.4],
+    [-12.4, 14.5, 0.94, 0.8],
     [5.2, 12.6, 1.04, 2.1],
-    [-1.4, 18.8, 0.96, 1.1],
+    [10.8, 13.8, 1.22, 0.45],
+    [-1.4, 18.8, 0.98, 1.1],
+    [-5.8, 20.5, 1.24, 1.9],
     [-9.2, 17.5, 1.18, 2.5],
     [8.4, 18.5, 1.14, 0.85],
-    [2.8, 21.5, 1.02, 1.65]
-  ]) {
-    spawnTree([tx, ty, gY(tx, ty)], { parent: root, scale: sc, yaw, solid: true });
-  }
+    [2.8, 21.5, 1.04, 1.65],
+    [13.5, 19.5, 1.10, 2.9],
+    [-14.0, 21.0, 1.28, 1.2],
+    [0.6, 25.0, 1.15, 0.3],
+    [6.2, 24.5, 1.06, 2.3]
+  ], 'wheat_euc_tree');
   for (const [rx, ry, yaw, sc] of [
     [-3.1, 1.8, 0.45, 0.72],
     [3.8, 1.4, 1.55, 0.88],
