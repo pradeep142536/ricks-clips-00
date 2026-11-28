@@ -708,10 +708,19 @@ export async function build(THREE, scene, film, ctx) {
     depthWrite: true
   });
   if (ctx.place?.light === 'night') {
-    // A moonlit dirt track needs to stay earthen and subordinate to the camp,
-    // rather than becoming a broad chalk-grey leading stripe.
-    roadMat.color.set('#1d304d');
+    // Keep the track recognisably earthen under moonlight.  A very dark blue
+    // multiplier crushed its procedural rut detail into a black foreground.
+    roadMat.color.set('#65515a');
     roadMat.roughness = 0.94;
+
+    // The close rifle, crate, and sandbags sit behind the tent's key-light
+    // shadow.  This is a deliberately small, cool bounced-moon fill, not a
+    // second sun: it restores readable form at phone scale without creating
+    // a visible pool or altering the day/dusk/storm looks.
+    const nightForegroundFill = new THREE.PointLight('#6f91d2', 0.52, 5.2, 2.0);
+    nightForegroundFill.position.copy(V(0.28, -2.85, gY(0.28, -2.85) + 1.15));
+    nightForegroundFill.name = 'night_foreground_moon_bounce';
+    root.add(nightForegroundFill);
   }
   const road = new THREE.Mesh(roadGeo, roadMat);
   road.name = 'campion_dirt_track';
