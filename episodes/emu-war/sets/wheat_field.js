@@ -56,10 +56,12 @@ function makeRoadTextures(THREE) {
       const dampPatch = Math.max(0, 0.44 - nMacro) * 1.6;
       const peb = nFine > 0.68 ? (nFine - 0.68) / 0.32 : 0.0;
 
-      // Rich high-grit dusty earthen road: compacted terracotta ruts + silty crown + pebble flecks
-      let r = 176 + (nMacro - 0.5) * 38 + (nMicro - 0.5) * 26 + berm * 22 - rut * 64 - treadGroove * 22 + peb * 28 - dampPatch * 32 + (grit - 0.5) * 16;
-      let g = 112 + (nMacro - 0.5) * 28 + (nMicro - 0.5) * 18 + berm * 20 - rut * 44 - treadGroove * 15 + peb * 20 - dampPatch * 24 + (grit - 0.5) * 12;
-      let b = 68  + (nMacro - 0.5) * 20 + (nMicro - 0.5) * 14 + berm * 14 - rut * 28 - treadGroove * 10 + peb * 14 - dampPatch * 15 + (grit - 0.5) * 9;
+      // Broken compacted dirt rather than graphic dark/light tyre ribbons.
+      // At phone scale the soil/grit variation must lead, with wheel wear only
+      // a secondary cue.
+      let r = 166 + (nMacro - 0.5) * 44 + (nMicro - 0.5) * 34 + berm * 8 - rut * 22 - treadGroove * 9 + peb * 30 - dampPatch * 28 + (grit - 0.5) * 22;
+      let g = 100 + (nMacro - 0.5) * 34 + (nMicro - 0.5) * 24 + berm * 7 - rut * 16 - treadGroove * 7 + peb * 22 - dampPatch * 21 + (grit - 0.5) * 16;
+      let b = 60  + (nMacro - 0.5) * 24 + (nMicro - 0.5) * 20 + berm * 5 - rut * 10 - treadGroove * 5 + peb * 16 - dampPatch * 14 + (grit - 0.5) * 12;
 
       const idx = (y * W + x) * 4;
       albedo[idx]     = Math.max(30, Math.min(228, r)) | 0;
@@ -669,7 +671,7 @@ export async function build(THREE, scene, film, ctx) {
   // camera.  The texture supplies the visible soil and rut breakup; geometry
   // only provides shallow, natural relief.
   const roadCols = 17;
-  const roadHalfW = 0.88;
+  const roadHalfW = 0.70;
   const roadVerts = [], roadUvs = [], roadIdx = [];
   for (let i = 0; i <= roadSteps; i++) {
     const py = -6.0 + (i / roadSteps) * 15.2;
@@ -689,7 +691,7 @@ export async function build(THREE, scene, film, ctx) {
       const crown = Math.exp(-Math.pow(u / 0.31, 2));
       const wornPulse = Math.sin(py * 1.18 + u * 1.7) * 0.004
         + Math.cos(py * 2.63 - u * 3.1) * 0.003;
-      const rutDip = crown * 0.004 - (rutL + rutR) * 0.006 + wornPulse * 0.35;
+      const rutDip = crown * 0.002 - (rutL + rutR) * 0.003 + wornPulse * 0.20;
       const p = V(px, rPy, gY(px, rPy) + rutDip);
       roadVerts.push(p.x, p.y, p.z);
       roadUvs.push(j / (roadCols - 1), i / roadSteps);
@@ -731,8 +733,8 @@ export async function build(THREE, scene, film, ctx) {
     // Use its existing soil texture as a very low material floor, preserving
     // the painted grit and tyre marks rather than making a uniform bright band.
     roadMat.emissiveMap = roadTex.map;
-    roadMat.emissive.set('#725044');
-    roadMat.emissiveIntensity = 0.22;
+    roadMat.emissive.set('#7a5847');
+    roadMat.emissiveIntensity = 0.16;
 
     // The close rifle, crate, and sandbags sit behind the tent's key-light
     // shadow.  This is a deliberately small, cool bounced-moon fill, not a
