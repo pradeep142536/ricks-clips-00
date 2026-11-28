@@ -57,10 +57,10 @@ film = {
         "idle_s": 2.6
     },
     "post": {
-        "dof": 1,
-        "bloom": 1,
+        "dof": 0,
+        "bloom": 0.14,
         "dust": 0,
-        "vignette": 1
+        "vignette": 0.35
     },
     "faces_ep": {
         "squint": {"eyes": ["squint", "squint"], "brows": [[-4, 7, 0, 1.1], [-4, 7, 0, 1.1]], "mouth": "flat"},
@@ -290,9 +290,9 @@ film = {
                 {
                     "at": ["farmers", 1],
                     "lead": 6,
-                    "pos": [-1.15, -2.15, 1.48],
-                    "aim": [-0.25, 1.20, 1.12],
-                    "lens": 28,
+                    "pos": [-0.65, -3.30, 1.45],
+                    "aim": [-1.30, 0.90, 1.10],
+                    "lens": 26,
                     "subject": "farmer",
                     "framing": "W",
                     "shows": ["farmer", "major_meredith"],
@@ -437,9 +437,9 @@ film = {
                 {
                     "at": ["chasing", 1],
                     "lead": 6,
-                    "pos": [-6.20, -4.40, 1.88],
-                    "aim": [-0.85, 1.10, 1.34],
-                    "lens": 24,
+                    "pos": [-4.45, -3.45, 1.60],
+                    "aim": [-0.15, 1.35, 1.08],
+                    "lens": 27,
                     "subject": "gunner",
                     "framing": "P",
                     "shows": ["gunner", "bird"],
@@ -473,9 +473,9 @@ film = {
                 {
                     "at": ["crashed", 1],
                     "lead": 6,
-                    "pos": [2.60, -4.10, 1.80],
-                    "aim": [0.0, 0.60, 1.22],
-                    "lens": 24,
+                    "pos": [2.60, -4.10, 1.75],
+                    "aim": [0.0, 0.90, 0.95],
+                    "lens": 26,
                     "subject": "gunner",
                     "framing": "W",
                     "shows": ["gunner", "major_meredith"],
@@ -533,9 +533,9 @@ film = {
                 {
                     "at": ["retreat", 1],
                     "lead": 6,
-                    "pos": [-0.85, -3.15, 1.50],
-                    "aim": [-0.35, 0.55, 1.22],
-                    "lens": 24,
+                    "pos": [-0.75, -2.85, 1.45],
+                    "aim": [-0.35, 0.85, 1.08],
+                    "lens": 26,
                     "subject": "major_meredith",
                     "framing": "W",
                     "shows": ["major_meredith"],

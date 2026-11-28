@@ -24,25 +24,25 @@ export async function build(THREE, scene, film, ctx) {
       maxEl: 20,
       sunDir: [0.30, 0.40, 0.70],
       colors: {
-        top: '#210e3b',
-        mid: '#8e387a',
-        hor: '#ff907d',
-        sun: '#ffba8f',
-        glow: 1.05,
-        lit: '#ff98c3',
-        shade: '#431d59',
-        rim: '#ffd5b2',
-        dark: 0.32
+        top: '#172746',
+        mid: '#3f547d',
+        hor: '#d99a68',
+        sun: '#ffbd78',
+        glow: 0.60,
+        lit: '#b5b0ce',
+        shade: '#273152',
+        rim: '#ffe0ad',
+        dark: 0.50
       },
       storm: {
-        core: '#35154e',
-        body: '#742d6d',
-        slit: '#ff8da9',
-        srim: '#ffd6ba',
-        under: '#ee608b',
-        scud: '#4c1e5a',
-        rain: '#8d477c',
-        flash: '#ffd6ee',
+        core: '#182746',
+        body: '#425577',
+        slit: '#d7a06e',
+        srim: '#ffe0ad',
+        under: '#84513e',
+        scud: '#1c2947',
+        rain: '#63738c',
+        flash: '#e5edff',
         wallTop: 0.56,
         foot: 0.05,
         deck: 0.60,
@@ -55,9 +55,9 @@ export async function build(THREE, scene, film, ctx) {
     });
   }
 
-  // 1. Sculpted Undulating Terrain + Deep Purple-Pink Sunset Horizon Ridge
+  // 1. Sculpted Undulating Terrain + muted dusk horizon (no pink-magenta strip)
   root.add(buildOutbackTerrain(THREE, ctx, { mode: 'wheat', centerY: 6.0, sizeX: 64, sizeY: 64 }));
-  root.add(buildOutbackHorizon(THREE, { centerY: 6.0, sunset: true }));
+  root.add(buildOutbackHorizon(THREE, { centerY: 6.0, sunset: false }));
   const gY = (px, py) => outbackHeight('wheat', px, py);
 
   const M = {
