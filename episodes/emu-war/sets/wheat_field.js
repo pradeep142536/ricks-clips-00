@@ -56,12 +56,13 @@ function makeRoadTextures(THREE) {
       const dampPatch = Math.max(0, 0.44 - nMacro) * 1.6;
       const peb = nFine > 0.68 ? (nFine - 0.68) / 0.32 : 0.0;
 
-      // Broken compacted dirt rather than graphic dark/light tyre ribbons.
-      // At phone scale the soil/grit variation must lead, with wheel wear only
-      // a secondary cue.
-      let r = 166 + (nMacro - 0.5) * 44 + (nMicro - 0.5) * 34 + berm * 8 - rut * 22 - treadGroove * 9 + peb * 30 - dampPatch * 28 + (grit - 0.5) * 22;
-      let g = 100 + (nMacro - 0.5) * 34 + (nMicro - 0.5) * 24 + berm * 7 - rut * 16 - treadGroove * 7 + peb * 22 - dampPatch * 21 + (grit - 0.5) * 16;
-      let b = 60  + (nMacro - 0.5) * 24 + (nMicro - 0.5) * 20 + berm * 5 - rut * 10 - treadGroove * 5 + peb * 16 - dampPatch * 14 + (grit - 0.5) * 12;
+      // Organic dusty track: broad soil breakup leads at phone scale; wheel
+      // wear remains irregular and faint so it cannot turn into two graphic
+      // parallel ribbons in a vertical ground-level composition.
+      const worn = (rut * (0.25 + 0.55 * nMacro) + treadGroove * 0.30) * 0.32;
+      let r = 160 + (nMacro - 0.5) * 52 + (nMicro - 0.5) * 42 + peb * 34 - dampPatch * 30 - worn * 18 + (grit - 0.5) * 30;
+      let g = 96  + (nMacro - 0.5) * 40 + (nMicro - 0.5) * 30 + peb * 25 - dampPatch * 22 - worn * 13 + (grit - 0.5) * 21;
+      let b = 57  + (nMacro - 0.5) * 28 + (nMicro - 0.5) * 24 + peb * 18 - dampPatch * 15 - worn * 8 + (grit - 0.5) * 15;
 
       const idx = (y * W + x) * 4;
       albedo[idx]     = Math.max(30, Math.min(228, r)) | 0;
@@ -69,7 +70,7 @@ function makeRoadTextures(THREE) {
       albedo[idx + 2] = Math.max(14, Math.min(144, b)) | 0;
       albedo[idx + 3] = 255;
 
-      const hVal = Math.max(0, Math.min(255, 134 + berm * 34 - rut * 58 - treadGroove * 26 + (nFine - 0.5) * 85 + (nMicro - 0.5) * 65 + peb * 85)) | 0;
+      const hVal = Math.max(0, Math.min(255, 134 - worn * 18 + (nFine - 0.5) * 96 + (nMicro - 0.5) * 76 + peb * 92)) | 0;
       bump[idx] = bump[idx + 1] = bump[idx + 2] = hVal;
       bump[idx + 3] = 255;
 
@@ -77,8 +78,7 @@ function makeRoadTextures(THREE) {
       alpha[idx] = alpha[idx + 1] = alpha[idx + 2] = aVal;
       alpha[idx + 3] = 255;
 
-      // Compacted tire ruts slightly smoother (0.82) than powdery dusty shoulders (0.98)
-      const rVal = Math.max(202, Math.min(254, 240 + berm * 12 - rut * 32)) | 0;
+      const rVal = Math.max(202, Math.min(254, 240 - worn * 10 + (nFine - 0.5) * 7)) | 0;
       rough[idx] = rough[idx + 1] = rough[idx + 2] = rVal;
       rough[idx + 3] = 255;
     }
