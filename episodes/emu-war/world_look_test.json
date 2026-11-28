@@ -59,12 +59,23 @@
       "light": "night",
       "sky_kind": "night-storm",
       "light_over": {
+        "top": "#0e1b46",
+        "hor": "#3c5899",
+        "sun": "#acc9ff",
         "si": 2.05,
-        "ai": 1.60,
-        "rimI": 1.00,
-        "exposure": 1.18
+        "amb": "#668be0",
+        "ai": 1.62,
+        "ground": "#3a5590",
+        "rim": "#a8cbff",
+        "rimI": 1.15,
+        "dir": [-8.5, 6.2, 2.2],
+        "fogExp2": true,
+        "fogColor": "#284076",
+        "fogDensity": 0.0052,
+        "toneMapping": "ACESFilmic",
+        "exposure": 1.08
       },
-      "post": { "dof": 0.10, "bloom": 0.34, "vignette": 0.12 }
+      "post": { "dof": 0.0, "bloom": 0.16, "vignette": 0.08 }
     },
     "outback_storm": {
       "set": "wheat_field",
@@ -109,7 +120,7 @@
       "id": "night_lantern_low",
       "place": "outback_night",
       "stations": [
-        { "at": 150, "pos": [-7.4, -1.2, 1.35], "aim": [-1.9, 5.2, 1.18], "lens": 30, "framing": "P", "hold": 2.5 }
+        { "at": 150, "pos": [0.78, -4.08, 1.38], "aim": [0.06, 2.35, -0.9], "lens": 26, "framing": "P", "hold": 2.5, "creep": 0, "drift": [0, 0, 0] }
       ]
     },
     {

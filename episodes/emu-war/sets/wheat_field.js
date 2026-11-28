@@ -990,6 +990,10 @@ export async function build(THREE, scene, film, ctx) {
     const subtleTableFill = new THREE.PointLight('#ff9f44', 0.22, 1.35, 2);
     subtleTableFill.position.set(0, 0.14, 0);
     tableLantern.add(subtleTableFill);
+  } else if (ctx.place?.light === 'night') {
+    const nightTablePool = new THREE.PointLight('#ff9e42', 1.55, 3.8, 2);
+    nightTablePool.position.set(0, 0.20, 0);
+    tableLantern.add(nightTablePool);
   }
   root.add(tableLantern);
 
